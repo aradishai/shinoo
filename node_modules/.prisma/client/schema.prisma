@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  leagueMembers  LeagueMember[]
+  predictions    Prediction[]
+  createdLeagues League[]
+}
+
+model Tournament {
+  id       String  @id @default(cuid())
+  name     String
+  nameHe   String
+  slug     String  @unique
+  type     String  @default("world_cup")
+  isActive Boolean @default(true)
+  season   String
+
+  matches Match[]
+}
+
+model Team {
+  id      String  @id @default(cuid())
+  nameHe  String
+  nameEn  String
+  code    String  @unique
+  flagUrl String?
+
+  players     Player[]
+  homeMatches Match[]  @relation("HomeTeam")
+  awayMatches Match[]  @relation("AwayTeam")
+}
+
+model Player {
+  id     String @id @default(cuid())
+  teamId String
+  nameHe String
+  nameEn String
+
+  team         Team          @relation(fields: [teamId], references: [id])
+  predictions  Prediction[]
+  matchScorers MatchScorer[]
+}
+
+model Match {
+  id              String      @id @default(cuid())
+  tournamentId    String
+  homeTeamId      String
+  awayTeamId      String
+  kickoffAt       DateTime
+  lockAt          DateTime
+  status          MatchStatus @default(SCHEDULED)
+  homeScore       Int?
+  awayScore       Int?
+  providerMatchId String?     @unique
+  round           String?
+
+  tournament  Tournament    @relation(fields: [tournamentId], references: [id])
+  homeTeam    Team          @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam    Team          @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  scorers     MatchScorer[]
+  predictions Prediction[]
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LOCKED
+  LIVE
+  FINISHED
+  CANCELLED
+  POSTPONED
+}
+
+model MatchScorer {
+  id       String @id @default(cuid())
+  matchId  String
+  playerId String
+  goals    Int    @default(1)
+
+  match  Match  @relation(fields: [matchId], references: [id])
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@unique([matchId, playerId])
+}
+
+model League {
+  id              String   @id @default(cuid())
+  name            String
+  createdByUserId String
+  inviteCode      String   @unique
+  createdAt       DateTime @default(now())
+  tournamentId    String?
+
+  createdBy   User           @relation(fields: [createdByUserId], references: [id])
+  members     LeagueMember[]
+  predictions Prediction[]
+}
+
+model LeagueMember {
+  id       String           @id @default(cuid())
+  leagueId String
+  userId   String
+  joinedAt DateTime         @default(now())
+  role     LeagueMemberRole @default(MEMBER)
+
+  league League @relation(fields: [leagueId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([leagueId, userId])
+}
+
+enum LeagueMemberRole {
+  ADMIN
+  MEMBER
+}
+
+model Prediction {
+  id                         String   @id @default(cuid())
+  userId                     String
+  leagueId                   String
+  matchId                    String
+  predictedHomeScore         Int
+  predictedAwayScore         Int
+  predictedTopScorerPlayerId String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  lockedSnapshot             Json?
+
+  user               User              @relation(fields: [userId], references: [id])
+  league             League            @relation(fields: [leagueId], references: [id])
+  match              Match             @relation(fields: [matchId], references: [id])
+  predictedTopScorer Player?           @relation(fields: [predictedTopScorerPlayerId], references: [id])
+  points             PredictionPoints?
+
+  @@unique([userId, leagueId, matchId])
+}
+
+model PredictionPoints {
+  id              String  @id @default(cuid())
+  predictionId    String  @unique
+  resultPoints    Int     @default(0)
+  topScorerPoints Int     @default(0)
+  totalPoints     Int     @default(0)
+  explanation     String?
+
+  prediction Prediction @relation(fields: [predictionId], references: [id])
+}
