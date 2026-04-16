@@ -3,7 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'SHINU! | ניחושי כדורגל',
+  title: 'SHINOO! | ניחושי כדורגל',
   description: 'תחרות ניחושי כדורגל עם חברים — מונדיאל 2026',
   manifest: '/manifest.json',
   viewport: {

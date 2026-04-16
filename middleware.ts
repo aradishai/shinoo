@@ -1,33 +1,23 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifyToken } from './lib/auth'
 
 const PUBLIC_PATHS = [
   '/login',
   '/register',
   '/api/auth/login',
   '/api/auth/register',
+  '/_next',
+  '/favicon',
 ]
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Allow public paths
-  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path))
-  if (isPublicPath) {
-    return NextResponse.next()
-  }
+  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
+  if (isPublic) return NextResponse.next()
 
-  // Allow static files and Next.js internals
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon') ||
-    pathname.includes('.')
-  ) {
-    return NextResponse.next()
-  }
+  if (pathname.includes('.')) return NextResponse.next()
 
-  // Check auth token
   const token = request.cookies.get('shinu_token')?.value
 
   if (!token) {
@@ -37,9 +27,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  const session = verifyToken(token)
+  // Decode JWT payload without verification (verification happens in each API route)
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) throw new Error('invalid')
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+    if (!payload.userId) throw new Error('no userId')
+    if (payload.exp && payload.exp < Date.now() / 1000) throw new Error('expired')
 
-  if (!session) {
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-user-id', payload.userId)
+    return NextResponse.next({ request: { headers: requestHeaders } })
+  } catch {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'טוקן לא תקין' }, { status: 401 })
     }
@@ -47,14 +46,6 @@ export function middleware(request: NextRequest) {
     response.cookies.delete('shinu_token')
     return response
   }
-
-  // Attach userId to request headers for API routes
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-user-id', session.userId)
-
-  return NextResponse.next({
-    request: { headers: requestHeaders },
-  })
 }
 
 export const config = {

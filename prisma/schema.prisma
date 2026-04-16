@@ -1,10 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
 }
 
 model User {
@@ -60,7 +60,7 @@ model Match {
   awayTeamId      String
   kickoffAt       DateTime
   lockAt          DateTime
-  status          MatchStatus @default(SCHEDULED)
+  status          String @default("SCHEDULED")
   homeScore       Int?
   awayScore       Int?
   providerMatchId String?     @unique
@@ -71,15 +71,6 @@ model Match {
   awayTeam    Team          @relation("AwayTeam", fields: [awayTeamId], references: [id])
   scorers     MatchScorer[]
   predictions Prediction[]
-}
-
-enum MatchStatus {
-  SCHEDULED
-  LOCKED
-  LIVE
-  FINISHED
-  CANCELLED
-  POSTPONED
 }
 
 model MatchScorer {
@@ -112,17 +103,12 @@ model LeagueMember {
   leagueId String
   userId   String
   joinedAt DateTime         @default(now())
-  role     LeagueMemberRole @default(MEMBER)
+  role     String @default("MEMBER")
 
   league League @relation(fields: [leagueId], references: [id])
   user   User   @relation(fields: [userId], references: [id])
 
   @@unique([leagueId, userId])
-}
-
-enum LeagueMemberRole {
-  ADMIN
-  MEMBER
 }
 
 model Prediction {
@@ -135,7 +121,7 @@ model Prediction {
   predictedTopScorerPlayerId String?
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
-  lockedSnapshot             Json?
+  lockedSnapshot             String?
 
   user               User              @relation(fields: [userId], references: [id])
   league             League            @relation(fields: [leagueId], references: [id])

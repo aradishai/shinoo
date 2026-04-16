@@ -35,34 +35,42 @@ interface MatchCardProps {
   leagueId?: string
 }
 
-const TEAM_FLAGS: Record<string, string> = {
-  BRA: '🇧🇷',
-  ARG: '🇦🇷',
-  FRA: '🇫🇷',
-  ENG: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-  GER: '🇩🇪',
-  ESP: '🇪🇸',
-  POR: '🇵🇹',
-  MAR: '🇲🇦',
-  URU: '🇺🇾',
-  NED: '🇳🇱',
-  BEL: '🇧🇪',
-  ITA: '🇮🇹',
-  USA: '🇺🇸',
-  MEX: '🇲🇽',
-  JPN: '🇯🇵',
-  KOR: '🇰🇷',
-  SEN: '🇸🇳',
-  GHA: '🇬🇭',
-  AUS: '🇦🇺',
-  CRO: '🇭🇷',
+// FIFA code → ISO 3166-1 alpha-2 (for flagcdn.com)
+const FIFA_TO_ISO: Record<string, string> = {
+  USA: 'us', MEX: 'mx', CAN: 'ca', PAN: 'pa', HON: 'hn', CRC: 'cr', SLV: 'sv',
+  ARG: 'ar', BRA: 'br', COL: 'co', ECU: 'ec', URU: 'uy', VEN: 've', CHI: 'cl',
+  PAR: 'py', PER: 'pe', BOL: 'bo',
+  FRA: 'fr', ENG: 'gb-eng', ESP: 'es', GER: 'de', POR: 'pt', NED: 'nl',
+  BEL: 'be', ITA: 'it', CRO: 'hr', SUI: 'ch', DEN: 'dk', AUT: 'at',
+  TUR: 'tr', SRB: 'rs', SCO: 'gb-sct', UKR: 'ua', POL: 'pl', SVK: 'sk',
+  HUN: 'hu', GRE: 'gr', ALB: 'al', CZE: 'cz', BIH: 'ba', WAL: 'gb-wls',
+  JPN: 'jp', KOR: 'kr', IRN: 'ir', AUS: 'au', SAU: 'sa', QAT: 'qa',
+  UZB: 'uz', IRQ: 'iq', CHN: 'cn', IND: 'in', THA: 'th',
+  MAR: 'ma', SEN: 'sn', EGY: 'eg', CMR: 'cm', NGA: 'ng', TUN: 'tn',
+  RSA: 'za', GHA: 'gh', CIV: 'ci', MLI: 'ml', COD: 'cd',
+  NZL: 'nz', IDN: 'id',
+  // WC2026 specific
+  HAI: 'ht', SCO: 'gb-sct', PAR: 'py', CUW: 'cw', SWE: 'se',
+  CPV: 'cv', NOR: 'no', ALG: 'dz', JOR: 'jo', COD: 'cd', COL: 'co',
 }
 
 function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) {
-  const emoji = TEAM_FLAGS[code]
-  if (emoji) return <span className="text-2xl">{emoji}</span>
-  if (flagUrl) return <img src={flagUrl} alt={code} className="w-8 h-6 object-cover rounded-sm" />
-  return <span className="text-xs text-gray-500 font-mono">{code}</span>
+  const iso = FIFA_TO_ISO[code]
+  const src = iso
+    ? `https://flagcdn.com/w40/${iso}.png`
+    : flagUrl || null
+
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={code}
+        className="w-9 h-6 object-cover rounded-sm shadow-sm"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+    )
+  }
+  return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
 export function MatchCard({ match, prediction, leagueId }: MatchCardProps) {

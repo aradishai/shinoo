@@ -14,26 +14,6 @@ export async function POST(request: Request) {
       )
     }
 
-    if (username.length < 3 || username.length > 20) {
-      return NextResponse.json(
-        { error: 'שם משתמש חייב להיות בין 3 ל-20 תווים' },
-        { status: 400 }
-      )
-    }
-
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return NextResponse.json(
-        { error: 'שם משתמש יכול להכיל רק אותיות באנגלית, מספרים וקו תחתון' },
-        { status: 400 }
-      )
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: 'סיסמה חייבת להיות לפחות 6 תווים' },
-        { status: 400 }
-      )
-    }
 
     const existingUser = await db.user.findUnique({ where: { username } })
     if (existingUser) {

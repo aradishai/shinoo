@@ -99,7 +99,7 @@ export default function CreateLeaguePage() {
   const shareOnWhatsApp = () => {
     if (!createdLeague) return
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-    const message = `הצטרף לליגת "${createdLeague.name}" ב-SHINU!\n\nקוד הזמנה: ${createdLeague.inviteCode}\n\nכנס ל: ${appUrl}`
+    const message = `הצטרף לליגת "${createdLeague.name}" ב-SHINOO!\n\nקוד הזמנה: ${createdLeague.inviteCode}\n\nכנס ל: ${appUrl}`
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
   }
 

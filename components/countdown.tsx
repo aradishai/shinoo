@@ -67,8 +67,8 @@ export function Countdown({ targetDate, onExpire, className }: CountdownProps) {
 
   if (timeLeft.days > 0) {
     return (
-      <span className={className || 'text-gray-400 text-xs'}>
-        {timeLeft.days}י {timeLeft.hours}ש {timeLeft.minutes}ד
+      <span className={className || 'text-gray-400 text-xs'} dir="ltr">
+        {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m
       </span>
     )
   }

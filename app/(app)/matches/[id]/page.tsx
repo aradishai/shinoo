@@ -60,14 +60,37 @@ interface Prediction {
   } | null
 }
 
-const TEAM_FLAGS: Record<string, string> = {
-  BRA: '🇧🇷', ARG: '🇦🇷', FRA: '🇫🇷', ENG: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-  GER: '🇩🇪', ESP: '🇪🇸', POR: '🇵🇹', MAR: '🇲🇦',
+const FIFA_TO_ISO: Record<string, string> = {
+  USA: 'us', MEX: 'mx', CAN: 'ca', PAN: 'pa', HON: 'hn', CRC: 'cr', SLV: 'sv',
+  ARG: 'ar', BRA: 'br', COL: 'co', ECU: 'ec', URU: 'uy', VEN: 've', CHI: 'cl',
+  PAR: 'py', PER: 'pe', BOL: 'bo',
+  FRA: 'fr', ENG: 'gb-eng', ESP: 'es', GER: 'de', POR: 'pt', NED: 'nl',
+  BEL: 'be', ITA: 'it', CRO: 'hr', SUI: 'ch', DEN: 'dk', AUT: 'at',
+  TUR: 'tr', SRB: 'rs', SCO: 'gb-sct', UKR: 'ua', POL: 'pl', SVK: 'sk',
+  HUN: 'hu', CZE: 'cz', BIH: 'ba', WAL: 'gb-wls', ALB: 'al',
+  JPN: 'jp', KOR: 'kr', IRN: 'ir', AUS: 'au', SAU: 'sa', QAT: 'qa',
+  UZB: 'uz', IRQ: 'iq', CHN: 'cn',
+  MAR: 'ma', SEN: 'sn', EGY: 'eg', CMR: 'cm', NGA: 'ng', TUN: 'tn',
+  RSA: 'za', GHA: 'gh', CIV: 'ci', MLI: 'ml', COD: 'cd', ZAM: 'zm',
+  TAN: 'tz', GUI: 'gn', COM: 'km',
+  NZL: 'nz', IDN: 'id',
+  HAI: 'ht', SCO: 'gb-sct', PAR: 'py', CUW: 'cw', SWE: 'se',
+  CPV: 'cv', NOR: 'no', ALG: 'dz', JOR: 'jo', COD: 'cd', COL: 'co',
 }
 
 function TeamFlag({ code }: { code: string }) {
-  const emoji = TEAM_FLAGS[code]
-  return <span className="text-4xl">{emoji || code}</span>
+  const iso = FIFA_TO_ISO[code]
+  if (iso) {
+    return (
+      <img
+        src={`https://flagcdn.com/w80/${iso}.png`}
+        alt={code}
+        className="w-14 h-10 object-cover rounded shadow-sm"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+    )
+  }
+  return <span className="text-xs text-gray-500 font-mono">{code}</span>
 }
 
 function PointsBadge({ points }: { points: number }) {
@@ -279,6 +302,21 @@ export default function MatchDetailPage() {
               <option key={l.id} value={l.id}>{l.name}</option>
             ))}
           </select>
+        </div>
+      )}
+
+      {/* No league state */}
+      {userLeagues.length === 0 && !isLocked && (
+        <div className="bg-dark-card border border-primary/20 rounded-2xl p-5 text-center mb-4">
+          <div className="text-3xl mb-2">🏆</div>
+          <p className="text-white font-bold mb-1">כדי להמר צריך להיות בליגה</p>
+          <p className="text-gray-500 text-sm mb-4">צור ליגה עם חברים או הצטרף לליגה קיימת</p>
+          <a
+            href="/leagues/create"
+            className="inline-block bg-primary text-black font-black px-6 py-2.5 rounded-xl text-sm"
+          >
+            צור ליגה עכשיו
+          </a>
         </div>
       )}
 

@@ -134,7 +134,8 @@ export default function HomePage() {
             <span className="text-white">SH</span>
             <span className="text-primary">I</span>
             <span className="text-white">N</span>
-            <span className="text-primary">U</span>
+            <span className="text-primary">O</span>
+            <span className="text-white">O</span>
             <span className="text-secondary">!</span>
           </h1>
           <p className="text-gray-500 text-xs">שלום, {user?.username}! 👋</p>

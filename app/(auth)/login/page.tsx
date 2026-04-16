@@ -34,8 +34,7 @@ export default function LoginPage() {
       }
 
       toast.success('ברוך הבא!')
-      router.push('/')
-      router.refresh()
+      window.location.href = '/'
     } catch {
       toast.error('שגיאת חיבור')
     } finally {
@@ -52,7 +51,8 @@ export default function LoginPage() {
             <span className="text-white">SH</span>
             <span className="text-primary">I</span>
             <span className="text-white">N</span>
-            <span className="text-primary">U</span>
+            <span className="text-primary">O</span>
+            <span className="text-white">O</span>
             <span className="text-secondary">!</span>
           </h1>
           <div className="absolute -inset-4 bg-primary/5 blur-2xl rounded-full -z-10" />

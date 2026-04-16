@@ -25,10 +25,6 @@ export default function RegisterPage() {
       return
     }
 
-    if (password.length < 6) {
-      toast.error('הסיסמה חייבת להיות לפחות 6 תווים')
-      return
-    }
 
     setLoading(true)
     try {
@@ -45,9 +41,8 @@ export default function RegisterPage() {
         return
       }
 
-      toast.success('ברוך הבא לשינו!')
-      router.push('/')
-      router.refresh()
+      toast.success('ברוך הבא לשינוּ!')
+      window.location.href = '/'
     } catch {
       toast.error('שגיאת חיבור')
     } finally {
@@ -64,7 +59,8 @@ export default function RegisterPage() {
             <span className="text-white">SH</span>
             <span className="text-primary">I</span>
             <span className="text-white">N</span>
-            <span className="text-primary">U</span>
+            <span className="text-primary">O</span>
+            <span className="text-white">O</span>
             <span className="text-secondary">!</span>
           </h1>
           <div className="absolute -inset-4 bg-primary/5 blur-2xl rounded-full -z-10" />
@@ -86,16 +82,12 @@ export default function RegisterPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="לדוגמה: messi10"
+                placeholder="כל שם שתרצה"
                 autoComplete="username"
                 autoFocus
-                maxLength={20}
                 className="w-full bg-dark-50 border border-dark-border rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:border-primary focus:outline-none transition-colors text-right"
                 disabled={loading}
               />
-              <p className="text-xs text-gray-600 mt-1 text-right">
-                3-20 תווים: אותיות באנגלית, מספרים וקו תחתון
-              </p>
             </div>
 
             <div>
@@ -106,7 +98,7 @@ export default function RegisterPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="לפחות 6 תווים"
+                placeholder="בחר סיסמה"
                 autoComplete="new-password"
                 className="w-full bg-dark-50 border border-dark-border rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:border-primary focus:outline-none transition-colors text-right"
                 disabled={loading}
