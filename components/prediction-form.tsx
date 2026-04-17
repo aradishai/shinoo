@@ -141,10 +141,6 @@ export function PredictionForm({
 
   return (
     <form onSubmit={handleSubmit} className="bg-dark-card border border-dark-border rounded-2xl p-5">
-      <h3 className="text-white font-bold text-lg mb-5 text-center">
-        {existingPrediction ? 'ערוך ניחוש' : 'הגש ניחוש'}
-      </h3>
-
       {/* Score Inputs */}
       <div className="flex items-center justify-center gap-4 mb-6">
         {/* Home Team */}
@@ -184,7 +180,7 @@ export function PredictionForm({
       {allPlayers.length > 0 && (
         <div className="mb-6">
           <label className="block text-gray-400 text-sm font-medium mb-2 text-right">
-            מלך שערים מנוחש (+2 נקודות)
+            מלך שערים
           </label>
           <select
             value={topScorerId}
@@ -192,7 +188,7 @@ export function PredictionForm({
             className="w-full bg-dark-50 border border-dark-border rounded-xl px-4 py-3 text-white text-sm focus:border-primary focus:outline-none appearance-none cursor-pointer"
             disabled={loading}
           >
-            <option value="">— ללא בחירה —</option>
+            <option value=""></option>
             <optgroup label={homeTeam.nameHe}>
               {homePlayers.map((p) => (
                 <option key={p.id} value={p.id}>{p.nameHe}</option>
