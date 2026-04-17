@@ -159,63 +159,67 @@ export default function MatchesPage() {
 
             return (
               <div key={match.id} className={`bg-dark-card border rounded-2xl p-3 ${hasPrediction ? 'border-primary/30' : 'border-dark-border'}`}>
-                {/* Match info row */}
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  {/* Away team (right side in RTL) */}
-                  <div className="flex items-center gap-1.5 flex-1 justify-end">
-                    <span className="text-white text-sm font-semibold">{match.awayTeam.nameHe}</span>
-                    <Flag code={match.awayTeam.code} />
+                <div className="flex items-center gap-2">
+
+                  {/* ✓ button - right edge */}
+                  {isOpen && (
+                    <button
+                      onClick={() => save(match)}
+                      disabled={saving === match.id || s.home === '' || s.away === ''}
+                      className="w-10 h-10 rounded-xl bg-primary text-black font-black text-lg flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all flex-shrink-0"
+                    >
+                      {saving === match.id ? '...' : '✓'}
+                    </button>
+                  )}
+
+                  {/* Away team + input */}
+                  <div className="flex flex-col items-center gap-1 flex-1">
+                    <div className="flex items-center gap-1">
+                      <span className="text-white text-xs font-semibold">{match.awayTeam.nameHe}</span>
+                      <Flag code={match.awayTeam.code} />
+                    </div>
+                    {isOpen ? (
+                      <input type="number" min={0} max={20} placeholder="0"
+                        value={s.away}
+                        onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, away: e.target.value } }))}
+                        className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
+                      />
+                    ) : match.userPrediction ? (
+                      <span className="text-primary font-black text-xl">{match.userPrediction.predictedAwayScore}</span>
+                    ) : null}
                   </div>
 
-                  {/* Center: score or time */}
-                  <div className="text-center px-1 min-w-[60px]">
+                  {/* Center: time / result */}
+                  <div className="text-center flex-shrink-0">
                     {(isFinished || isLive) && match.homeScore !== null ? (
                       <span className={`text-sm font-black ${isLive ? 'text-primary' : 'text-white'}`}>
                         {match.homeScore}-{match.awayScore}
                       </span>
                     ) : (
-                      <span className="text-gray-500 text-xs">{format(kickoff, 'dd/MM HH:mm', { locale: he })}</span>
+                      <span className="text-gray-500 text-xs">{format(kickoff, 'HH:mm\ndd/MM', { locale: he })}</span>
                     )}
+                    {isOpen && <div className="text-gray-500 text-xs">-</div>}
                     {match.round && <div className="text-gray-600 text-xs">{match.round}</div>}
                   </div>
 
-                  {/* Home team (left side in RTL) */}
-                  <div className="flex items-center gap-1.5 flex-1">
-                    <Flag code={match.homeTeam.code} />
-                    <span className="text-white text-sm font-semibold">{match.homeTeam.nameHe}</span>
+                  {/* Home team + input */}
+                  <div className="flex flex-col items-center gap-1 flex-1">
+                    <div className="flex items-center gap-1">
+                      <Flag code={match.homeTeam.code} />
+                      <span className="text-white text-xs font-semibold">{match.homeTeam.nameHe}</span>
+                    </div>
+                    {isOpen ? (
+                      <input type="number" min={0} max={20} placeholder="0"
+                        value={s.home}
+                        onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, home: e.target.value } }))}
+                        className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
+                      />
+                    ) : match.userPrediction ? (
+                      <span className="text-primary font-black text-xl">{match.userPrediction.predictedHomeScore}</span>
+                    ) : null}
                   </div>
-                </div>
 
-                {/* Prediction row */}
-                {isOpen ? (
-                  <div className="flex items-center justify-center gap-3 pt-1">
-                    <input type="number" min={0} max={20} placeholder="0"
-                      value={s.home}
-                      onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, home: e.target.value } }))}
-                      className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
-                    />
-                    <span className="text-gray-500 font-bold">-</span>
-                    <input type="number" min={0} max={20} placeholder="0"
-                      value={s.away}
-                      onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, away: e.target.value } }))}
-                      className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
-                    />
-                    <button
-                      onClick={() => save(match)}
-                      disabled={saving === match.id || s.home === '' || s.away === ''}
-                      className="w-10 h-10 rounded-xl bg-primary text-black font-black text-lg flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all"
-                    >
-                      {saving === match.id ? '...' : '✓'}
-                    </button>
-                  </div>
-                ) : match.userPrediction ? (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">הניחוש שלי</span>
-                    <span className="text-sm font-bold text-primary">
-                      {match.userPrediction.predictedHomeScore} - {match.userPrediction.predictedAwayScore}
-                    </span>
-                  </div>
-                ) : null}
+                </div>
               </div>
             )
           })}
