@@ -11,7 +11,12 @@ export const metadata: Metadata = {
     initialScale: 1,
     maximumScale: 1,
   },
-  themeColor: '#00C853',
+  themeColor: '#FF2D78',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'SHINOO!',
+  },
 }
 
 export default function RootLayout({
@@ -22,6 +27,8 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl">
       <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
