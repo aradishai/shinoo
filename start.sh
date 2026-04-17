@@ -8,5 +8,14 @@ echo "PORT=$PORT"
 echo "=== setup-db ==="
 node scripts/setup-db.js || echo "setup-db exited with $?"
 
+echo "=== check seed ==="
+node -e "
+const Database = require('better-sqlite3');
+const db = new Database('/app/dev.db');
+const count = db.prepare('SELECT COUNT(*) as c FROM Tournament').get().c;
+db.close();
+process.exit(count === 0 ? 1 : 0);
+" || (echo '=== seeding ===' && npx tsx prisma/seed.ts && echo '=== seed done ===')
+
 echo "=== starting next ==="
 exec node_modules/.bin/next start -p ${PORT:-3000}
