@@ -188,32 +188,25 @@ export default function MatchesPage() {
 
                 {/* Prediction row */}
                 {isOpen ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      {/* Save button */}
-                      <button
-                        onClick={() => save(match)}
-                        disabled={saving === match.id || s.home === '' || s.away === ''}
-                        className="w-10 h-10 rounded-xl bg-primary text-black font-black text-lg flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all flex-shrink-0"
-                      >
-                        {saving === match.id ? '...' : '✓'}
-                      </button>
-
-                      {/* Away score */}
-                      <input type="number" min={0} max={20} placeholder="0"
-                        value={s.away}
-                        onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, away: e.target.value } }))}
-                        className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
-                      />
-                      <span className="text-gray-500 font-bold">-</span>
-                      {/* Home score */}
-                      <input type="number" min={0} max={20} placeholder="0"
-                        value={s.home}
-                        onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, home: e.target.value } }))}
-                        className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
-                      />
-
-                    </div>
+                  <div className="flex items-center justify-center gap-3 pt-1">
+                    <input type="number" min={0} max={20} placeholder="0"
+                      value={s.home}
+                      onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, home: e.target.value } }))}
+                      className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
+                    />
+                    <span className="text-gray-500 font-bold">-</span>
+                    <input type="number" min={0} max={20} placeholder="0"
+                      value={s.away}
+                      onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, away: e.target.value } }))}
+                      className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
+                    />
+                    <button
+                      onClick={() => save(match)}
+                      disabled={saving === match.id || s.home === '' || s.away === ''}
+                      className="w-10 h-10 rounded-xl bg-primary text-black font-black text-lg flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all"
+                    >
+                      {saving === match.id ? '...' : '✓'}
+                    </button>
                   </div>
                 ) : match.userPrediction ? (
                   <div className="flex items-center justify-between">
