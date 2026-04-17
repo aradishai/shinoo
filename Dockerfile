@@ -9,6 +9,7 @@ RUN npm ci
 
 COPY . .
 RUN npx prisma generate
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 EXPOSE 3000
