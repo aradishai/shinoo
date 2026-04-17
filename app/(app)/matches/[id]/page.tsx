@@ -239,7 +239,7 @@ export default function MatchDetailPage() {
 
             {isOpen && (
               <div className="text-center">
-                <p className="text-gray-500 text-xs mb-1">נועל עוד</p>
+                <p className="text-gray-500 text-xs mb-1">ננעל בעוד</p>
                 <Countdown targetDate={lockAt} />
               </div>
             )}
