@@ -1,7 +1,7 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "deploy": {
-    "startCommand": "node scripts/setup-db.js && node --version && echo PORT=$PORT && ls .next/server/app 2>&1 | head -5 && node_modules/.bin/next start -p 3000",
+    "startCommand": "sh start.sh",
     "restartPolicyType": "ON_FAILURE"
   }
 }
