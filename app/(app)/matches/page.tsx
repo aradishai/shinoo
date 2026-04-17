@@ -158,8 +158,8 @@ export default function MatchesPage() {
             const allPlayers = [...(match.homeTeam.players || []), ...(match.awayTeam.players || [])]
 
             return (
-              <div key={match.id} className={`bg-dark-card border rounded-2xl p-3 ${hasPrediction ? 'border-primary/30' : 'border-dark-border'}`}>
-                <div className="flex items-center gap-2">
+              <div key={match.id} className={`bg-dark-card border rounded-2xl p-4 ${hasPrediction ? 'border-primary/30' : 'border-dark-border'}`}>
+                <div className="flex items-center gap-3">
 
                   {/* ✓ button - right edge */}
                   {isOpen && (
@@ -173,7 +173,7 @@ export default function MatchesPage() {
                   )}
 
                   {/* Away team + input */}
-                  <div className="flex flex-col items-center gap-1 flex-1">
+                  <div className="flex flex-col items-center gap-2 flex-1">
                     <span className="text-white text-xs font-semibold">{match.awayTeam.nameHe}</span>
                     <Flag code={match.awayTeam.code} />
                     {isOpen ? (
@@ -200,7 +200,7 @@ export default function MatchesPage() {
                   </div>
 
                   {/* Home team + input */}
-                  <div className="flex flex-col items-center gap-1 flex-1">
+                  <div className="flex flex-col items-center gap-2 flex-1">
                     <span className="text-white text-xs font-semibold">{match.homeTeam.nameHe}</span>
                     <Flag code={match.homeTeam.code} />
                     {isOpen ? (
