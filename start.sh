@@ -9,4 +9,4 @@ echo "=== setup-db ==="
 node scripts/setup-db.js || echo "setup-db exited with $?"
 
 echo "=== starting next ==="
-exec node_modules/.bin/next start -p 3000
+exec node_modules/.bin/next start -p ${PORT:-3000}
