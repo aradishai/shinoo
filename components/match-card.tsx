@@ -38,21 +38,13 @@ interface MatchCardProps {
 
 // FIFA code → ISO 3166-1 alpha-2 (for flagcdn.com)
 const FIFA_TO_ISO: Record<string, string> = {
-  USA: 'us', MEX: 'mx', CAN: 'ca', PAN: 'pa', HON: 'hn', CRC: 'cr', SLV: 'sv',
-  ARG: 'ar', BRA: 'br', COL: 'co', ECU: 'ec', URU: 'uy', VEN: 've', CHI: 'cl',
-  PAR: 'py', PER: 'pe', BOL: 'bo',
-  FRA: 'fr', ENG: 'gb-eng', ESP: 'es', GER: 'de', POR: 'pt', NED: 'nl',
-  BEL: 'be', ITA: 'it', CRO: 'hr', SUI: 'ch', DEN: 'dk', AUT: 'at',
-  TUR: 'tr', SRB: 'rs', SCO: 'gb-sct', UKR: 'ua', POL: 'pl', SVK: 'sk',
-  HUN: 'hu', GRE: 'gr', ALB: 'al', CZE: 'cz', BIH: 'ba', WAL: 'gb-wls',
-  JPN: 'jp', KOR: 'kr', IRN: 'ir', AUS: 'au', SAU: 'sa', QAT: 'qa',
-  UZB: 'uz', IRQ: 'iq', CHN: 'cn', IND: 'in', THA: 'th',
-  MAR: 'ma', SEN: 'sn', EGY: 'eg', CMR: 'cm', NGA: 'ng', TUN: 'tn',
-  RSA: 'za', GHA: 'gh', CIV: 'ci', MLI: 'ml', COD: 'cd',
-  NZL: 'nz', IDN: 'id',
-  // WC2026 specific
-  HAI: 'ht', SCO: 'gb-sct', PAR: 'py', CUW: 'cw', SWE: 'se',
-  CPV: 'cv', NOR: 'no', ALG: 'dz', JOR: 'jo', COD: 'cd', COL: 'co',
+  USA: 'us', MEX: 'mx', CAN: 'ca', PAN: 'pa', ARG: 'ar', BRA: 'br', COL: 'co',
+  ECU: 'ec', URU: 'uy', PAR: 'py', FRA: 'fr', ENG: 'gb-eng', ESP: 'es', GER: 'de',
+  POR: 'pt', NED: 'nl', BEL: 'be', CRO: 'hr', SUI: 'ch', AUT: 'at', TUR: 'tr',
+  SCO: 'gb-sct', CZE: 'cz', BIH: 'ba', JPN: 'jp', KOR: 'kr', IRN: 'ir', AUS: 'au',
+  SAU: 'sa', QAT: 'qa', UZB: 'uz', IRQ: 'iq', MAR: 'ma', SEN: 'sn', EGY: 'eg',
+  TUN: 'tn', RSA: 'za', GHA: 'gh', CIV: 'ci', COD: 'cd', NZL: 'nz', HAI: 'ht',
+  CUW: 'cw', SWE: 'se', CPV: 'cv', NOR: 'no', ALG: 'dz', JOR: 'jo',
 }
 
 function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) {

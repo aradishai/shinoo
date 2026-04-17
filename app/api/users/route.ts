@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
     const users = await db.user.findMany({
       where: {
-        username: { contains: query, mode: 'insensitive' },
+        username: { contains: query },
         id: { not: userId }, // exclude self
       },
       select: {

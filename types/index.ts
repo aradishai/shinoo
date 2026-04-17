@@ -1,4 +1,3 @@
-export type { MatchStatus, LeagueMemberRole } from '@prisma/client'
 
 export interface UserSession {
   userId: string

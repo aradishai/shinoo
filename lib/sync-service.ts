@@ -1,7 +1,6 @@
 import { db } from './db'
 import { getFootballProvider } from './football-provider'
 import { calculatePoints } from './scoring-engine'
-import { MatchStatus } from '@prisma/client'
 
 const provider = getFootballProvider()
 
@@ -30,7 +29,7 @@ export async function syncFixtures(): Promise<void> {
 
       const lockAt = new Date(fixture.kickoffAt.getTime() - 3 * 60 * 60 * 1000)
 
-      const statusMap: Record<string, MatchStatus> = {
+      const statusMap: Record<string, string> = {
         SCHEDULED: 'SCHEDULED',
         LOCKED: 'LOCKED',
         LIVE: 'LIVE',
