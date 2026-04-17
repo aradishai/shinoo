@@ -5,6 +5,8 @@ echo "=== START ==="
 node --version
 echo "PORT=$PORT"
 
+mkdir -p /app/data
+
 echo "=== setup-db ==="
 node scripts/setup-db.js || echo "setup-db exited with $?"
 
