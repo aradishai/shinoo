@@ -174,10 +174,8 @@ export default function MatchesPage() {
 
                   {/* Away team + input */}
                   <div className="flex flex-col items-center gap-1 flex-1">
-                    <div className="flex items-center gap-1">
-                      <span className="text-white text-xs font-semibold">{match.awayTeam.nameHe}</span>
-                      <Flag code={match.awayTeam.code} />
-                    </div>
+                    <span className="text-white text-xs font-semibold">{match.awayTeam.nameHe}</span>
+                    <Flag code={match.awayTeam.code} />
                     {isOpen ? (
                       <input type="number" min={0} max={20} placeholder="0"
                         value={s.away}
@@ -196,18 +194,15 @@ export default function MatchesPage() {
                         {match.homeScore}-{match.awayScore}
                       </span>
                     ) : (
-                      <span className="text-gray-500 text-xs">{format(kickoff, 'HH:mm\ndd/MM', { locale: he })}</span>
+                      <span className="text-gray-500 text-xs">{format(kickoff, 'HH:mm dd/MM', { locale: he })}</span>
                     )}
-                    {isOpen && <div className="text-gray-500 text-xs">-</div>}
                     {match.round && <div className="text-gray-600 text-xs">{match.round}</div>}
                   </div>
 
                   {/* Home team + input */}
                   <div className="flex flex-col items-center gap-1 flex-1">
-                    <div className="flex items-center gap-1">
-                      <Flag code={match.homeTeam.code} />
-                      <span className="text-white text-xs font-semibold">{match.homeTeam.nameHe}</span>
-                    </div>
+                    <span className="text-white text-xs font-semibold">{match.homeTeam.nameHe}</span>
+                    <Flag code={match.homeTeam.code} />
                     {isOpen ? (
                       <input type="number" min={0} max={20} placeholder="0"
                         value={s.home}
