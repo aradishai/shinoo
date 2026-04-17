@@ -203,27 +203,6 @@ export function PredictionForm({
         </div>
       )}
 
-      {/* Scoring Hint */}
-      <div className="bg-dark-50 rounded-xl p-3 mb-5 space-y-1.5">
-        <p className="text-gray-500 text-xs font-medium text-right">מערכת הניקוד:</p>
-        <div className="flex justify-between text-xs">
-          <span className="text-primary font-bold">5 נק'</span>
-          <span className="text-gray-400">תוצאה מדויקת</span>
-        </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-yellow-400 font-bold">3 נק'</span>
-          <span className="text-gray-400">מגמה + שערי קבוצה אחת</span>
-        </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-gray-300 font-bold">1 נק'</span>
-          <span className="text-gray-400">מגמה נכונה בלבד</span>
-        </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-primary font-bold">+2 נק'</span>
-          <span className="text-gray-400">מלך שערים נכון</span>
-        </div>
-      </div>
-
       <button
         type="submit"
         disabled={loading || homeScore === '' || awayScore === ''}
