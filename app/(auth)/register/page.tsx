@@ -140,7 +140,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <div className="text-center mt-8 text-4xl opacity-20 select-none">🏆</div>
+        
       </div>
     </div>
   )

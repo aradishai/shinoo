@@ -46,7 +46,7 @@ export default function LeaguesPage() {
         </div>
       ) : leagues.length === 0 ? (
         <div className="text-center py-16">
-          <div className="text-6xl mb-4">🏆</div>
+          
           <h2 className="text-white font-bold text-xl mb-2">אין לך ליגות עדיין</h2>
           <p className="text-gray-500 mb-8">צור ליגה ראשונה והזמן חברים</p>
           <Link

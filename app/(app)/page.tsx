@@ -210,7 +210,7 @@ export default function HomePage() {
           href="/leagues/create"
           className="block bg-dark-card border border-dark-border hover:border-primary/30 rounded-2xl p-5 text-center transition-all group"
         >
-          <div className="text-3xl mb-2">🏆</div>
+          
           <h3 className="text-white font-bold mb-1 group-hover:text-primary transition-colors">
             צור ליגה חדשה
           </h3>

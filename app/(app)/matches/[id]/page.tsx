@@ -283,7 +283,7 @@ export default function MatchDetailPage() {
       {/* No league state */}
       {userLeagues.length === 0 && !isLocked && (
         <div className="bg-dark-card border border-primary/20 rounded-2xl p-5 text-center mb-4">
-          <div className="text-3xl mb-2">🏆</div>
+          
           <p className="text-white font-bold mb-1">כדי להמר צריך להיות בליגה</p>
           <p className="text-gray-500 text-sm mb-4">צור ליגה עם חברים או הצטרף לליגה קיימת</p>
           <a

@@ -138,7 +138,7 @@ export default function LeagueDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="text-4xl animate-bounce mb-4">🏆</div>
+          
           <p className="text-gray-500">טוען...</p>
         </div>
       </div>
