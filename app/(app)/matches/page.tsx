@@ -166,7 +166,9 @@ export default function MatchesPage() {
                     <button
                       onClick={() => save(match)}
                       disabled={saving === match.id || s.home === '' || s.away === ''}
-                      className="w-10 h-10 rounded-xl bg-primary text-black font-black text-lg flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all flex-shrink-0"
+                      className={`w-10 h-10 rounded-xl font-black text-lg flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all flex-shrink-0 ${
+                        hasPrediction ? 'bg-green-500 text-white' : 'bg-primary text-black'
+                      }`}
                     >
                       {saving === match.id ? '...' : '✓'}
                     </button>
