@@ -20,8 +20,8 @@ export async function GET(request: Request) {
     const matches = await db.match.findMany({
       where: whereClause,
       include: {
-        homeTeam: true,
-        awayTeam: true,
+        homeTeam: { include: { players: true } },
+        awayTeam: { include: { players: true } },
         tournament: true,
         scorers: {
           include: { player: true },
@@ -30,19 +30,18 @@ export async function GET(request: Request) {
       orderBy: { kickoffAt: 'asc' },
     })
 
-    // If leagueId provided, attach user's prediction for each match
-    let predictionsMap: Record<string, unknown> = {}
-    if (leagueId) {
-      const predictions = await db.prediction.findMany({
-        where: {
-          userId,
-          leagueId,
-          matchId: { in: matches.map((m) => m.id) },
-        },
-        include: { points: true },
-      })
-      predictionsMap = Object.fromEntries(predictions.map((p) => [p.matchId, p]))
+    // Attach user's prediction for each match (filter by leagueId if provided)
+    const predWhere: Record<string, unknown> = {
+      userId,
+      matchId: { in: matches.map((m) => m.id) },
     }
+    if (leagueId) predWhere.leagueId = leagueId
+
+    const predictions = await db.prediction.findMany({
+      where: predWhere,
+      include: { points: true },
+    })
+    const predictionsMap = Object.fromEntries(predictions.map((p) => [p.matchId, p]))
 
     const result = matches.map((match) => ({
       ...match,
