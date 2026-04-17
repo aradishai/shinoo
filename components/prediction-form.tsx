@@ -176,39 +176,12 @@ export function PredictionForm({
         </div>
       </div>
 
-      {/* Top Scorer Selector */}
-      {allPlayers.length > 0 && (
-        <div className="mb-6">
-          <label className="block text-gray-400 text-sm font-medium mb-2 text-right">
-            מלך שערים
-          </label>
-          <select
-            value={topScorerId}
-            onChange={(e) => setTopScorerId(e.target.value)}
-            className="w-full bg-dark-50 border border-dark-border rounded-xl px-4 py-3 text-white text-sm focus:border-primary focus:outline-none appearance-none cursor-pointer"
-            disabled={loading}
-          >
-            <option value=""></option>
-            <optgroup label={homeTeam.nameHe}>
-              {homePlayers.map((p) => (
-                <option key={p.id} value={p.id}>{p.nameHe}</option>
-              ))}
-            </optgroup>
-            <optgroup label={awayTeam.nameHe}>
-              {awayPlayers.map((p) => (
-                <option key={p.id} value={p.id}>{p.nameHe}</option>
-              ))}
-            </optgroup>
-          </select>
-        </div>
-      )}
-
       <button
         type="submit"
         disabled={loading || homeScore === '' || awayScore === ''}
-        className="w-full bg-primary text-black font-black text-lg py-4 rounded-xl hover:bg-primary-400 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+        className="w-full bg-primary text-black font-black text-2xl py-4 rounded-xl active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? 'שומר...' : existingPrediction ? 'עדכן ניחוש' : 'שמור ניחוש'}
+        {loading ? '...' : '✓'}
       </button>
     </form>
   )
