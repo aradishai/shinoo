@@ -130,7 +130,7 @@ export default function HomePage() {
           יציאה
         </button>
         <div className="text-center">
-          <h1 className="text-3xl font-black tracking-tight">
+          <h1 className="text-3xl font-black tracking-tight" dir="ltr">
             <span className="text-white">SH</span>
             <span className="text-primary">I</span>
             <span className="text-white">N</span>

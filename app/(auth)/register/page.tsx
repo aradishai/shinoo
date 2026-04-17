@@ -55,7 +55,7 @@ export default function RegisterPage() {
       {/* Logo */}
       <div className="text-center mb-10">
         <div className="relative inline-block">
-          <h1 className="text-6xl font-black tracking-tight">
+          <h1 className="text-6xl font-black tracking-tight" dir="ltr">
             <span className="text-white">SH</span>
             <span className="text-primary">I</span>
             <span className="text-white">N</span>
