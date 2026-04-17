@@ -213,20 +213,6 @@ export default function MatchesPage() {
                         className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
                       />
 
-                      {/* Top scorer */}
-                      {allPlayers.length > 0 && (
-                        <select value={s.topScorerId}
-                          onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, topScorerId: e.target.value } }))}
-                          className="flex-1 bg-dark-50 border border-dark-border rounded-xl px-2 py-2 text-white text-xs focus:border-primary focus:outline-none appearance-none min-w-0">
-                          <option value="">מלך שערים</option>
-                          <optgroup label={match.homeTeam.nameHe}>
-                            {match.homeTeam.players.map(p => <option key={p.id} value={p.id}>{p.nameHe}</option>)}
-                          </optgroup>
-                          <optgroup label={match.awayTeam.nameHe}>
-                            {match.awayTeam.players.map(p => <option key={p.id} value={p.id}>{p.nameHe}</option>)}
-                          </optgroup>
-                        </select>
-                      )}
                     </div>
                   </div>
                 ) : match.userPrediction ? (
