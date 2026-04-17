@@ -173,7 +173,7 @@ export default function MatchesPage() {
                   )}
 
                   {/* Away team + input */}
-                  <div className="flex flex-col items-center gap-2 flex-1">
+                  <div className="flex flex-col items-center gap-3 flex-1">
                     <span className="text-white text-xs font-semibold">{match.awayTeam.nameHe}</span>
                     <Flag code={match.awayTeam.code} />
                     {isOpen ? (
@@ -200,7 +200,7 @@ export default function MatchesPage() {
                   </div>
 
                   {/* Home team + input */}
-                  <div className="flex flex-col items-center gap-2 flex-1">
+                  <div className="flex flex-col items-center gap-3 flex-1">
                     <span className="text-white text-xs font-semibold">{match.homeTeam.nameHe}</span>
                     <Flag code={match.homeTeam.code} />
                     {isOpen ? (
