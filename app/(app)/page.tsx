@@ -149,9 +149,9 @@ export default function HomePage() {
           🏆
         </div>
         <div className="relative z-10 text-right">
-          <p className="text-xs text-primary font-medium mb-1">פעיל עכשיו</p>
+          <p className="text-xs text-primary font-medium mb-1">בחסות הבאילינדוז</p>
           <h2 className="text-white font-black text-lg">מונדיאל 2026</h2>
-          <p className="text-gray-400 text-xs mt-1">נחש, תתחרה, נצח</p>
+          <p className="text-gray-400 text-xs mt-1">כעת חייה בוקובזה</p>
         </div>
       </div>
 
