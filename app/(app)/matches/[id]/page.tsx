@@ -287,23 +287,6 @@ export default function MatchDetailPage() {
         </div>
       )}
 
-      {/* League Selector */}
-      {userLeagues.length > 1 && (
-        <div className="mb-4">
-          <label className="block text-gray-400 text-sm font-medium mb-2 text-right">
-            ניחוש עבור ליגה
-          </label>
-          <select
-            value={selectedLeagueId}
-            onChange={(e) => setSelectedLeagueId(e.target.value)}
-            className="w-full bg-dark-card border border-dark-border rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none appearance-none"
-          >
-            {userLeagues.map((l) => (
-              <option key={l.id} value={l.id}>{l.name}</option>
-            ))}
-          </select>
-        </div>
-      )}
 
       {/* No league state */}
       {userLeagues.length === 0 && !isLocked && (
