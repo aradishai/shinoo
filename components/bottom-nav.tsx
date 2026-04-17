@@ -72,15 +72,6 @@ export function BottomNav() {
 
   const navItems = [
     {
-      href: '/admin',
-      label: 'ניהול',
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', isActive('/admin') ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={isActive('/admin') ? 2.5 : 2}>
-          <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-        </svg>
-      ),
-    },
-    {
       href: '/users',
       label: 'שחקנים',
       icon: <PeopleIcon active={isActive('/users')} />,
