@@ -1,7 +1,7 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "deploy": {
-    "startCommand": "node scripts/setup-db.js && node_modules/.bin/next start -p ${PORT:-3000}",
+    "startCommand": "node scripts/setup-db.js && echo 'PORT='$PORT && node -e \"require('better-sqlite3')\" && echo 'sqlite3 ok' && node_modules/.bin/next start -p ${PORT:-3000}",
     "restartPolicyType": "ON_FAILURE"
   }
 }
