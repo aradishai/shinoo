@@ -72,14 +72,18 @@ export function BottomNav() {
 
   const navItems = [
     {
-      href: '/users',
-      label: 'שחקנים',
-      icon: <PeopleIcon active={isActive('/users')} />,
+      href: '/leagues',
+      label: 'ליגות',
+      icon: <TrophyIcon active={isActive('/leagues')} />,
     },
     {
-      href: '/leagues',
-      label: 'הליגות שלי',
-      icon: <TrophyIcon active={isActive('/leagues')} />,
+      href: '/matches',
+      label: 'ניחושים',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', isActive('/matches') ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={isActive('/matches') ? 2.5 : 2}>
+          <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12h6M12 9v6"/>
+        </svg>
+      ),
     },
     {
       href: '/',
