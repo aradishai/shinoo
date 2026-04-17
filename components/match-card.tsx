@@ -33,6 +33,7 @@ interface MatchCardProps {
   }
   prediction?: Prediction | null
   leagueId?: string
+  onPredictClick?: () => void
 }
 
 // FIFA code → ISO 3166-1 alpha-2 (for flagcdn.com)
@@ -73,7 +74,7 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
-export function MatchCard({ match, prediction, leagueId }: MatchCardProps) {
+export function MatchCard({ match, prediction, leagueId, onPredictClick }: MatchCardProps) {
   const kickoff = new Date(match.kickoffAt)
   const lockAt = new Date(match.lockAt)
   const status = match.status
@@ -166,14 +167,32 @@ export function MatchCard({ match, prediction, leagueId }: MatchCardProps) {
         {/* CTA */}
         <div className="mt-3">
           {isOpen && !prediction && (
-            <div className="bg-primary/10 border border-primary/30 text-primary text-center py-2 rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
-              נחש עכשיו
-            </div>
+            onPredictClick ? (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPredictClick() }}
+                className="w-full bg-primary/10 border border-primary/30 text-primary text-center py-2 rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors"
+              >
+                נחש עכשיו
+              </button>
+            ) : (
+              <div className="bg-primary/10 border border-primary/30 text-primary text-center py-2 rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
+                נחש עכשיו
+              </div>
+            )
           )}
           {isOpen && prediction && (
-            <div className="bg-dark-muted text-gray-300 text-center py-2 rounded-xl text-sm font-medium">
-              ערוך ניחוש
-            </div>
+            onPredictClick ? (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPredictClick() }}
+                className="w-full bg-dark-muted text-gray-300 text-center py-2 rounded-xl text-sm font-medium"
+              >
+                ערוך ניחוש
+              </button>
+            ) : (
+              <div className="bg-dark-muted text-gray-300 text-center py-2 rounded-xl text-sm font-medium">
+                ערוך ניחוש
+              </div>
+            )
           )}
           {!isOpen && (
             <div className="text-gray-600 text-center py-2 text-sm">

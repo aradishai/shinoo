@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { MatchCard } from '@/components/match-card'
+import { PredictionForm } from '@/components/prediction-form'
+
+interface Player { id: string; nameHe: string; nameEn: string }
+interface Team { id: string; nameHe: string; nameEn: string; code: string; flagUrl?: string | null; players: Player[] }
 
 interface Match {
   id: string
@@ -14,7 +18,14 @@ interface Match {
   homeScore?: number | null
   awayScore?: number | null
   round?: string | null
-  userPrediction?: { predictedHomeScore: number; predictedAwayScore: number } | null
+  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; predictedTopScorerPlayerId?: string | null } | null
+}
+
+interface ExpandedData {
+  homeTeam: Team
+  awayTeam: Team
+  leagueId: string
+  existingPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; predictedTopScorerPlayerId?: string | null } | null
 }
 
 const STATUS_TABS = [
@@ -29,6 +40,9 @@ export default function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [activeStatus, setActiveStatus] = useState('')
+  const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null)
+  const [expandedData, setExpandedData] = useState<ExpandedData | null>(null)
+  const [expandLoading, setExpandLoading] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -38,6 +52,62 @@ export default function MatchesPage() {
       .then((data) => setMatches(data.data || []))
       .finally(() => setLoading(false))
   }, [activeStatus])
+
+  const handlePredictClick = async (match: Match) => {
+    // toggle off
+    if (expandedMatchId === match.id) {
+      setExpandedMatchId(null)
+      setExpandedData(null)
+      return
+    }
+
+    setExpandedMatchId(match.id)
+    setExpandedData(null)
+    setExpandLoading(true)
+
+    try {
+      const [matchRes, leaguesRes] = await Promise.all([
+        fetch(`/api/matches/${match.id}`),
+        fetch('/api/leagues'),
+      ])
+      const [matchData, leaguesData] = await Promise.all([
+        matchRes.json(),
+        leaguesRes.json(),
+      ])
+
+      const fullMatch = matchData.data?.match
+      const leagues: { id: string }[] = leaguesData.data || []
+      const leagueId = leagues[0]?.id
+
+      if (!leagueId) {
+        setExpandedMatchId(null)
+        return
+      }
+
+      // find existing prediction for this league
+      const preds = matchData.data?.predictions || []
+      const existing = preds.find((p: { leagueId: string }) => p.leagueId === leagueId) || match.userPrediction || null
+
+      setExpandedData({
+        homeTeam: fullMatch.homeTeam,
+        awayTeam: fullMatch.awayTeam,
+        leagueId,
+        existingPrediction: existing,
+      })
+    } finally {
+      setExpandLoading(false)
+    }
+  }
+
+  const handlePredictionSuccess = (matchId: string, result: { predictedHomeScore: number; predictedAwayScore: number }) => {
+    setMatches(prev => prev.map(m =>
+      m.id === matchId
+        ? { ...m, userPrediction: { ...m.userPrediction, id: m.userPrediction?.id || '', predictedTopScorerPlayerId: null, ...result } }
+        : m
+    ))
+    setExpandedMatchId(null)
+    setExpandedData(null)
+  }
 
   return (
     <div className="px-4 py-6">
@@ -81,11 +151,34 @@ export default function MatchesPage() {
       ) : (
         <div className="space-y-3">
           {matches.map((match) => (
-            <MatchCard
-              key={match.id}
-              match={match}
-              prediction={match.userPrediction}
-            />
+            <div key={match.id}>
+              <MatchCard
+                match={match}
+                prediction={match.userPrediction}
+                onPredictClick={() => handlePredictClick(match)}
+              />
+              {expandedMatchId === match.id && (
+                <div className="mt-2 rounded-2xl overflow-hidden border border-primary/20">
+                  {expandLoading || !expandedData ? (
+                    <div className="bg-dark-card p-6 flex items-center justify-center">
+                      <div className="text-2xl animate-bounce">⚽</div>
+                    </div>
+                  ) : (
+                    <PredictionForm
+                      matchId={match.id}
+                      leagueId={expandedData.leagueId}
+                      homeTeam={expandedData.homeTeam}
+                      awayTeam={expandedData.awayTeam}
+                      homePlayers={expandedData.homeTeam.players}
+                      awayPlayers={expandedData.awayTeam.players}
+                      existingPrediction={expandedData.existingPrediction}
+                      isLocked={false}
+                      onSuccess={(result) => handlePredictionSuccess(match.id, result)}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
