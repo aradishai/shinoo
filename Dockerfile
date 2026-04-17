@@ -14,4 +14,4 @@ RUN npm run build
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "node scripts/setup-db.js && npm start"]
+CMD ["sh", "-c", "node scripts/setup-db.js && npx next start -p ${PORT:-3000}"]
