@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
 import path from 'path'
 
-const dbPath = path.resolve('./dev.db')
+const dbPath = process.env.DATABASE_PATH || path.resolve('./dev.db')
 const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` })
 const db = new PrismaClient({ adapter } as any)
 
