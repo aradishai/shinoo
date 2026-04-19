@@ -285,18 +285,13 @@ const MATCHES: { home: string; away: string; date: string; group: string }[] = [
 ]
 
 async function main() {
-  console.log('🌱 מנקה נתונים...')
-  await db.predictionPoints.deleteMany()
-  await db.prediction.deleteMany()
-  await db.matchScorer.deleteMany()
-  await db.leagueMember.deleteMany()
-  await db.league.deleteMany()
-  await db.match.deleteMany()
-  await db.player.deleteMany()
-  await db.team.deleteMany()
-  await db.tournament.deleteMany()
-  await db.user.deleteMany()
-  console.log('✅ נוקה')
+  console.log('🌱 זורע נתונים...')
+
+  const existing = await db.tournament.findFirst({ where: { slug: 'wc-2026' } })
+  if (existing) {
+    console.log('✅ כבר קיים טורניר — מדלג')
+    return
+  }
 
   const tournament = await db.tournament.create({
     data: { name: 'FIFA World Cup 2026', nameHe: 'מונדיאל 2026', slug: 'wc-2026', type: 'world_cup', isActive: true, season: '2026' },
