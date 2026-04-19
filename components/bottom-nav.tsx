@@ -90,7 +90,12 @@ export function BottomNav() {
     {
       href: '/',
       label: 'בית',
-      icon: <WhistleIcon active={isActive('/')} />,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', isActive('/') ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={isActive('/') ? 2.5 : 2}>
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+          <path d="M9 21V12h6v9"/>
+        </svg>
+      ),
     },
   ]
 
