@@ -46,9 +46,10 @@ export default function HomePage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [meRes, matchesRes, leaguesRes] = await Promise.all([
+      const [meRes, matchesRes, finishedRes, leaguesRes] = await Promise.all([
         fetch('/api/auth/me'),
         fetch('/api/matches?status=SCHEDULED'),
+        fetch('/api/matches?status=FINISHED'),
         fetch('/api/leagues'),
       ])
 
@@ -57,14 +58,17 @@ export default function HomePage() {
         return
       }
 
-      const [meData, matchesData, leaguesData] = await Promise.all([
+      const [meData, matchesData, finishedData, leaguesData] = await Promise.all([
         meRes.json(),
         matchesRes.json(),
+        finishedRes.json(),
         leaguesRes.json(),
       ])
 
       setUser(meData.data)
-      setMatches((matchesData.data || []).slice(0, 6))
+      const scheduled = (matchesData.data || []).slice(0, 5)
+      const finished = (finishedData.data || []).filter((m: Match) => m.userPrediction).slice(0, 3)
+      setMatches([...finished, ...scheduled])
       setLeagues(leaguesData.data || [])
     } catch (err) {
       console.error(err)
