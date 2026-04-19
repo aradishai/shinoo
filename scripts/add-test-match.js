@@ -24,12 +24,12 @@ const existingMci = db.prepare("SELECT id FROM Team WHERE code = 'MCI'").get()
 
 const now = new Date()
 const kickoff = new Date(now.getTime() + 2 * 60 * 60 * 1000) // 2 hours from now
-const lockAt = new Date(now.getTime() + 30 * 60 * 1000) // lock in 30 min
+const lockAt = new Date(now.getTime() + 3 * 60 * 60 * 1000) // lock in 3 hours
 
 const matchId = randomUUID()
 db.prepare(`
   INSERT OR IGNORE INTO Match (id, tournamentId, homeTeamId, awayTeamId, kickoffAt, lockAt, status, round)
-  VALUES (?, ?, ?, ?, ?, ?, 'SCHEDULED', 'רבע גמר')
+  VALUES (?, ?, ?, ?, ?, ?, 'SCHEDULED', 'פרמיר ליג')
 `).run(matchId, tournamentId, existingArs.id, existingMci.id, kickoff.toISOString(), lockAt.toISOString())
 
 console.log('✅ נוסף משחק: ארסנל vs מנצ\'סטר סיטי')

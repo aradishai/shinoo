@@ -14,6 +14,7 @@ const FIFA_TO_ISO: Record<string, string> = {
   SAU: 'sa', QAT: 'qa', UZB: 'uz', IRQ: 'iq', MAR: 'ma', SEN: 'sn', EGY: 'eg',
   TUN: 'tn', RSA: 'za', GHA: 'gh', CIV: 'ci', COD: 'cd', NZL: 'nz', HAI: 'ht',
   CUW: 'cw', SWE: 'se', CPV: 'cv', NOR: 'no', ALG: 'dz', JOR: 'jo',
+  ARS: 'gb-eng', MCI: 'gb-eng',
 }
 
 function Flag({ code }: { code: string }) {
