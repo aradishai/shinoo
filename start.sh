@@ -20,6 +20,7 @@ process.exit(count === 0 ? 1 : 0);
 " || (echo '=== seeding ===' && npx tsx prisma/seed.ts && echo '=== seed done ===')
 
 node scripts/add-test-match.js || true
+node scripts/update-result.js || true
 
 echo "=== starting next ==="
 exec node_modules/.bin/next start -p ${PORT:-3000}
