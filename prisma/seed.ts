@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import bcrypt from 'bcryptjs'
-import { nanoid } from 'nanoid'
 import path from 'path'
 
 const dbPath = process.env.DATABASE_PATH || path.resolve('./dev.db')
@@ -287,26 +286,31 @@ const MATCHES: { home: string; away: string; date: string; group: string }[] = [
 async function main() {
   console.log('🌱 זורע נתונים...')
 
-  const existing = await db.tournament.findFirst({ where: { slug: 'wc-2026' } })
-  if (existing) {
-    console.log('✅ כבר קיים טורניר — מדלג')
-    return
-  }
-
-  const tournament = await db.tournament.create({
-    data: { name: 'FIFA World Cup 2026', nameHe: 'מונדיאל 2026', slug: 'wc-2026', type: 'world_cup', isActive: true, season: '2026' },
+  // Tournament - upsert
+  const tournament = await db.tournament.upsert({
+    where: { slug: 'wc-2026' },
+    update: {},
+    create: { name: 'FIFA World Cup 2026', nameHe: 'מונדיאל 2026', slug: 'wc-2026', type: 'world_cup', isActive: true, season: '2026' },
   })
 
+  // Teams - upsert by code
   const teamMap: Record<string, string> = {}
   for (const t of TEAMS) {
-    const team = await db.team.create({ data: { nameHe: t.nameHe, nameEn: t.nameEn, code: t.code } })
+    const team = await db.team.upsert({
+      where: { code: t.code },
+      update: { nameHe: t.nameHe, nameEn: t.nameEn },
+      create: { nameHe: t.nameHe, nameEn: t.nameEn, code: t.code },
+    })
     teamMap[t.code] = team.id
   }
   console.log(`✅ ${TEAMS.length} קבוצות`)
 
+  // Players - create only if team has none
   let pc = 0
   for (const [code, players] of Object.entries(PLAYERS)) {
     if (!teamMap[code]) continue
+    const existing = await db.player.count({ where: { teamId: teamMap[code] } })
+    if (existing > 0) continue
     for (const p of players) {
       await db.player.create({ data: { ...p, teamId: teamMap[code] } })
       pc++
@@ -314,39 +318,30 @@ async function main() {
   }
   console.log(`✅ ${pc} שחקנים`)
 
+  // Matches - create only if tournament has none
+  const existingMatches = await db.match.count({ where: { tournamentId: tournament.id } })
   let mc = 0
-  for (const m of MATCHES) {
-    if (!teamMap[m.home] || !teamMap[m.away]) {
-      console.warn(`⚠️  קוד חסר: ${m.home} או ${m.away}`)
-      continue
+  if (existingMatches === 0) {
+    for (const m of MATCHES) {
+      if (!teamMap[m.home] || !teamMap[m.away]) continue
+      const kickoffAt = new Date(m.date)
+      const lockAt = new Date(kickoffAt.getTime() - 3 * 60 * 60 * 1000)
+      await db.match.create({
+        data: { tournamentId: tournament.id, homeTeamId: teamMap[m.home], awayTeamId: teamMap[m.away], kickoffAt, lockAt, status: 'SCHEDULED', round: m.group },
+      })
+      mc++
     }
-    const kickoffAt = new Date(m.date)
-    const lockAt = new Date(kickoffAt.getTime() - 3 * 60 * 60 * 1000)
-    await db.match.create({
-      data: { tournamentId: tournament.id, homeTeamId: teamMap[m.home], awayTeamId: teamMap[m.away], kickoffAt, lockAt, status: 'SCHEDULED', round: m.group },
-    })
-    mc++
   }
   console.log(`✅ ${mc} משחקים`)
 
-  const hash1 = await bcrypt.hash('test1', 10)
-  const hash2 = await bcrypt.hash('test2', 10)
+  // Users - upsert (never delete existing users)
   const hashErad = await bcrypt.hash('12345', 10)
-  const user1 = await db.user.create({ data: { username: 'test1', passwordHash: hash1 } })
-  const user2 = await db.user.create({ data: { username: 'test2', passwordHash: hash2 } })
-  await db.user.create({ data: { username: 'ערד', passwordHash: hashErad } })
-  console.log('✅ משתמשים')
-
-  const league = await db.league.create({
-    data: {
-      name: 'ליגת הבדיקה',
-      createdByUserId: user1.id,
-      inviteCode: nanoid(8),
-      tournamentId: tournament.id,
-      members: { create: [{ userId: user1.id, role: 'ADMIN' }, { userId: user2.id, role: 'MEMBER' }] },
-    },
+  await db.user.upsert({
+    where: { username: 'ערד' },
+    update: {},
+    create: { username: 'ערד', passwordHash: hashErad },
   })
-  console.log(`✅ ליגה: "${league.name}" | קוד: ${league.inviteCode}`)
+  console.log('✅ משתמשים')
   console.log('\n🎉 Seed הושלם! כניסה: ערד / 12345')
 }
 
