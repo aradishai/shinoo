@@ -10,6 +10,8 @@ mkdir -p /app/data
 echo "=== setup-db ==="
 node scripts/setup-db.js || echo "setup-db exited with $?"
 
+node scripts/add-test-match.js || true
+
 echo "=== check seed ==="
 node -e "
 const Database = require('better-sqlite3');
