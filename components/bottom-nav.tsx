@@ -81,7 +81,9 @@ export function BottomNav() {
       label: 'ניחושים',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', isActive('/matches') ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={isActive('/matches') ? 2.5 : 2}>
-          <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12h6M12 9v6"/>
+          <rect x="2" y="7" width="20" height="10" rx="2"/>
+          <path d="M12 12m-2 0a2 2 0 104 0 2 2 0 10-4 0"/>
+          <path d="M6 12h.01M18 12h.01"/>
         </svg>
       ),
     },
