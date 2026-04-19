@@ -4,63 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
 
-interface NavItem {
-  href: string
-  label: string
-  icon: React.ReactNode
-}
-
-function WhistleIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      className={clsx('w-6 h-6', active ? 'text-primary' : 'text-gray-500')}
-      stroke="currentColor"
-      strokeWidth={active ? 2.5 : 2}
-    >
-      <circle cx="9" cy="14" r="5" />
-      <path d="M9 9V4h8l2 3-8 2" />
-      <path d="M7 14h4" />
-    </svg>
-  )
-}
-
-function TrophyIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      className={clsx('w-6 h-6', active ? 'text-primary' : 'text-gray-500')}
-      stroke="currentColor"
-      strokeWidth={active ? 2.5 : 2}
-    >
-      <path d="M6 9H4.5a2.5 2.5 0 010-5H6" />
-      <path d="M18 9h1.5a2.5 2.5 0 000-5H18" />
-      <path d="M4 22h16" />
-      <path d="M10 22v-4" />
-      <path d="M14 22v-4" />
-      <path d="M6 4v10a6 6 0 0012 0V4" />
-    </svg>
-  )
-}
-
-function PeopleIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      className={clsx('w-6 h-6', active ? 'text-primary' : 'text-gray-500')}
-      stroke="currentColor"
-      strokeWidth={active ? 2.5 : 2}
-    >
-      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 00-3-3.87" />
-      <path d="M16 3.13a4 4 0 010 7.75" />
-    </svg>
-  )
-}
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -74,7 +17,13 @@ export function BottomNav() {
     {
       href: '/leagues',
       label: 'ליגות',
-      icon: <TrophyIcon active={isActive('/leagues')} />,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', isActive('/leagues') ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={isActive('/leagues') ? 2.5 : 2}>
+          <path d="M8 21h8M12 17v4M7 4h10v8a5 5 0 01-10 0V4z"/>
+          <path d="M7 7H4a2 2 0 000 4h3"/>
+          <path d="M17 7h3a2 2 0 010 4h-3"/>
+        </svg>
+      ),
     },
     {
       href: '/matches',
