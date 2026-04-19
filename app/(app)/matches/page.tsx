@@ -17,14 +17,15 @@ const FIFA_TO_ISO: Record<string, string> = {
   ARS: 'gb-eng', MCI: 'gb-eng',
 }
 
-function Flag({ code }: { code: string }) {
+function Flag({ code, flagUrl }: { code: string; flagUrl?: string | null }) {
+  if (flagUrl) return <img src={flagUrl} alt={code} className="w-8 h-8 object-contain rounded-sm inline-block" />
   const iso = FIFA_TO_ISO[code]
   if (!iso) return <span className="text-xs text-gray-500">{code}</span>
   return <img src={`https://flagcdn.com/w40/${iso}.png`} alt={code} className="w-8 h-5 object-cover rounded-sm inline-block" />
 }
 
 interface Player { id: string; nameHe: string }
-interface Team { id: string; nameHe: string; code: string; players: Player[] }
+interface Team { id: string; nameHe: string; code: string; flagUrl?: string | null; players: Player[] }
 interface Match {
   id: string
   homeTeam: Team
@@ -178,7 +179,7 @@ export default function MatchesPage() {
                   {/* Away team + input */}
                   <div className="flex flex-col items-center gap-3 flex-1">
                     <span className="text-white text-xs font-semibold">{match.awayTeam.nameHe}</span>
-                    <Flag code={match.awayTeam.code} />
+                    <Flag code={match.awayTeam.code} flagUrl={match.awayTeam.flagUrl} />
                     {isOpen ? (
                       <input type="number" min={0} max={20} placeholder="0"
                         value={s.away}
@@ -205,7 +206,7 @@ export default function MatchesPage() {
                   {/* Home team + input */}
                   <div className="flex flex-col items-center gap-3 flex-1">
                     <span className="text-white text-xs font-semibold">{match.homeTeam.nameHe}</span>
-                    <Flag code={match.homeTeam.code} />
+                    <Flag code={match.homeTeam.code} flagUrl={match.homeTeam.flagUrl} />
                     {isOpen ? (
                       <input type="number" min={0} max={20} placeholder="0"
                         value={s.home}

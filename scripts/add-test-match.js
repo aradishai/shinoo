@@ -16,15 +16,14 @@ if (!tournamentId) {
   process.exit(1)
 }
 
-db.prepare("INSERT OR IGNORE INTO Team (id, nameHe, nameEn, code) VALUES (?, ?, ?, ?)").run(arsenalId, 'ארסנל', 'Arsenal', 'ARS')
-db.prepare("INSERT OR IGNORE INTO Team (id, nameHe, nameEn, code) VALUES (?, ?, ?, ?)").run(cityId, 'מנצ\'סטר סיטי', 'Manchester City', 'MCI')
+db.prepare("INSERT OR IGNORE INTO Team (id, nameHe, nameEn, code, flagUrl) VALUES (?, ?, ?, ?, ?)").run(arsenalId, 'ארסנל', 'Arsenal', 'ARS', 'https://media.api-sports.io/football/teams/42.png')
+db.prepare("INSERT OR IGNORE INTO Team (id, nameHe, nameEn, code, flagUrl) VALUES (?, ?, ?, ?, ?)").run(cityId, 'מנצ\'סטר סיטי', 'Manchester City', 'MCI', 'https://media.api-sports.io/football/teams/50.png')
 
 const existingArs = db.prepare("SELECT id FROM Team WHERE code = 'ARS'").get()
 const existingMci = db.prepare("SELECT id FROM Team WHERE code = 'MCI'").get()
 
-const now = new Date()
-const kickoff = new Date(now.getTime() + 2 * 60 * 60 * 1000) // 2 hours from now
-const lockAt = new Date(now.getTime() + 3 * 60 * 60 * 1000) // lock in 3 hours
+const kickoff = new Date('2026-04-19T15:30:00Z') // 18:30 Israel time
+const lockAt = new Date('2026-04-19T15:25:00Z') // lock at 18:25
 
 const matchId = randomUUID()
 db.prepare(`
