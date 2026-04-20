@@ -83,11 +83,15 @@ async function main() {
   console.log(`✅ קבוצות: ${Object.keys(teamMap).length}`)
 
   // 4. Upsert matches
-  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const cutoff = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
   let synced = 0, finished = 0, skipped = 0
 
   for (const e of events) {
-    if (!e.dateEvent || !e.strTime) continue
+    if (!e.dateEvent) continue
+    if (!e.strTime) {
+      console.log(`⚠️  ללא שעה: ${e.strHomeTeam} vs ${e.strAwayTeam} (${e.dateEvent}) — מדלג`)
+      continue
+    }
 
     const homeTeamId = teamMap[String(e.idHomeTeam)]
     const awayTeamId = teamMap[String(e.idAwayTeam)]
