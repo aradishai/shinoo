@@ -73,14 +73,35 @@ async function main() {
   }
   console.log(`✅ קבוצות: ${Object.keys(teamMap).length}`)
 
-  // 3. Fetch and upsert fixtures (recent + future only)
-  const fixturesRes = await axios.get(`${BASE}/eventsseason.php`, {
-    params: { id: LEAGUE_ID, s: SEASON },
-    timeout: 15000,
-  })
-  const events: any[] = fixturesRes.data?.events ?? []
+  // 3. Fetch fixtures — try season first, fall back to next+past events
+  let events: any[] = []
 
-  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  for (const s of [SEASON, '2025', '2026']) {
+    try {
+      const res = await axios.get(`${BASE}/eventsseason.php`, {
+        params: { id: LEAGUE_ID, s },
+        timeout: 15000,
+      })
+      const found = res.data?.events ?? []
+      if (found.length > 0) { events = found; break }
+    } catch { /* try next */ }
+  }
+
+  // Fall back to next + past events if season endpoint returned nothing
+  if (events.length === 0) {
+    console.log('ℹ️  eventsseason ריק — משתמש ב-next/past events')
+    const [nextRes, pastRes] = await Promise.all([
+      axios.get(`${BASE}/eventsnextleague.php`, { params: { id: LEAGUE_ID }, timeout: 15000 }),
+      axios.get(`${BASE}/eventspastleague.php`, { params: { id: LEAGUE_ID }, timeout: 15000 }),
+    ])
+    events = [
+      ...(nextRes.data?.events ?? []),
+      ...(pastRes.data?.events ?? []),
+    ]
+  }
+
+  console.log(`📋 אירועים שהתקבלו: ${events.length}`)
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // חודש אחרון
   let synced = 0
   let finished = 0
 
