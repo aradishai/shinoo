@@ -6,7 +6,7 @@ node --version
 echo "PORT=$PORT"
 
 echo "=== migrations ==="
-npx prisma migrate deploy
+node scripts/migrate.js
 
 echo "=== seed ==="
 npx tsx prisma/seed.ts
