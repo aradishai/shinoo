@@ -1,4 +1,3 @@
-import type { PrismaConfig } from 'prisma'
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 
@@ -10,4 +9,4 @@ export default {
       return new PrismaPg(pool)
     },
   },
-} satisfies PrismaConfig
+}
