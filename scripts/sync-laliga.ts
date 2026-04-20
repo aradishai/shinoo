@@ -71,21 +71,12 @@ async function main() {
 
   console.log(`🏟️  קבוצות שנמצאו: ${teamEntries.size}`)
 
-  // Fetch badge URLs for teams that don't have them from events
   const teamMap: Record<string, string> = {}
   for (const [tsdbId, info] of teamEntries) {
-    let badgeUrl = info.badge
-    if (!badgeUrl) {
-      try {
-        const r = await axios.get(`${BASE}/lookupteam.php`, { params: { id: tsdbId }, timeout: 8000 })
-        badgeUrl = r.data?.teams?.[0]?.strTeamBadge || null
-      } catch { /* no badge */ }
-    }
-
     const team = await db.team.upsert({
       where: { code: tsdbId },
-      update: { nameEn: info.name, nameHe: info.name, flagUrl: badgeUrl },
-      create: { code: tsdbId, nameEn: info.name, nameHe: info.name, flagUrl: badgeUrl },
+      update: { nameEn: info.name, nameHe: info.name, ...(info.badge ? { flagUrl: info.badge } : {}) },
+      create: { code: tsdbId, nameEn: info.name, nameHe: info.name, flagUrl: info.badge },
     })
     teamMap[tsdbId] = team.id
   }
