@@ -72,7 +72,7 @@ async function main() {
   console.log(`🏟️  קבוצות שנמצאו: ${teamEntries.size}`)
 
   const teamMap: Record<string, string> = {}
-  for (const [tsdbId, info] of teamEntries) {
+  for (const [tsdbId, info] of Array.from(teamEntries)) {
     const team = await db.team.upsert({
       where: { code: tsdbId },
       update: { nameEn: info.name, nameHe: info.name, ...(info.badge ? { flagUrl: info.badge } : {}) },
