@@ -34,24 +34,31 @@ async function main() {
   })
   console.log(`✅ טורניר: ${tournament.name}`)
 
-  // 2. Fetch events first — try full season, fall back to next+past
-  let events: any[] = []
+  // 2. Always fetch next+past events (reliable), also try full season for historical data
+  console.log('📡 מושך משחקים עתידיים ואחרונים...')
+  const [nextRes, pastRes] = await Promise.all([
+    axios.get(`${BASE}/eventsnextleague.php`, { params: { id: LEAGUE_ID }, timeout: 12000 }).catch(() => ({ data: {} })),
+    axios.get(`${BASE}/eventspastleague.php`, { params: { id: LEAGUE_ID }, timeout: 12000 }).catch(() => ({ data: {} })),
+  ])
+  const nextEvents: any[] = nextRes.data?.events ?? []
+  const pastEvents: any[] = pastRes.data?.events ?? []
+  console.log(`📋 עתידיים: ${nextEvents.length}, אחרונים: ${pastEvents.length}`)
 
-  for (const s of [SEASON, '2025', '2026', '2024-2025', '2024']) {
+  let events: any[] = [...nextEvents, ...pastEvents]
+
+  // Also try full season for additional historical matches
+  for (const s of [SEASON, '2025', '2026']) {
     try {
       const res = await axios.get(`${BASE}/eventsseason.php`, { params: { id: LEAGUE_ID, s }, timeout: 12000 })
-      const found = res.data?.events ?? []
-      if (found.length > 0) { events = found; console.log(`📋 עונה ${s}: ${found.length} אירועים`); break }
+      const found: any[] = res.data?.events ?? []
+      if (found.length > 0) {
+        console.log(`📋 עונה ${s}: ${found.length} אירועים (מיזוג)`)
+        const existingIds = new Set(events.map((e: any) => String(e.idEvent)))
+        const newOnes = found.filter((e: any) => !existingIds.has(String(e.idEvent)))
+        events = [...events, ...newOnes]
+        break
+      }
     } catch { /* try next */ }
-  }
-
-  if (events.length === 0) {
-    console.log('ℹ️  eventsseason ריק — משתמש ב-next/past events')
-    const [nextRes, pastRes] = await Promise.all([
-      axios.get(`${BASE}/eventsnextleague.php`, { params: { id: LEAGUE_ID }, timeout: 12000 }),
-      axios.get(`${BASE}/eventspastleague.php`, { params: { id: LEAGUE_ID }, timeout: 12000 }),
-    ])
-    events = [...(nextRes.data?.events ?? []), ...(pastRes.data?.events ?? [])]
   }
 
   console.log(`📋 סה"כ אירועים: ${events.length}`)
