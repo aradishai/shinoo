@@ -102,17 +102,28 @@ async function main() {
 
   console.log(`📋 אירועים שהתקבלו: ${events.length}`)
   const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // חודש אחרון
+  // Build name→id map as fallback
+  const nameMap: Record<string, string> = {}
+  for (const t of teams) {
+    nameMap[t.strTeam?.toLowerCase()] = teamMap[String(t.idTeam)]
+  }
+
   let synced = 0
   let finished = 0
+  let skipped = 0
 
   for (const e of events) {
     if (!e.dateEvent || !e.strTime) continue
 
     const homeCode = String(e.idHomeTeam)
     const awayCode = String(e.idAwayTeam)
-    const homeTeamId = teamMap[homeCode]
-    const awayTeamId = teamMap[awayCode]
-    if (!homeTeamId || !awayTeamId) continue
+    const homeTeamId = teamMap[homeCode] || nameMap[e.strHomeTeam?.toLowerCase()]
+    const awayTeamId = teamMap[awayCode] || nameMap[e.strAwayTeam?.toLowerCase()]
+    if (!homeTeamId || !awayTeamId) {
+      console.log(`⚠️  קבוצה לא נמצאה: ${e.strHomeTeam} (${homeCode}) vs ${e.strAwayTeam} (${awayCode})`)
+      skipped++
+      continue
+    }
 
     const kickoffAt = new Date(`${e.dateEvent}T${e.strTime}Z`)
     if (kickoffAt < cutoff) continue
@@ -154,7 +165,7 @@ async function main() {
     synced++
   }
 
-  console.log(`✅ משחקים: ${synced} (${finished} חדשים שהסתיימו — נקודות חושבו מחדש)`)
+  console.log(`✅ משחקים: ${synced} (דולגו: ${skipped}, ${finished} נקודות חושבו מחדש)`)
   console.log('🎉 סנכרון ליגה ספרדית הושלם!')
 }
 
