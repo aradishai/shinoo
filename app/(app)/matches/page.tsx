@@ -41,15 +41,17 @@ interface Match {
 
 const STATUS_TABS = [
   { label: 'הכל', value: '' },
-  { label: 'פתוח', value: 'SCHEDULED' },
+  { label: 'חי', value: 'LIVE' },
   { label: 'נעול', value: 'LOCKED' },
+  { label: 'פתוח', value: 'SCHEDULED' },
   { label: 'הסתיים', value: 'FINISHED' },
 ]
 
 export default function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeStatus, setActiveStatus] = useState('SCHEDULED')
+  const [activeStatus, setActiveStatus] = useState('')
+  const [defaultSet, setDefaultSet] = useState(false)
   const [leagueId, setLeagueId] = useState<string | null>(null)
   const [scores, setScores] = useState<Record<string, { home: string; away: string; topScorerId: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
@@ -69,6 +71,17 @@ export default function MatchesPage() {
       .then(r => r.json())
       .then(d => {
         const data: Match[] = d.data || []
+
+        // On first load (all matches), pick the smartest default tab
+        if (!defaultSet && activeStatus === '') {
+          const hasLive = data.some(m => m.status === 'LIVE')
+          const hasLocked = data.some(m => m.status === 'LOCKED')
+          const defaultTab = hasLive ? 'LIVE' : hasLocked ? 'LOCKED' : 'SCHEDULED'
+          setDefaultSet(true)
+          setActiveStatus(defaultTab)
+          return
+        }
+
         setMatches(data)
         const init: Record<string, { home: string; away: string; topScorerId: string }> = {}
         for (const m of data) {
