@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { he } from 'date-fns/locale'
@@ -53,6 +53,7 @@ export default function MatchesPage() {
   const [leagueId, setLeagueId] = useState<string | null>(null)
   const [scores, setScores] = useState<Record<string, { home: string; away: string; topScorerId: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
+  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     fetch('/api/leagues').then(r => r.json()).then(d => {
@@ -61,7 +62,7 @@ export default function MatchesPage() {
     })
   }, [])
 
-  useEffect(() => {
+  const loadMatches = useCallback(() => {
     setLoading(true)
     const url = activeStatus ? `/api/matches?status=${activeStatus}` : '/api/matches'
     fetch(url)
@@ -85,6 +86,22 @@ export default function MatchesPage() {
       })
       .finally(() => setLoading(false))
   }, [activeStatus])
+
+  useEffect(() => {
+    loadMatches()
+  }, [loadMatches])
+
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const res = await fetch('/api/sync/live')
+        const data = await res.json()
+        if (data.synced) loadMatches()
+      } catch { /* silent */ }
+    }
+    syncIntervalRef.current = setInterval(poll, 60_000)
+    return () => { if (syncIntervalRef.current) clearInterval(syncIntervalRef.current) }
+  }, [loadMatches])
 
   const save = async (match: Match) => {
     const s = scores[match.id]

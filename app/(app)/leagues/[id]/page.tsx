@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
@@ -53,6 +53,7 @@ export default function LeagueDetailPage() {
   const [addingMember, setAddingMember] = useState(false)
   const [activeTab, setActiveTab] = useState<'standings' | 'matches' | 'members'>('standings')
   const [copiedCode, setCopiedCode] = useState(false)
+  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const fetchData = useCallback(async () => {
     try {
@@ -85,6 +86,18 @@ export default function LeagueDetailPage() {
 
   useEffect(() => {
     fetchData()
+  }, [fetchData])
+
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const res = await fetch('/api/sync/live')
+        const data = await res.json()
+        if (data.synced) fetchData()
+      } catch { /* silent */ }
+    }
+    syncIntervalRef.current = setInterval(poll, 60_000)
+    return () => { if (syncIntervalRef.current) clearInterval(syncIntervalRef.current) }
   }, [fetchData])
 
   const copyInviteCode = () => {
