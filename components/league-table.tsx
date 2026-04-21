@@ -56,8 +56,8 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
         <div className="grid grid-cols-5 text-center" style={{ width: '55%' }}>
           <span className="text-xs text-gray-600">מש׳</span>
           <span className="text-xs text-red-500">✗</span>
-          <span className="text-xs text-yellow-400">מג׳</span>
-          <span className="text-xs text-blue-400">+1</span>
+          <span className="text-xs text-yellow-400">1+</span>
+          <span className="text-xs text-blue-400">3+</span>
           <span className="text-xs text-green-400">בול</span>
         </div>
         <div className="w-8 text-center">
