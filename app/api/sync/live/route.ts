@@ -65,7 +65,7 @@ async function syncLaLigaLive() {
           data: { status, homeScore, awayScore, ...(minute !== null ? { minute } : {}) },
         })
 
-        if (status === 'FINISHED' && homeScore !== null && awayScore !== null && match.status !== 'FINISHED') {
+        if (homeScore !== null && awayScore !== null) {
           await recalculatePoints(match.id)
         }
       } catch {
@@ -91,9 +91,7 @@ async function syncLaLigaLive() {
       data: { status, homeScore, awayScore },
     })
 
-    if (status === 'FINISHED' && match.status !== 'FINISHED') {
-      await recalculatePoints(match.id)
-    }
+    await recalculatePoints(match.id)
   }
 }
 
