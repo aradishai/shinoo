@@ -58,10 +58,11 @@ async function syncLaLigaLive() {
         const status = TSDB_STATUS_MAP[e.strStatus ?? ''] ?? match.status
         const homeScore = e.intHomeScore !== null && e.intHomeScore !== '' ? Number(e.intHomeScore) : match.homeScore
         const awayScore = e.intAwayScore !== null && e.intAwayScore !== '' ? Number(e.intAwayScore) : match.awayScore
+        const minute = e.strProgress ? parseInt(e.strProgress) || null : null
 
         await db.match.update({
           where: { id: match.id },
-          data: { status, homeScore, awayScore },
+          data: { status, homeScore, awayScore, ...(minute !== null ? { minute } : {}) },
         })
 
         if (status === 'FINISHED' && homeScore !== null && awayScore !== null && match.status !== 'FINISHED') {
@@ -104,6 +105,21 @@ async function lockExpiredMatches() {
   })
 }
 
+async function recalculateMissingPoints() {
+  const finishedWithPredictions = await db.match.findMany({
+    where: {
+      status: 'FINISHED',
+      homeScore: { not: null },
+      awayScore: { not: null },
+      predictions: { some: { points: null } },
+    },
+    select: { id: true },
+  })
+  for (const m of finishedWithPredictions) {
+    await recalculatePoints(m.id)
+  }
+}
+
 export async function GET() {
   try {
     const now = Date.now()
@@ -117,6 +133,7 @@ export async function GET() {
     if (timeSinceLast >= MIN_INTERVAL_MS) {
       lastSyncTime = now
       await lockExpiredMatches()
+      await recalculateMissingPoints()
       if (activeCount > 0) {
         await syncLaLigaLive()
       }

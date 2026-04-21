@@ -29,6 +29,7 @@ interface MatchCardProps {
     status: string
     homeScore?: number | null
     awayScore?: number | null
+    minute?: number | null
     round?: string | null
   }
   prediction?: Prediction | null
@@ -103,14 +104,21 @@ export function MatchCard({ match, prediction, leagueId, onPredictClick }: Match
         {/* Score / VS */}
         <div className="flex flex-col items-center gap-1 px-2">
           {(isFinished || isLive) && match.homeScore !== null && match.awayScore !== null ? (
-            <div className="flex items-center gap-1">
-              <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
-                {match.homeScore}
-              </span>
-              <span className="text-gray-500 text-lg">-</span>
-              <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
-                {match.awayScore}
-              </span>
+            <div className="flex flex-col items-center gap-0.5">
+              <div className="flex items-center gap-1">
+                <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
+                  {match.homeScore}
+                </span>
+                <span className="text-gray-500 text-lg">-</span>
+                <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
+                  {match.awayScore}
+                </span>
+              </div>
+              {isLive && (
+                <span className="text-xs text-primary font-bold animate-pulse">
+                  {match.minute ? `${match.minute}'` : 'LIVE'}
+                </span>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center">

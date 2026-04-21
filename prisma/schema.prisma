@@ -62,6 +62,7 @@ model Match {
   status          String @default("SCHEDULED")
   homeScore       Int?
   awayScore       Int?
+  minute          Int?
   providerMatchId String?     @unique
   round           String?
 

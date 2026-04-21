@@ -19,6 +19,9 @@ async function main() {
     } else {
       console.log('Tables already exist, skipping migration')
     }
+    // Incremental: add minute column if missing
+    await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "minute" INTEGER`)
+    console.log('Column check complete')
   } finally {
     await pool.end()
   }
