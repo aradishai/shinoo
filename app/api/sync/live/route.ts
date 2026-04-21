@@ -70,6 +70,14 @@ async function lockExpiredMatches() {
   })
 }
 
+async function autoFinishStaleMatches() {
+  const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
+  await db.match.updateMany({
+    where: { status: 'LIVE', kickoffAt: { lte: twoHoursAgo } },
+    data: { status: 'FINISHED' },
+  })
+}
+
 async function recalculateMissingPoints() {
   const finishedWithPredictions = await db.match.findMany({
     where: {
@@ -99,6 +107,7 @@ export async function GET() {
       lastSyncTime = now
       await lockExpiredMatches()
       await syncLaLigaLive()
+      await autoFinishStaleMatches()
       await recalculateMissingPoints()
       synced = true
     }
