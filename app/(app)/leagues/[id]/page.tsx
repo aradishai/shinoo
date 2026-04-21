@@ -13,9 +13,11 @@ interface StandingEntry {
   username: string
   role: string
   totalPoints: number
-  correctPredictions: number
-  exactScores: number
   predictionCount: number
+  wrong: number
+  outcomeOnly: number
+  outcomeAndOne: number
+  exactScores: number
 }
 
 interface Match {

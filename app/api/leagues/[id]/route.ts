@@ -51,21 +51,22 @@ export async function GET(
           (sum, pred) => sum + (pred.points?.totalPoints || 0),
           0
         )
-        const correctPredictions = predictions.filter(
-          (pred) => (pred.points?.resultPoints || 0) > 0
-        ).length
-        const exactScores = predictions.filter(
-          (pred) => (pred.points?.resultPoints || 0) === 5
-        ).length
+        const scored = predictions.filter(p => p.points !== null)
+        const wrong = scored.filter(p => (p.points?.resultPoints || 0) === 0).length
+        const outcomeOnly = scored.filter(p => (p.points?.resultPoints || 0) === 1).length
+        const outcomeAndOne = scored.filter(p => (p.points?.resultPoints || 0) === 3).length
+        const exactScores = scored.filter(p => (p.points?.resultPoints || 0) === 5).length
 
         return {
           userId: member.userId,
           username: member.user.username,
           role: member.role,
           totalPoints,
-          correctPredictions,
-          exactScores,
           predictionCount: predictions.length,
+          wrong,
+          outcomeOnly,
+          outcomeAndOne,
+          exactScores,
         }
       })
       .sort((a, b) => b.totalPoints - a.totalPoints)
