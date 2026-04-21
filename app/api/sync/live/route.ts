@@ -98,10 +98,8 @@ export async function GET() {
     if (timeSinceLast >= MIN_INTERVAL_MS) {
       lastSyncTime = now
       await lockExpiredMatches()
+      await syncLaLigaLive()
       await recalculateMissingPoints()
-      if (activeCount > 0) {
-        await syncLaLigaLive()
-      }
       synced = true
     }
 
