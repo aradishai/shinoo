@@ -16,11 +16,8 @@ export function calculatePoints(
   predictedAway: number,
   actualHome: number,
   actualAway: number,
-  predictedTopScorerPlayerId: string | null,
-  actualTopScorerPlayerIds: string[]
 ): ScoringResult {
   let resultPoints = 0
-  let topScorerPoints = 0
   const explanationParts: string[] = []
 
   const predictedOutcome = getMatchOutcome(predictedHome, predictedAway)
@@ -31,42 +28,27 @@ export function calculatePoints(
 
   if (isExactScore) {
     resultPoints = 5
-    explanationParts.push('ניחוש תוצאה מדויק: 5 נקודות')
+    explanationParts.push('תוצאה מדויקת: 5 נקודות')
   } else if (isCorrectOutcome) {
     const homeExact = predictedHome === actualHome
     const awayExact = predictedAway === actualAway
-
     if (homeExact || awayExact) {
       resultPoints = 3
       const teamName = homeExact ? 'הקבוצה הביתית' : 'הקבוצה האורחת'
       explanationParts.push(`מגמה נכונה + ${teamName} מדויקת: 3 נקודות`)
     } else {
       resultPoints = 1
-      explanationParts.push('מגמה נכונה בלבד: נקודה אחת')
+      explanationParts.push('מגמה נכונה: 1 נקודה')
     }
   } else {
     resultPoints = 0
     explanationParts.push('מגמה שגויה: 0 נקודות')
   }
 
-  // Top scorer bonus
-  if (
-    predictedTopScorerPlayerId &&
-    actualTopScorerPlayerIds.length > 0 &&
-    actualTopScorerPlayerIds.includes(predictedTopScorerPlayerId)
-  ) {
-    topScorerPoints = 2
-    explanationParts.push('מלך שערים נכון: +2 נקודות')
-  } else if (predictedTopScorerPlayerId && actualTopScorerPlayerIds.length > 0) {
-    explanationParts.push('מלך שערים שגוי: +0 נקודות')
-  }
-
-  const totalPoints = resultPoints + topScorerPoints
-
   return {
     resultPoints,
-    topScorerPoints,
-    totalPoints,
+    topScorerPoints: 0,
+    totalPoints: resultPoints,
     explanation: explanationParts.join(' | '),
   }
 }

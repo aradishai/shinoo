@@ -164,8 +164,6 @@ export async function recalculatePoints(matchId: string): Promise<void> {
       prediction.predictedAwayScore,
       match.homeScore,
       match.awayScore,
-      prediction.predictedTopScorerPlayerId,
-      actualTopScorerIds
     )
 
     await db.predictionPoints.upsert({

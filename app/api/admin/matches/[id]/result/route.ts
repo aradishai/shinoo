@@ -37,8 +37,6 @@ export async function POST(request: Request, { params }: { params: { id: string 
         pred.predictedAwayScore,
         match.homeScore!,
         match.awayScore!,
-        pred.predictedTopScorerPlayerId,
-        topScorerIds
       )
 
       await db.predictionPoints.upsert({
