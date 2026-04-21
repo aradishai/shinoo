@@ -206,9 +206,7 @@ export default function HomePage() {
           {/* Primary League Standings */}
           <section className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <Link href={`/leagues/${primaryLeague.id}`} className="text-primary text-sm font-medium">
-                הכל ←
-              </Link>
+              <div className="w-12" />
               <div className="text-right">
                 <h2 className="text-white font-bold text-lg">{primaryLeague.name}</h2>
                 <div className="flex items-center justify-end gap-2">
