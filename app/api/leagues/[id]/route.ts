@@ -88,19 +88,33 @@ export async function GET(
       take: 10,
     })
 
-    // Attach user predictions to matches
+    const matchIds = matches.map((m) => m.id)
+    const lockedStatuses = ['LOCKED', 'LIVE', 'FINISHED']
+
+    // User predictions
     const userPredictions = await db.prediction.findMany({
-      where: {
-        userId,
-        leagueId: params.id,
-        matchId: { in: matches.map((m) => m.id) },
-      },
+      where: { userId, leagueId: params.id, matchId: { in: matchIds } },
     })
     const predMap = Object.fromEntries(userPredictions.map((p) => [p.matchId, p]))
+
+    // Member predictions (visible only after match locks)
+    const lockedMatchIds = matches.filter(m => lockedStatuses.includes(m.status)).map(m => m.id)
+    const memberPredictions = lockedMatchIds.length > 0
+      ? await db.prediction.findMany({
+          where: { leagueId: params.id, matchId: { in: lockedMatchIds }, userId: { not: userId } },
+          include: { user: { select: { id: true, username: true } } },
+        })
+      : []
+    const memberPredMap: Record<string, any[]> = {}
+    for (const p of memberPredictions) {
+      if (!memberPredMap[p.matchId]) memberPredMap[p.matchId] = []
+      memberPredMap[p.matchId].push(p)
+    }
 
     const matchesWithPredictions = matches.map((match) => ({
       ...match,
       userPrediction: predMap[match.id] || null,
+      memberPredictions: memberPredMap[match.id] || [],
     }))
 
     return NextResponse.json({

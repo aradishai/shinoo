@@ -19,6 +19,13 @@ interface Prediction {
   predictedAwayScore: number
 }
 
+interface MemberPrediction {
+  id: string
+  predictedHomeScore: number
+  predictedAwayScore: number
+  user: { id: string; username: string }
+}
+
 interface MatchCardProps {
   match: {
     id: string
@@ -33,6 +40,7 @@ interface MatchCardProps {
     round?: string | null
   }
   prediction?: Prediction | null
+  memberPredictions?: MemberPrediction[]
   leagueId?: string
   onPredictClick?: () => void
 }
@@ -67,7 +75,7 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
-export function MatchCard({ match, prediction, leagueId, onPredictClick }: MatchCardProps) {
+export function MatchCard({ match, prediction, memberPredictions = [], leagueId, onPredictClick }: MatchCardProps) {
   const kickoff = new Date(match.kickoffAt)
   const lockAt = new Date(match.lockAt)
   const status = match.status
@@ -103,7 +111,7 @@ export function MatchCard({ match, prediction, leagueId, onPredictClick }: Match
 
         {/* Score / VS */}
         <div className="flex flex-col items-center gap-1 px-2">
-          {(isFinished || isLive) && match.homeScore !== null && match.awayScore !== null ? (
+          {(isFinished || isLive || isLocked) && match.homeScore !== null && match.awayScore !== null ? (
             <div className="flex flex-col items-center gap-0.5">
               <div className="flex items-center gap-1">
                 <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
@@ -153,34 +161,38 @@ export function MatchCard({ match, prediction, leagueId, onPredictClick }: Match
         </div>
       </div>
 
-      {/* Prediction Preview */}
-      {prediction && (
-        <div className="mt-3 pt-3 border-t border-dark-border flex items-center justify-between">
-          <span className="text-xs text-gray-500">הניחוש שלי</span>
-          <span className="text-sm font-bold text-primary">
-            {prediction.predictedHomeScore} - {prediction.predictedAwayScore}
-          </span>
+      {/* Predictions */}
+      {(prediction || memberPredictions.length > 0) && (
+        <div className="mt-3 pt-3 border-t border-dark-border space-y-1.5">
+          {prediction && (
+            <div className="flex items-center justify-between">
+              <span className="text-primary font-bold text-sm">{prediction.predictedHomeScore} - {prediction.predictedAwayScore}</span>
+              <span className="text-xs text-gray-500">אני</span>
+            </div>
+          )}
+          {memberPredictions.map((mp) => (
+            <div key={mp.id} className="flex items-center justify-between">
+              <span className="text-white font-bold text-sm">{mp.predictedHomeScore} - {mp.predictedAwayScore}</span>
+              <span className="text-xs text-gray-500">{mp.user.username}</span>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* CTA */}
-      <div className="mt-3">
-        {isOpen && !prediction && (
-          <div className="bg-primary/10 border border-primary/30 text-primary text-center py-2 rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
-            נחש עכשיו
-          </div>
-        )}
-        {isOpen && prediction && (
-          <div className="bg-dark-muted text-gray-300 text-center py-2 rounded-xl text-sm font-medium">
-            ערוך ניחוש
-          </div>
-        )}
-        {!isOpen && (
-          <div className="text-gray-600 text-center py-2 text-sm">
-            {prediction ? 'צפה בניחוש' : 'צפה במשחק'}
-          </div>
-        )}
-      </div>
+      {/* CTA — only when open */}
+      {isOpen && (
+        <div className="mt-3">
+          {!prediction ? (
+            <div className="bg-primary/10 border border-primary/30 text-primary text-center py-2 rounded-xl text-sm font-bold">
+              נחש עכשיו
+            </div>
+          ) : (
+            <div className="bg-dark-muted text-gray-300 text-center py-2 rounded-xl text-sm font-medium">
+              ערוך ניחוש
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 

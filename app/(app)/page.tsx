@@ -23,6 +23,7 @@ interface Match {
   awayScore?: number | null
   round?: string | null
   userPrediction?: { predictedHomeScore: number; predictedAwayScore: number } | null
+  memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; user: { id: string; username: string } }[]
 }
 
 interface StandingEntry {
@@ -261,6 +262,7 @@ export default function HomePage() {
                     key={match.id}
                     match={match}
                     prediction={match.userPrediction}
+                    memberPredictions={match.memberPredictions}
                     leagueId={primaryLeague.id}
                   />
                 ))}
@@ -289,6 +291,7 @@ export default function HomePage() {
                     key={match.id}
                     match={match}
                     prediction={match.userPrediction}
+                    memberPredictions={match.memberPredictions}
                     leagueId={primaryLeague.id}
                   />
                 ))}
