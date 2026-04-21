@@ -176,20 +176,6 @@ export default function LeagueDetailPage() {
         </button>
       </div>
 
-      {/* Invite Code */}
-      <div className="bg-dark-card border border-dark-border rounded-2xl p-4 mb-6 flex items-center justify-between">
-        <button
-          onClick={copyInviteCode}
-          className="text-primary text-sm font-medium hover:underline"
-        >
-          {copiedCode ? 'הועתק! ✓' : 'העתק'}
-        </button>
-        <div className="text-right">
-          <p className="text-gray-500 text-xs">קוד הזמנה</p>
-          <p className="text-white font-black text-xl font-mono tracking-widest">{league.inviteCode}</p>
-        </div>
-      </div>
-
       {/* Tabs */}
       <div className="flex bg-dark-card border border-dark-border rounded-xl p-1 mb-6">
         {[
@@ -295,6 +281,17 @@ export default function LeagueDetailPage() {
           )}
         </div>
       )}
+
+      {/* Invite Code — bottom */}
+      <div className="mt-8 flex items-center justify-between py-3 px-4 bg-dark-card border border-dark-border rounded-xl">
+        <button onClick={copyInviteCode} className="text-primary text-xs font-medium">
+          {copiedCode ? 'הועתק! ✓' : 'העתק'}
+        </button>
+        <div className="text-right">
+          <p className="text-gray-600 text-xs">קוד הזמנה</p>
+          <p className="text-gray-400 font-mono text-sm tracking-widest">{league.inviteCode}</p>
+        </div>
+      </div>
     </div>
   )
 }
