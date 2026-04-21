@@ -23,7 +23,7 @@ export async function GET(
                 username: true,
                 predictions: {
                   where: { leagueId: params.id },
-                  include: { points: true },
+                  include: { points: true, match: { select: { status: true } } },
                 },
               },
             },
@@ -52,10 +52,11 @@ export async function GET(
           0
         )
         const scored = predictions.filter(p => p.points !== null)
-        const wrong = scored.filter(p => (p.points?.resultPoints || 0) === 0).length
-        const outcomeOnly = scored.filter(p => (p.points?.resultPoints || 0) === 1).length
-        const outcomeAndOne = scored.filter(p => (p.points?.resultPoints || 0) === 3).length
-        const exactScores = scored.filter(p => (p.points?.resultPoints || 0) === 5).length
+        const finished = scored.filter(p => p.match?.status === 'FINISHED')
+        const wrong = finished.filter(p => (p.points?.resultPoints || 0) === 0).length
+        const outcomeOnly = finished.filter(p => (p.points?.resultPoints || 0) === 1).length
+        const outcomeAndOne = finished.filter(p => (p.points?.resultPoints || 0) === 3).length
+        const exactScores = finished.filter(p => (p.points?.resultPoints || 0) === 5).length
 
         return {
           userId: member.userId,
