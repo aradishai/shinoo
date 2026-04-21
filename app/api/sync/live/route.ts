@@ -23,17 +23,20 @@ const TSDB_STATUS_MAP: Record<string, string> = {
 }
 
 async function syncLaLigaLive() {
-  // Fetch next/current events from the league — these have correct IDs and scores
-  let events: any[] = []
-  try {
-    const res = await axios.get(`${TSDB_BASE}/eventsnextleague.php`, {
-      params: { id: TSDB_LA_LIGA },
-      timeout: 8000,
-    })
-    events = res.data?.events ?? []
-  } catch {
-    return
-  }
+  // Fetch both next and past events — next covers upcoming/locked, past covers finished
+  const [nextRes, pastRes] = await Promise.allSettled([
+    axios.get(`${TSDB_BASE}/eventsnextleague.php`, { params: { id: TSDB_LA_LIGA }, timeout: 8000 }),
+    axios.get(`${TSDB_BASE}/eventspastleague.php`, { params: { id: TSDB_LA_LIGA }, timeout: 8000 }),
+  ])
+
+  const nextEvents = nextRes.status === 'fulfilled' ? (nextRes.value.data?.events ?? []) : []
+  const pastEvents = pastRes.status === 'fulfilled' ? (pastRes.value.data?.events ?? []) : []
+
+  // Merge, deduplicate by idEvent, past takes priority (has final score)
+  const eventMap = new Map<string, any>()
+  for (const e of nextEvents) if (e.idEvent) eventMap.set(String(e.idEvent), e)
+  for (const e of pastEvents) if (e.idEvent) eventMap.set(String(e.idEvent), e)
+  const events = Array.from(eventMap.values())
 
   for (const e of events) {
     if (!e.idEvent) continue
