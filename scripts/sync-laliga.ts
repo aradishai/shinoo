@@ -34,31 +34,23 @@ async function main() {
   })
   console.log(`✅ טורניר: ${tournament.name}`)
 
-  // 2. Always fetch next+past events (reliable), also try full season for historical data
-  console.log('📡 מושך משחקים עתידיים ואחרונים...')
-  const [nextRes, pastRes] = await Promise.all([
-    axios.get(`${BASE}/eventsnextleague.php`, { params: { id: LEAGUE_ID }, timeout: 12000 }).catch(() => ({ data: {} })),
-    axios.get(`${BASE}/eventspastleague.php`, { params: { id: LEAGUE_ID }, timeout: 12000 }).catch(() => ({ data: {} })),
-  ])
-  const nextEvents: any[] = nextRes.data?.events ?? []
-  const pastEvents: any[] = pastRes.data?.events ?? []
-  console.log(`📋 עתידיים: ${nextEvents.length}, אחרונים: ${pastEvents.length}`)
+  // 2. Fetch full season from eventsseason.php
+  let events: any[] = []
 
-  let events: any[] = [...nextEvents, ...pastEvents]
-
-  // Also try full season for additional historical matches
-  for (const s of [SEASON, '2025', '2026']) {
+  for (const s of [SEASON, '2025', '2026', '2024-2025', '2024']) {
     try {
-      const res = await axios.get(`${BASE}/eventsseason.php`, { params: { id: LEAGUE_ID, s }, timeout: 12000 })
+      const res = await axios.get(`${BASE}/eventsseason.php`, { params: { id: LEAGUE_ID, s }, timeout: 15000 })
       const found: any[] = res.data?.events ?? []
       if (found.length > 0) {
-        console.log(`📋 עונה ${s}: ${found.length} אירועים (מיזוג)`)
-        const existingIds = new Set(events.map((e: any) => String(e.idEvent)))
-        const newOnes = found.filter((e: any) => !existingIds.has(String(e.idEvent)))
-        events = [...events, ...newOnes]
+        events = found
+        console.log(`📋 עונה ${s}: ${found.length} אירועים`)
         break
       }
     } catch { /* try next */ }
+  }
+
+  if (events.length === 0) {
+    console.log('⚠️  eventsseason ריק לכל הפורמטים')
   }
 
   console.log(`📋 סה"כ אירועים: ${events.length}`)
