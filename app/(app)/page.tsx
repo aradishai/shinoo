@@ -186,7 +186,7 @@ export default function HomePage() {
             await fetch('/api/auth/logout', { method: 'POST' })
             router.push('/login')
           }}
-          className="text-gray-500 text-sm hover:text-gray-300 transition-colors"
+          className="text-sm font-medium text-gray-300 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl hover:border-red-500/40 hover:text-red-400 transition-all"
         >
           יציאה
         </button>
