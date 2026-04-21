@@ -16,82 +16,46 @@ const TSDB_STATUS_MAP: Record<string, string> = {
   'Match Finished': 'FINISHED',
   'After Extra Time': 'FINISHED',
   'After Penalties': 'FINISHED',
-  '1H': 'LIVE', 'HT': 'LIVE', '2H': 'LIVE', 'ET': 'LIVE',
-  'Match Postponed': 'POSTPONED',
-  'Match Cancelled': 'CANCELLED',
+  'FT': 'FINISHED', 'AET': 'FINISHED', 'PEN': 'FINISHED',
+  '1H': 'LIVE', 'HT': 'LIVE', '2H': 'LIVE', 'ET': 'LIVE', 'BT': 'LIVE', 'P': 'LIVE',
+  'Match Postponed': 'POSTPONED', 'POSTP': 'POSTPONED',
+  'Match Cancelled': 'CANCELLED', 'CANC': 'CANCELLED', 'ABD': 'CANCELLED',
 }
 
 async function syncLaLigaLive() {
-  // Try live scores first
+  // Fetch next/current events from the league — these have correct IDs and scores
   let events: any[] = []
   try {
-    const liveRes = await axios.get(`${TSDB_BASE}/livescore.php`, {
-      params: { l: TSDB_LA_LIGA },
+    const res = await axios.get(`${TSDB_BASE}/eventsnextleague.php`, {
+      params: { id: TSDB_LA_LIGA },
       timeout: 8000,
     })
-    events = liveRes.data?.events ?? []
+    events = res.data?.events ?? []
   } catch {
-    // livescore might not be available on free tier — fall through
-  }
-
-  // If no live events, check recently-started LOCKED matches via lookupevent
-  if (events.length === 0) {
-    const lockedMatches = await db.match.findMany({
-      where: {
-        status: { in: ['LOCKED', 'LIVE'] },
-        tournament: { slug: 'laliga-2025-2026' },
-        kickoffAt: { lte: new Date() },
-        providerMatchId: { not: null },
-      },
-    })
-
-    for (const match of lockedMatches) {
-      if (!match.providerMatchId) continue
-      try {
-        const res = await axios.get(`${TSDB_BASE}/lookupevent.php`, {
-          params: { id: match.providerMatchId },
-          timeout: 8000,
-        })
-        const e = res.data?.events?.[0]
-        if (!e) continue
-
-        const status = TSDB_STATUS_MAP[e.strStatus ?? ''] ?? match.status
-        const homeScore = e.intHomeScore !== null && e.intHomeScore !== '' ? Number(e.intHomeScore) : match.homeScore
-        const awayScore = e.intAwayScore !== null && e.intAwayScore !== '' ? Number(e.intAwayScore) : match.awayScore
-        const minute = e.strProgress ? parseInt(e.strProgress) || null : null
-
-        await db.match.update({
-          where: { id: match.id },
-          data: { status, homeScore, awayScore, ...(minute !== null ? { minute } : {}) },
-        })
-
-        if (homeScore !== null && awayScore !== null) {
-          await recalculatePoints(match.id)
-        }
-      } catch {
-        // continue to next match
-      }
-    }
     return
   }
 
-  // Process live events from livescore endpoint
   for (const e of events) {
+    if (!e.idEvent) continue
     const match = await db.match.findUnique({
       where: { providerMatchId: String(e.idEvent) },
     })
     if (!match) continue
 
-    const status = TSDB_STATUS_MAP[e.strStatus ?? ''] ?? 'LIVE'
-    const homeScore = Number(e.intHomeScore) || 0
-    const awayScore = Number(e.intAwayScore) || 0
+    const status = TSDB_STATUS_MAP[e.strStatus ?? ''] ?? match.status
+    const hasScore = e.intHomeScore !== null && e.intHomeScore !== '' && e.intAwayScore !== null && e.intAwayScore !== ''
+    const homeScore = hasScore ? Number(e.intHomeScore) : match.homeScore
+    const awayScore = hasScore ? Number(e.intAwayScore) : match.awayScore
+    const minute = e.strProgress ? parseInt(e.strProgress) || null : null
 
     await db.match.update({
       where: { id: match.id },
-      data: { status, homeScore, awayScore },
+      data: { status, homeScore, awayScore, ...(minute !== null ? { minute } : {}) },
     })
 
-    await recalculatePoints(match.id)
+    if (hasScore) {
+      await recalculatePoints(match.id)
+    }
   }
 }
 
