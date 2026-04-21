@@ -54,16 +54,16 @@ export async function GET(
         const scored = predictions.filter(p => p.points !== null)
         const finished = scored.filter(p => p.match?.status === 'FINISHED')
         const wrong = finished.filter(p => (p.points?.resultPoints || 0) === 0).length
-        const outcomeOnly = finished.filter(p => (p.points?.resultPoints || 0) === 1).length
-        const outcomeAndOne = finished.filter(p => (p.points?.resultPoints || 0) === 3).length
-        const exactScores = finished.filter(p => (p.points?.resultPoints || 0) === 5).length
+        const outcomeOnly = scored.filter(p => (p.points?.resultPoints || 0) === 1).length
+        const outcomeAndOne = scored.filter(p => (p.points?.resultPoints || 0) === 3).length
+        const exactScores = scored.filter(p => (p.points?.resultPoints || 0) === 5).length
 
         return {
           userId: member.userId,
           username: member.user.username,
           role: member.role,
           totalPoints,
-          predictionCount: predictions.length,
+          predictionCount: scored.length,
           wrong,
           outcomeOnly,
           outcomeAndOne,
