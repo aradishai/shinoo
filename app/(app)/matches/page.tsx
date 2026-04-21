@@ -155,7 +155,7 @@ export default function MatchesPage() {
   return (
     <div className="px-4 py-6 pb-24">
       <div className="flex items-center justify-between mb-6">
-        <Link href="/" className="text-gray-400 hover:text-white">← חזרה</Link>
+        <Link href="/" className="text-sm font-medium text-gray-300 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl hover:border-primary/40 hover:text-white transition-all">בית</Link>
         <h1 className="text-white font-black text-xl">ניחושים</h1>
         <div className="w-12" />
       </div>
