@@ -71,7 +71,7 @@ async function lockExpiredMatches() {
 }
 
 async function autoFinishStaleMatches() {
-  const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
+  const twoHoursAgo = new Date(Date.now() - 100 * 60 * 1000)
   await db.match.updateMany({
     where: { status: 'LIVE', kickoffAt: { lte: twoHoursAgo } },
     data: { status: 'FINISHED' },
