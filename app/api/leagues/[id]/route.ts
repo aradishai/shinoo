@@ -71,11 +71,14 @@ export async function GET(
       .sort((a, b) => b.totalPoints - a.totalPoints)
       .map((entry, index) => ({ ...entry, rank: index + 1 }))
 
-    // Get upcoming matches
+    // Get live + upcoming matches (LIVE can have kickoffAt in the past)
+    const now = new Date()
     const matches = await db.match.findMany({
       where: {
-        status: { in: ['SCHEDULED', 'LOCKED', 'LIVE'] },
-        kickoffAt: { gte: new Date() },
+        OR: [
+          { status: { in: ['LIVE', 'LOCKED'] } },
+          { status: 'SCHEDULED', kickoffAt: { gte: now } },
+        ],
       },
       include: {
         homeTeam: true,

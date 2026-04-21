@@ -245,6 +245,29 @@ export default function HomePage() {
             </div>
           )}
 
+          {/* Live Matches */}
+          {primaryLeague.matches.filter(m => m.status === 'LIVE').length > 0 && (
+            <section className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className="flex items-center gap-1.5 text-xs text-green-400 font-bold">
+                  <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
+                  עכשיו
+                </span>
+                <h2 className="text-white font-bold text-lg">משחקים חיים</h2>
+              </div>
+              <div className="space-y-3">
+                {primaryLeague.matches.filter(m => m.status === 'LIVE').map((match) => (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    prediction={match.userPrediction}
+                    leagueId={primaryLeague.id}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Upcoming Matches */}
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -254,14 +277,14 @@ export default function HomePage() {
               <h2 className="text-white font-bold text-lg">משחקים קרובים</h2>
             </div>
 
-            {primaryLeague.matches.length === 0 ? (
+            {primaryLeague.matches.filter(m => m.status !== 'LIVE').length === 0 ? (
               <div className="text-center py-10 text-gray-500">
                 <div className="text-4xl mb-3">📅</div>
                 <p>אין משחקים מתוכננים כרגע</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {primaryLeague.matches.slice(0, 5).map((match) => (
+                {primaryLeague.matches.filter(m => m.status !== 'LIVE').slice(0, 5).map((match) => (
                   <MatchCard
                     key={match.id}
                     match={match}
