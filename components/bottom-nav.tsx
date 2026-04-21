@@ -4,6 +4,38 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
 
+function HomeIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', active ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 11L12 3l9 8v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-9z"/>
+      <path d="M9 21v-8h6v8"/>
+    </svg>
+  )
+}
+
+function TrophyIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', active ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 3h10v8a5 5 0 01-10 0V3z"/>
+      <path d="M7 6H4a1 1 0 00-1 1v1a3 3 0 003 3h1"/>
+      <path d="M17 6h3a1 1 0 011 1v1a3 3 0 01-3 3h-1"/>
+      <path d="M12 16v3"/>
+      <path d="M8 19h8"/>
+      <path d="M12 5l.6 1.8 1.8.6-1.8.6-.6 1.8-.6-1.8-1.8-.6 1.8-.6z"/>
+    </svg>
+  )
+}
+
+function MoneyIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', active ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="4" width="16" height="10" rx="1.5"/>
+      <path d="M3 8v10a1.5 1.5 0 001.5 1.5H19"/>
+      <circle cx="13" cy="9" r="2"/>
+      <path d="M6.5 6.5h.01M19.5 11.5h.01"/>
+    </svg>
+  )
+}
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -14,38 +46,9 @@ export function BottomNav() {
   }
 
   const navItems = [
-    {
-      href: '/leagues',
-      label: 'ליגות',
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', isActive('/leagues') ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={isActive('/leagues') ? 2.5 : 2}>
-          <path d="M8 21h8M12 17v4M7 4h10v8a5 5 0 01-10 0V4z"/>
-          <path d="M7 7H4a2 2 0 000 4h3"/>
-          <path d="M17 7h3a2 2 0 010 4h-3"/>
-        </svg>
-      ),
-    },
-    {
-      href: '/matches',
-      label: 'ניחושים',
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', isActive('/matches') ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={isActive('/matches') ? 2.5 : 2}>
-          <rect x="2" y="7" width="20" height="10" rx="2"/>
-          <path d="M12 12m-2 0a2 2 0 104 0 2 2 0 10-4 0"/>
-          <path d="M6 12h.01M18 12h.01"/>
-        </svg>
-      ),
-    },
-    {
-      href: '/',
-      label: 'בית',
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', isActive('/') ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={isActive('/') ? 2.5 : 2}>
-          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
-          <path d="M9 21V12h6v9"/>
-        </svg>
-      ),
-    },
+    { href: '/leagues', label: 'ליגות', Icon: TrophyIcon },
+    { href: '/matches', label: 'ניחושים', Icon: MoneyIcon },
+    { href: '/', label: 'בית', Icon: HomeIcon },
   ]
 
   return (
@@ -60,18 +63,11 @@ export function BottomNav() {
                 href={item.href}
                 className="flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all"
               >
-                {item.icon}
-                <span
-                  className={clsx(
-                    'text-xs font-medium transition-colors',
-                    active ? 'text-primary' : 'text-gray-500'
-                  )}
-                >
+                <item.Icon active={active} />
+                <span className={clsx('text-xs font-medium transition-colors', active ? 'text-primary' : 'text-gray-500')}>
                   {item.label}
                 </span>
-                {active && (
-                  <span className="w-1 h-1 rounded-full bg-primary" />
-                )}
+                {active && <span className="w-1 h-1 rounded-full bg-primary" />}
               </Link>
             )
           })}
