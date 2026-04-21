@@ -53,14 +53,14 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
       <div className="flex items-center px-3 py-2 border-b border-dark-border">
         <div className="w-7 flex-shrink-0" />
         <div className="flex-1" />
-        <div className="grid grid-cols-5 gap-1 text-center" style={{ width: '60%' }}>
-          <span className="text-xs text-gray-600">משחקים</span>
-          <span className="text-xs text-red-500">טעות</span>
-          <span className="text-xs text-yellow-400">מגמה</span>
-          <span className="text-xs text-blue-400">מגמה+1</span>
+        <div className="grid grid-cols-5 text-center" style={{ width: '55%' }}>
+          <span className="text-xs text-gray-600">מש׳</span>
+          <span className="text-xs text-red-500">✗</span>
+          <span className="text-xs text-yellow-400">מג׳</span>
+          <span className="text-xs text-blue-400">+1</span>
           <span className="text-xs text-green-400">בול</span>
         </div>
-        <div className="w-10 text-center">
+        <div className="w-8 text-center">
           <span className="text-xs text-gray-600">נק׳</span>
         </div>
       </div>
@@ -82,14 +82,14 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
                 {isCurrentUser && <span className="text-xs text-gray-500 font-normal mr-1">(אני)</span>}
               </span>
             </div>
-            <div className="grid grid-cols-5 gap-1 text-center" style={{ width: '60%' }}>
+            <div className="grid grid-cols-5 text-center" style={{ width: '55%' }}>
               <span className="text-sm font-bold text-gray-400">{entry.predictionCount}</span>
               <span className="text-sm font-bold text-red-500">{entry.wrong}</span>
               <span className="text-sm font-bold text-yellow-400">{entry.outcomeOnly}</span>
               <span className="text-sm font-bold text-blue-400">{entry.outcomeAndOne}</span>
               <span className="text-sm font-bold text-green-400">{entry.exactScores}</span>
             </div>
-            <div className={`w-10 text-center font-black text-lg ${isCurrentUser ? 'text-primary' : 'text-white'}`}>
+            <div className={`w-8 text-center font-black text-lg ${isCurrentUser ? 'text-primary' : 'text-white'}`}>
               {entry.totalPoints}
             </div>
           </div>
