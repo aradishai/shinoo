@@ -1,30 +1,26 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { recalculatePoints } from '@/lib/sync-service'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  // Reset corrupted scores (1-4 Liverpool/Swansea garbage) on today's matches
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  // Delete ALL prediction points so we start fresh
+  await db.predictionPoints.deleteMany({})
 
-  const reset = await db.match.updateMany({
+  // Recalculate only for FINISHED matches with valid scores
+  const finishedMatches = await db.match.findMany({
     where: {
-      kickoffAt: { gte: today },
-      homeScore: 4,
-      awayScore: 1,
+      status: 'FINISHED',
+      homeScore: { not: null },
+      awayScore: { not: null },
     },
-    data: { homeScore: null, awayScore: null, status: 'LOCKED' },
+    select: { id: true },
   })
 
-  // Also delete old La Liga matches with no predictions
-  const deleted = await db.match.deleteMany({
-    where: {
-      tournament: { slug: 'laliga-2025-2026' },
-      kickoffAt: { lt: today },
-      predictions: { none: {} },
-    },
-  })
+  for (const m of finishedMatches) {
+    await recalculatePoints(m.id)
+  }
 
-  return NextResponse.json({ reset: reset.count, deleted: deleted.count })
+  return NextResponse.json({ reset: true, recalculated: finishedMatches.length })
 }
