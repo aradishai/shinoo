@@ -105,6 +105,7 @@ export default function MatchDetailPage() {
 
   const [match, setMatch] = useState<Match | null>(null)
   const [predictions, setPredictions] = useState<Prediction[]>([])
+  const [memberPredictions, setMemberPredictions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [userLeagues, setUserLeagues] = useState<{ id: string; name: string }[]>([])
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>(leagueId || '')
@@ -123,6 +124,7 @@ export default function MatchDetailPage() {
 
       setMatch(matchData.data?.match)
       setPredictions(matchData.data?.predictions || [])
+      setMemberPredictions(matchData.data?.memberPredictions || [])
 
       const leaguesList = (leaguesData.data || []).map((l: { id: string; name: string }) => ({
         id: l.id,
@@ -310,37 +312,42 @@ export default function MatchDetailPage() {
         />
       )}
 
-      {/* All Predictions Summary */}
+      {/* My predictions */}
       {predictions.length > 0 && (
         <div className="mt-6">
-          <h3 className="text-white font-bold mb-3 text-right">הניחושים שלי לכל ליגה</h3>
+          <h3 className="text-white font-bold mb-3 text-right">הניחוש שלי</h3>
           <div className="space-y-3">
             {predictions.map((pred) => (
-              <div
-                key={pred.id}
-                className="bg-dark-card border border-dark-border rounded-xl p-4 flex items-center justify-between"
-              >
+              <div key={pred.id} className="bg-dark-card border border-primary/30 rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {pred.points && (
-                    <PointsBadge points={pred.points.totalPoints} />
-                  )}
+                  {pred.points && <PointsBadge points={pred.points.totalPoints} />}
                   <div>
-                    <p className="text-primary font-black text-lg">
-                      {pred.predictedHomeScore} - {pred.predictedAwayScore}
-                    </p>
-                    {pred.predictedTopScorer && (
-                      <p className="text-gray-500 text-xs">{pred.predictedTopScorer.nameHe} ⚽</p>
-                    )}
+                    <p className="text-primary font-black text-lg">{pred.predictedHomeScore} - {pred.predictedAwayScore}</p>
+                    {pred.predictedTopScorer && <p className="text-gray-500 text-xs">{pred.predictedTopScorer.nameHe} ⚽</p>}
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-white font-medium text-sm">{pred.league.name}</p>
-                  {pred.points?.explanation && (
-                    <p className="text-gray-500 text-xs mt-0.5 max-w-[160px] text-right">
-                      {pred.points.explanation}
-                    </p>
-                  )}
+                  {pred.points?.explanation && <p className="text-gray-500 text-xs mt-0.5 max-w-[160px] text-right">{pred.points.explanation}</p>}
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Members predictions (visible after lock) */}
+      {isLocked && memberPredictions.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-white font-bold mb-3 text-right">ניחושי שאר החברים</h3>
+          <div className="space-y-2">
+            {memberPredictions.map((pred: any) => (
+              <div key={pred.id} className="bg-dark-card border border-dark-border rounded-xl p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {pred.points && <PointsBadge points={pred.points.totalPoints} />}
+                  <p className="text-white font-black text-lg">{pred.predictedHomeScore} - {pred.predictedAwayScore}</p>
+                </div>
+                <p className="text-gray-400 font-medium text-sm">{pred.user.username}</p>
               </div>
             ))}
           </div>
