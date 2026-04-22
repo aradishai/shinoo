@@ -29,10 +29,10 @@ function TrophyIcon({ active }: { active: boolean }) {
 function MoneyIcon({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={clsx('w-6 h-6', active ? 'text-primary' : 'text-gray-500')} stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="5" y="4" width="16" height="10" rx="1.5"/>
-      <path d="M3 8v10a1.5 1.5 0 001.5 1.5H19"/>
-      <circle cx="13" cy="9" r="2"/>
-      <path d="M6.5 6.5h.01M19.5 11.5h.01"/>
+      <rect x="2" y="7" width="18" height="12" rx="1.5"/>
+      <rect x="4" y="5" width="18" height="12" rx="1.5"/>
+      <circle cx="13" cy="11" r="2.5"/>
+      <path d="M13 8.5v5M11.5 9.5h2.5M11.5 12.5h2.5"/>
     </svg>
   )
 }
