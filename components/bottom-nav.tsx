@@ -29,14 +29,14 @@ export function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all"
+                className="flex flex-col items-center gap-0.5 py-1 px-4 rounded-xl transition-all"
               >
                 <item.Icon
-                  size={24}
+                  size={28}
                   strokeWidth={active ? 2.5 : 1.8}
                   className={active ? 'text-primary' : 'text-gray-500'}
                 />
-                <span className={clsx('text-xs font-medium transition-colors', active ? 'text-primary' : 'text-gray-500')}>
+                <span className={clsx('text-[11px] font-medium transition-colors', active ? 'text-primary' : 'text-gray-500')}>
                   {item.label}
                 </span>
                 {active && <span className="w-1 h-1 rounded-full bg-primary" />}
