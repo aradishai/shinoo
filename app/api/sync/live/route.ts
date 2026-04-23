@@ -82,12 +82,13 @@ async function autoFinishStaleMatches() {
 }
 
 async function recalculateMissingPoints() {
+  // Recalculate ALL predictions for finished matches (not just null — live scores may have set stale points)
   const finished = await db.match.findMany({
     where: {
       status: 'FINISHED',
       homeScore: { not: null },
       awayScore: { not: null },
-      predictions: { some: { points: null } },
+      predictions: { some: {} },
     },
     select: { id: true },
   })
