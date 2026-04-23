@@ -37,6 +37,7 @@ interface Match {
   awayScore?: number | null
   round?: string | null
   userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; predictedTopScorerPlayerId?: string | null } | null
+  memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; user: { id: string; username: string } }[]
 }
 
 const STATUS_TABS = [
@@ -249,6 +250,18 @@ export default function MatchesPage() {
                   </div>
 
                 </div>
+
+                {/* Member predictions for finished/live/locked matches */}
+                {(isFinished || isLive || match.status === 'LOCKED') && match.memberPredictions && match.memberPredictions.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-dark-border/50 space-y-1">
+                    {match.memberPredictions.map((mp: any) => (
+                      <div key={mp.id} className="flex items-center justify-between text-xs">
+                        <span className="text-primary font-bold">{mp.predictedHomeScore}-{mp.predictedAwayScore}</span>
+                        <span className="text-gray-500">{mp.user.username}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )
           })}
