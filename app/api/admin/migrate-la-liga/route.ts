@@ -11,7 +11,7 @@ const HEBREW_NAMES: Record<string, string> = {
   ATH: 'אתלטיק בילבאו',
   ATL: 'אתלטיקו מדריד',
   OSA: 'אוסאסונה',
-  ESP: 'אספניול',
+  ESP: 'אספניול', // Espanyol — overrides country code
   FCB: 'ברצלונה',
   GET: 'חטאפה',
   RMA: 'ריאל מדריד',
@@ -90,7 +90,7 @@ export async function GET() {
 
       const homeTeam = await db.team.upsert({
         where: { code: homeData.tla },
-        update: { flagUrl: homeData.crest },
+        update: { nameEn: homeData.shortName, nameHe: HEBREW_NAMES[homeData.tla] || homeData.shortName, flagUrl: homeData.crest },
         create: {
           nameEn: homeData.shortName,
           nameHe: HEBREW_NAMES[homeData.tla] || homeData.shortName,
@@ -101,7 +101,7 @@ export async function GET() {
 
       const awayTeam = await db.team.upsert({
         where: { code: awayData.tla },
-        update: { flagUrl: awayData.crest },
+        update: { nameEn: awayData.shortName, nameHe: HEBREW_NAMES[awayData.tla] || awayData.shortName, flagUrl: awayData.crest },
         create: {
           nameEn: awayData.shortName,
           nameHe: HEBREW_NAMES[awayData.tla] || awayData.shortName,
