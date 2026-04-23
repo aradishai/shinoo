@@ -60,7 +60,7 @@ async function syncFootballData() {
       data: { status, homeScore, awayScore },
     })
 
-    if (hasScore && status === 'FINISHED') {
+    if (hasScore) {
       await recalculatePoints(match.id)
     }
   }
