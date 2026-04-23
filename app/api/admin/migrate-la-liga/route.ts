@@ -56,7 +56,8 @@ export async function GET() {
       await db.tournament.delete({ where: { id: t.id } })
     }
 
-    // 3. Delete all old League One teams (no matches reference them now)
+    // 3. Delete players and teams with no matches
+    await db.player.deleteMany({})
     await db.team.deleteMany({
       where: {
         homeMatches: { none: {} },
