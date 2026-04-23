@@ -111,7 +111,8 @@ export async function GET() {
       })
 
       const kickoffAt = new Date(m.utcDate)
-      const lockAt = new Date(kickoffAt.getTime() - 60 * 60 * 1000) // 1 hour before
+      const idealLockAt = new Date(kickoffAt.getTime() - 60 * 60 * 1000)
+      const lockAt = idealLockAt < new Date() ? kickoffAt : idealLockAt
 
       await db.match.upsert({
         where: { providerMatchId: `fd-${m.id}` },
