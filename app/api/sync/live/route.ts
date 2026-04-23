@@ -8,61 +8,64 @@ export const dynamic = 'force-dynamic'
 let lastSyncTime = 0
 const MIN_INTERVAL_MS = 60_000
 
-const TSDB_BASE = 'https://www.thesportsdb.com/api/v1/json/3'
-const TSDB_LA_LIGA = 4335
+const FD_API = 'https://api.football-data.org/v4'
+const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
 
-const TSDB_STATUS_MAP: Record<string, string> = {
-  'Not Started': 'SCHEDULED',
-  'Match Finished': 'FINISHED',
-  'After Extra Time': 'FINISHED',
-  'After Penalties': 'FINISHED',
-  'FT': 'FINISHED', 'AET': 'FINISHED', 'PEN': 'FINISHED',
-  '1H': 'LIVE', 'HT': 'LIVE', '2H': 'LIVE', 'ET': 'LIVE', 'BT': 'LIVE', 'P': 'LIVE',
-  'Match Postponed': 'POSTPONED', 'POSTP': 'POSTPONED',
-  'Match Cancelled': 'CANCELLED', 'CANC': 'CANCELLED', 'ABD': 'CANCELLED',
+const FD_STATUS_MAP: Record<string, string> = {
+  'TIMED': 'SCHEDULED',
+  'SCHEDULED': 'SCHEDULED',
+  'IN_PLAY': 'LIVE',
+  'PAUSED': 'LIVE',
+  'FINISHED': 'FINISHED',
+  'SUSPENDED': 'POSTPONED',
+  'POSTPONED': 'POSTPONED',
+  'CANCELLED': 'CANCELLED',
+  'AWARDED': 'FINISHED',
 }
 
-async function syncLaLigaLive() {
-  // Fetch both next and past events — next covers upcoming/locked, past covers finished
-  const [nextRes, pastRes] = await Promise.allSettled([
-    axios.get(`${TSDB_BASE}/eventsnextleague.php`, { params: { id: TSDB_LA_LIGA }, timeout: 8000 }),
-    axios.get(`${TSDB_BASE}/eventspastleague.php`, { params: { id: TSDB_LA_LIGA }, timeout: 8000 }),
+async function syncFootballData() {
+  if (!FD_KEY) return
+
+  const [liveRes, recentRes] = await Promise.allSettled([
+    axios.get(`${FD_API}/competitions/PD/matches?status=IN_PLAY,PAUSED`, {
+      headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
+    }),
+    axios.get(`${FD_API}/competitions/PD/matches?status=FINISHED`, {
+      headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
+    }),
   ])
 
-  const nextEvents = nextRes.status === 'fulfilled' ? (nextRes.value.data?.events ?? []) : []
-  const pastEvents = pastRes.status === 'fulfilled' ? (pastRes.value.data?.events ?? []) : []
+  const liveMatches = liveRes.status === 'fulfilled' ? (liveRes.value.data?.matches ?? []) : []
+  const recentMatches = recentRes.status === 'fulfilled' ? (recentRes.value.data?.matches ?? []) : []
 
-  // Merge, deduplicate by idEvent, past takes priority (has final score)
-  const eventMap = new Map<string, any>()
-  for (const e of nextEvents) if (e.idEvent) eventMap.set(String(e.idEvent), e)
-  for (const e of pastEvents) if (e.idEvent) eventMap.set(String(e.idEvent), e)
-  const events = Array.from(eventMap.values())
+  // Recent finished matches (last 24 hours only)
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  const recentFinished = recentMatches.filter((m: any) => new Date(m.lastUpdated) > cutoff)
 
-  for (const e of events) {
-    if (!e.idEvent) continue
+  const allMatches = [...liveMatches, ...recentFinished]
+
+  for (const m of allMatches) {
     const match = await db.match.findUnique({
-      where: { providerMatchId: String(e.idEvent) },
+      where: { providerMatchId: `fd-${m.id}` },
     })
     if (!match) continue
 
-    const status = TSDB_STATUS_MAP[e.strStatus ?? ''] ?? match.status
-    const hasScore = e.intHomeScore !== null && e.intHomeScore !== '' && e.intAwayScore !== null && e.intAwayScore !== ''
-    const homeScore = hasScore ? Number(e.intHomeScore) : match.homeScore
-    const awayScore = hasScore ? Number(e.intAwayScore) : match.awayScore
-    const minute = e.strProgress ? parseInt(e.strProgress) || null : null
+    const status = FD_STATUS_MAP[m.status] ?? match.status
+    const homeScore = m.score?.fullTime?.home ?? match.homeScore
+    const awayScore = m.score?.fullTime?.away ?? match.awayScore
+    const hasScore = homeScore !== null && awayScore !== null
 
     await db.match.update({
       where: { id: match.id },
-      data: { status, homeScore, awayScore, ...(minute !== null ? { minute } : {}) },
+      data: { status, homeScore, awayScore },
     })
 
-    if (hasScore) {
+    if (hasScore && status === 'FINISHED') {
       await recalculatePoints(match.id)
     }
   }
 }
 
-// Auto-lock matches that have passed their lockAt time
 async function lockExpiredMatches() {
   await db.match.updateMany({
     where: { status: 'SCHEDULED', lockAt: { lte: new Date() } },
@@ -71,15 +74,15 @@ async function lockExpiredMatches() {
 }
 
 async function autoFinishStaleMatches() {
-  const twoHoursAgo = new Date(Date.now() - 100 * 60 * 1000)
+  const staleTime = new Date(Date.now() - 110 * 60 * 1000)
   await db.match.updateMany({
-    where: { status: 'LIVE', kickoffAt: { lte: twoHoursAgo } },
+    where: { status: 'LIVE', kickoffAt: { lte: staleTime } },
     data: { status: 'FINISHED' },
   })
 }
 
 async function recalculateMissingPoints() {
-  const finishedWithPredictions = await db.match.findMany({
+  const finished = await db.match.findMany({
     where: {
       status: 'FINISHED',
       homeScore: { not: null },
@@ -88,7 +91,7 @@ async function recalculateMissingPoints() {
     },
     select: { id: true },
   })
-  for (const m of finishedWithPredictions) {
+  for (const m of finished) {
     await recalculatePoints(m.id)
   }
 }
@@ -106,7 +109,7 @@ export async function GET() {
     if (timeSinceLast >= MIN_INTERVAL_MS) {
       lastSyncTime = now
       await lockExpiredMatches()
-      await syncLaLigaLive()
+      await syncFootballData()
       await autoFinishStaleMatches()
       await recalculateMissingPoints()
       synced = true
