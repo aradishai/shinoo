@@ -31,7 +31,7 @@ export function BottomNav() {
                 href={item.href}
                 className="flex flex-col items-center gap-0.5 py-1 px-4 rounded-xl transition-all"
               >
-                <div style={{ mixBlendMode: 'lighten' }} className={clsx('w-9 h-9 relative', !active && 'opacity-40')}>
+                <div style={{ mixBlendMode: 'lighten' }} className={clsx('w-14 h-14 relative', !active && 'opacity-40')}>
                   <Image src={item.icon} alt={item.label} fill className="object-contain" />
                 </div>
                 <span className={clsx('text-[11px] font-medium transition-colors', active ? 'text-primary' : 'text-gray-500')}>
