@@ -263,7 +263,7 @@ export default function HomePage() {
           </h1>
           <p className="text-gray-500 text-xs">שלום, {user?.username}! 👋</p>
         </div>
-        <img src="/logo.png" alt="SHINOO" className="w-14 h-14" style={{ mixBlendMode: 'lighten' }} />
+        <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0" style={{ backgroundImage: 'url(/logo.png)', backgroundSize: '130%', backgroundPosition: 'center' }} />
       </header>
 
       {leagues.length > 0 && primaryLeague ? (
