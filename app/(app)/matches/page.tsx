@@ -391,7 +391,7 @@ export default function MatchesPage() {
                       {!shinooExhausted && (
                         shinooDone ? (
                           <div className="h-10 w-10 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
-                            <img src="/logo.png" alt="SHINOO" className="w-8 h-8 object-contain" />
+                            <img src="/logo.png" alt="SHINOO" className="w-8 h-8 object-contain" style={{ mixBlendMode: 'lighten' }} />
                           </div>
                         ) : (
                           <button
@@ -400,7 +400,7 @@ export default function MatchesPage() {
                               !inWindow || x2Done ? 'border-gray-700 cursor-default' : 'border-transparent cursor-pointer'
                             }`}
                           >
-                            <img src="/logo.png" alt="SHINOO" className={`w-8 h-8 object-contain ${!inWindow || x2Done ? 'grayscale opacity-30' : ''}`} />
+                            <img src="/logo.png" alt="SHINOO" className={`w-8 h-8 object-contain ${!inWindow || x2Done ? 'grayscale opacity-30' : ''}`} style={{ mixBlendMode: 'lighten' }} />
                           </button>
                         )
                       )}

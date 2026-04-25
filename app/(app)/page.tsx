@@ -253,7 +253,7 @@ export default function HomePage() {
           יציאה
         </button>
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="SHINOO" className="w-10 h-10" />
+          <img src="/logo.png" alt="SHINOO" className="w-16 h-16" style={{ mixBlendMode: 'lighten' }} />
           <div>
             <h1 className="text-2xl font-black tracking-tight" dir="ltr">
               <span className="text-white">SH</span>
