@@ -252,9 +252,19 @@ export default function HomePage() {
         >
           יציאה
         </button>
-        <div className="text-center">
-          <img src="/logo.png" alt="SHINOO" className="w-12 h-12 mx-auto" />
-          <p className="text-gray-500 text-xs mt-1">שלום, {user?.username}! 👋</p>
+        <div className="flex items-center gap-2">
+          <img src="/logo.png" alt="SHINOO" className="w-10 h-10" />
+          <div>
+            <h1 className="text-2xl font-black tracking-tight" dir="ltr">
+              <span className="text-white">SH</span>
+              <span className="text-primary">I</span>
+              <span className="text-white">N</span>
+              <span className="text-primary">O</span>
+              <span className="text-white">O</span>
+              <span className="text-secondary">!</span>
+            </h1>
+            <p className="text-gray-500 text-xs">שלום, {user?.username}! 👋</p>
+          </div>
         </div>
         <div className="w-12" />
       </header>
