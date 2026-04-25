@@ -166,7 +166,7 @@ export async function recalculatePoints(matchId: string): Promise<void> {
       match.awayScore,
     )
 
-    const totalPoints = prediction.x2Applied ? result.resultPoints * 2 : result.totalPoints
+    const totalPoints = prediction.x2Applied ? result.resultPoints * 2 + result.topScorerPoints : result.totalPoints
     const explanation = prediction.x2Applied ? `${result.explanation} | X2: ${totalPoints} נקודות` : result.explanation
 
     await db.predictionPoints.upsert({
