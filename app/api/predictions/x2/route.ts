@@ -18,8 +18,18 @@ export async function POST(request: Request) {
   if (!prediction || prediction.userId !== userId)
     return NextResponse.json({ error: 'ניחוש לא נמצא' }, { status: 404 })
 
-  if (prediction.match.status !== 'PAUSED')
-    return NextResponse.json({ error: 'X2 זמין רק בהפסקה' }, { status: 400 })
+  if (!['LIVE', 'PAUSED'].includes(prediction.match.status))
+    return NextResponse.json({ error: 'X2 זמין רק במהלך משחק' }, { status: 400 })
+
+  const kickoff = prediction.match.kickoffAt
+  const now = new Date()
+  const windowStart = new Date(kickoff.getTime() + 45 * 60 * 1000)
+  const windowEnd = new Date(kickoff.getTime() + 65 * 60 * 1000)
+  if (now < windowStart || now > windowEnd)
+    return NextResponse.json({ error: 'X2 זמין רק בין דקה 45 ל-65' }, { status: 400 })
+
+  if (prediction.shinooApplied)
+    return NextResponse.json({ error: 'לא ניתן להשתמש ב-X2 ובשינוי על אותו משחק' }, { status: 400 })
 
   if (prediction.x2Applied)
     return NextResponse.json({ error: 'X2 כבר הופעל על משחק זה' }, { status: 400 })

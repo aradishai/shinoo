@@ -64,8 +64,8 @@ export async function GET(request: Request) {
       }
     }
 
-    // Powerup usage for PAUSED matches
-    const pausedMatches = matches.filter(m => m.status === 'PAUSED')
+    // Powerup usage for LIVE/PAUSED matches
+    const pausedMatches = matches.filter(m => ['LIVE', 'PAUSED'].includes(m.status))
     const powerupMap: Record<string, { x2Used: number; shinooUsed: number }> = {}
     for (const pm of pausedMatches) {
       const pred = predictionsMap[pm.id]
