@@ -252,21 +252,18 @@ export default function HomePage() {
         >
           יציאה
         </button>
-        <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="SHINOO" className="w-16 h-16" style={{ mixBlendMode: 'lighten' }} />
-          <div>
-            <h1 className="text-2xl font-black tracking-tight" dir="ltr">
-              <span className="text-white">SH</span>
-              <span className="text-primary">I</span>
-              <span className="text-white">N</span>
-              <span className="text-primary">O</span>
-              <span className="text-white">O</span>
-              <span className="text-secondary">!</span>
-            </h1>
-            <p className="text-gray-500 text-xs">שלום, {user?.username}! 👋</p>
-          </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-black tracking-tight" dir="ltr">
+            <span className="text-white">SH</span>
+            <span className="text-primary">I</span>
+            <span className="text-white">N</span>
+            <span className="text-primary">O</span>
+            <span className="text-white">O</span>
+            <span className="text-secondary">!</span>
+          </h1>
+          <p className="text-gray-500 text-xs">שלום, {user?.username}! 👋</p>
         </div>
-        <div className="w-12" />
+        <img src="/logo.png" alt="SHINOO" className="w-14 h-14" style={{ mixBlendMode: 'lighten' }} />
       </header>
 
       {leagues.length > 0 && primaryLeague ? (
