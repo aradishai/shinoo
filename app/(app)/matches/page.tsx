@@ -354,15 +354,16 @@ export default function MatchesPage() {
 
                 </div>
 
-                {/* Powerup buttons — visible on LIVE matches with prediction */}
-                {(isLive || isPaused) && match.userPrediction && match.powerupUsage && (() => {
+                {/* Powerup buttons — always visible when prediction exists */}
+                {match.userPrediction && !isFinished && (() => {
                   const now = Date.now()
                   const kickoffMs = new Date(match.kickoffAt).getTime()
-                  const inWindow = now >= kickoffMs + 45 * 60 * 1000 && now <= kickoffMs + 65 * 60 * 1000
+                  const inWindow = (isLive || isPaused) && now >= kickoffMs + 45 * 60 * 1000 && now <= kickoffMs + 65 * 60 * 1000
+                  const usage = match.powerupUsage || { x2Used: 0, shinooUsed: 0 }
                   const x2Done = !!match.userPrediction.x2Applied
                   const shinooDone = !!match.userPrediction.shinooApplied
-                  const x2Exhausted = !x2Done && match.powerupUsage.x2Used >= 2
-                  const shinooExhausted = !shinooDone && match.powerupUsage.shinooUsed >= 2
+                  const x2Exhausted = !x2Done && usage.x2Used >= 2
+                  const shinooExhausted = !shinooDone && usage.shinooUsed >= 2
                   if (x2Done && shinooDone) return null
                   if (x2Exhausted && shinooExhausted) return null
                   return (
@@ -375,11 +376,11 @@ export default function MatchesPage() {
                           </div>
                         ) : (
                           <button
-                            onClick={() => inWindow && !shinooDone && applyX2(match)}
+                            onClick={() => { if (inWindow && !shinooDone) applyX2(match) }}
                             disabled={powerupLoading === `x2-${match.id}`}
                             className={`w-16 h-16 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${
                               !inWindow || shinooDone
-                                ? 'bg-gray-800/50 border-gray-700 cursor-not-allowed'
+                                ? 'bg-gray-800/50 border-gray-700 cursor-default'
                                 : 'bg-orange-500/20 border-orange-500 cursor-pointer'
                             }`}
                           >
@@ -398,10 +399,10 @@ export default function MatchesPage() {
                           </div>
                         ) : (
                           <button
-                            onClick={() => inWindow && !x2Done && setShinooModal(match)}
+                            onClick={() => { if (inWindow && !x2Done) setShinooModal(match) }}
                             className={`w-16 h-16 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${
                               !inWindow || x2Done
-                                ? 'bg-gray-800/50 border-gray-700 cursor-not-allowed'
+                                ? 'bg-gray-800/50 border-gray-700 cursor-default'
                                 : 'bg-yellow-500/20 border-yellow-400 cursor-pointer'
                             }`}
                           >
