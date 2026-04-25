@@ -220,7 +220,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     const shinooExhausted = !shinooDone && usage.shinooUsed >= 2
     if ((x2Done || x2Exhausted) && (shinooDone || shinooExhausted)) return null
     return (
-      <div className="flex gap-2 justify-center px-4 pb-3 pt-1 border-t border-dark-border/40">
+      <div className="flex gap-2 justify-center px-4 pb-3 pt-1 border-t border-dark-border/40" dir="ltr">
         {!x2Exhausted && (
           x2Done ? (
             <div className="h-8 px-4 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
