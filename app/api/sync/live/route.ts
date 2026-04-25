@@ -15,7 +15,7 @@ const FD_STATUS_MAP: Record<string, string> = {
   'TIMED': 'SCHEDULED',
   'SCHEDULED': 'SCHEDULED',
   'IN_PLAY': 'LIVE',
-  'PAUSED': 'LIVE',
+  'PAUSED': 'PAUSED',
   'FINISHED': 'FINISHED',
   'SUSPENDED': 'POSTPONED',
   'POSTPONED': 'POSTPONED',
@@ -76,7 +76,7 @@ async function lockExpiredMatches() {
 async function autoFinishStaleMatches() {
   const staleTime = new Date(Date.now() - 110 * 60 * 1000)
   await db.match.updateMany({
-    where: { status: 'LIVE', kickoffAt: { lte: staleTime } },
+    where: { status: { in: ['LIVE', 'PAUSED'] }, kickoffAt: { lte: staleTime } },
     data: { status: 'FINISHED' },
   })
 }
@@ -85,7 +85,7 @@ async function recalculateMissingPoints() {
   // Recalculate ALL predictions for finished matches (not just null — live scores may have set stale points)
   const finished = await db.match.findMany({
     where: {
-      status: 'FINISHED',
+      status: { in: ['FINISHED', 'PAUSED', 'LIVE'] },
       homeScore: { not: null },
       awayScore: { not: null },
       predictions: { some: {} },
@@ -103,7 +103,7 @@ export async function GET() {
     const timeSinceLast = now - lastSyncTime
 
     const activeCount = await db.match.count({
-      where: { status: { in: ['LIVE', 'LOCKED'] } },
+      where: { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
     })
 
     let synced = false

@@ -36,8 +36,9 @@ interface Match {
   homeScore?: number | null
   awayScore?: number | null
   round?: string | null
-  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; predictedTopScorerPlayerId?: string | null } | null
+  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; predictedTopScorerPlayerId?: string | null; x2Applied?: boolean; shinooApplied?: boolean } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; user: { id: string; username: string } }[]
+  powerupUsage?: { x2Used: number; shinooUsed: number } | null
 }
 
 const STATUS_TABS = [
@@ -56,6 +57,7 @@ export default function MatchesPage() {
   const [leagueId, setLeagueId] = useState<string | null>(null)
   const [scores, setScores] = useState<Record<string, { home: string; away: string; topScorerId: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
+  const [powerupLoading, setPowerupLoading] = useState<string | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -67,7 +69,10 @@ export default function MatchesPage() {
 
   const loadMatches = useCallback(() => {
     setLoading(true)
-    const url = activeStatus ? `/api/matches?status=${activeStatus}` : '/api/matches'
+    // LIVE tab also fetches PAUSED matches (half-time)
+    const url = activeStatus === 'LIVE'
+      ? '/api/matches?status=LIVE,PAUSED'
+      : activeStatus ? `/api/matches?status=${activeStatus}` : '/api/matches'
     fetch(url)
       .then(r => r.json())
       .then(d => {
@@ -75,7 +80,7 @@ export default function MatchesPage() {
 
         // On first load (all matches), pick the smartest default tab
         if (!defaultSet && activeStatus === '') {
-          const hasLive = data.some(m => m.status === 'LIVE')
+          const hasLive = data.some(m => m.status === 'LIVE' || m.status === 'PAUSED')
           const hasLocked = data.some(m => m.status === 'LOCKED')
           const defaultTab = hasLive ? 'LIVE' : hasLocked ? 'LOCKED' : 'SCHEDULED'
           setDefaultSet(true)
@@ -153,6 +158,55 @@ export default function MatchesPage() {
     }
   }
 
+  const applyX2 = async (match: Match) => {
+    if (!match.userPrediction) return
+    setPowerupLoading(`x2-${match.id}`)
+    const res = await fetch('/api/predictions/x2', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ predictionId: match.userPrediction.id }),
+    })
+    setPowerupLoading(null)
+    const data = await res.json()
+    if (res.ok) {
+      toast.success(`X2 הופעל! נשאר: ${data.remaining}`)
+      setMatches(prev => prev.map(m => m.id !== match.id ? m : {
+        ...m,
+        userPrediction: m.userPrediction ? { ...m.userPrediction, x2Applied: true } : m.userPrediction,
+        powerupUsage: m.powerupUsage ? { ...m.powerupUsage, x2Used: (m.powerupUsage.x2Used || 0) + 1 } : m.powerupUsage,
+      }))
+    } else {
+      toast.error(data.error || 'שגיאה')
+    }
+  }
+
+  const applyShinoo = async (match: Match, team: 'home' | 'away', delta: 1 | -1) => {
+    if (!match.userPrediction) return
+    setPowerupLoading(`shinoo-${match.id}`)
+    const res = await fetch('/api/predictions/shinoo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ predictionId: match.userPrediction.id, team, delta }),
+    })
+    setPowerupLoading(null)
+    const data = await res.json()
+    if (res.ok) {
+      toast.success(`SHINOO הופעל! נשאר: ${data.remaining}`)
+      setMatches(prev => prev.map(m => m.id !== match.id ? m : {
+        ...m,
+        userPrediction: m.userPrediction ? {
+          ...m.userPrediction,
+          predictedHomeScore: data.newHome,
+          predictedAwayScore: data.newAway,
+          shinooApplied: true,
+        } : m.userPrediction,
+        powerupUsage: m.powerupUsage ? { ...m.powerupUsage, shinooUsed: (m.powerupUsage.shinooUsed || 0) + 1 } : m.powerupUsage,
+      }))
+    } else {
+      toast.error(data.error || 'שגיאה')
+    }
+  }
+
   return (
     <div className="px-4 py-6 pb-24">
       <div className="flex items-center justify-between mb-6">
@@ -186,6 +240,7 @@ export default function MatchesPage() {
             const isOpen = match.status === 'SCHEDULED' && new Date() < lockAt
             const isFinished = match.status === 'FINISHED'
             const isLive = match.status === 'LIVE'
+            const isPaused = match.status === 'PAUSED'
             const s = scores[match.id] || { home: '', away: '', topScorerId: '' }
             const hasPrediction = !!match.userPrediction
             const allPlayers = [...(match.homeTeam.players || []), ...(match.awayTeam.players || [])]
@@ -217,17 +272,20 @@ export default function MatchesPage() {
                         onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, away: e.target.value } }))}
                         className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
                       />
-                    ) : match.userPrediction ? (
+                    ) : (isLive || isPaused || isFinished) && match.userPrediction ? (
                       <span className="text-primary font-black text-xl">{match.userPrediction.predictedAwayScore}</span>
                     ) : null}
                   </div>
 
                   {/* Center: time / result */}
                   <div className="text-center flex-shrink-0">
-                    {(isFinished || isLive) && match.homeScore !== null ? (
-                      <span className={`text-sm font-black ${isLive ? 'text-primary' : 'text-white'}`}>
-                        {match.homeScore}-{match.awayScore}
-                      </span>
+                    {(isFinished || isLive || isPaused) && match.homeScore !== null ? (
+                      <>
+                        <span className={`text-sm font-black ${isLive || isPaused ? 'text-primary' : 'text-white'}`}>
+                          {match.homeScore}-{match.awayScore}
+                        </span>
+                        {isPaused && <div className="text-yellow-400 text-xs font-bold mt-0.5">הפסקה</div>}
+                      </>
                     ) : (
                       <span className="text-gray-500 text-xs">{format(kickoff, 'HH:mm dd/MM', { locale: he })}</span>
                     )}
@@ -244,15 +302,62 @@ export default function MatchesPage() {
                         onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, home: e.target.value } }))}
                         className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
                       />
-                    ) : match.userPrediction ? (
+                    ) : (isLive || isPaused || isFinished) && match.userPrediction ? (
                       <span className="text-primary font-black text-xl">{match.userPrediction.predictedHomeScore}</span>
                     ) : null}
                   </div>
 
                 </div>
 
+                {/* Powerup buttons — half-time only */}
+                {isPaused && match.userPrediction && match.powerupUsage && (
+                  <div className="mt-3 pt-3 border-t border-dark-border/50">
+                    <div className="flex gap-2 justify-center">
+                      {/* X2 */}
+                      {!match.userPrediction.x2Applied && match.powerupUsage.x2Used < 2 ? (
+                        <button
+                          onClick={() => applyX2(match)}
+                          disabled={powerupLoading === `x2-${match.id}`}
+                          className="flex-1 py-2 rounded-xl bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 font-black text-sm active:scale-95 transition-all disabled:opacity-40"
+                        >
+                          {powerupLoading === `x2-${match.id}` ? '...' : `X2 (${2 - match.powerupUsage.x2Used} נשאר)`}
+                        </button>
+                      ) : (
+                        <div className="flex-1 py-2 rounded-xl bg-dark-50 border border-dark-border/30 text-gray-600 font-black text-sm text-center">
+                          {match.userPrediction.x2Applied ? 'X2 הופעל ✓' : 'X2 נוצל'}
+                        </div>
+                      )}
+
+                      {/* SHINOO */}
+                      {!match.userPrediction.shinooApplied && match.powerupUsage.shinooUsed < 2 ? (
+                        <div className="flex-1 flex flex-col gap-1">
+                          <div className="text-center text-xs text-purple-400 font-bold">SHINOO ({2 - match.powerupUsage.shinooUsed} נשאר)</div>
+                          <div className="flex gap-1">
+                            <button onClick={() => applyShinoo(match, 'home', 1)} disabled={!!powerupLoading} className="flex-1 py-1.5 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-bold active:scale-95 transition-all disabled:opacity-40">
+                              {match.homeTeam.nameHe.slice(0, 4)} +1
+                            </button>
+                            <button onClick={() => applyShinoo(match, 'home', -1)} disabled={!!powerupLoading} className="flex-1 py-1.5 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-bold active:scale-95 transition-all disabled:opacity-40">
+                              {match.homeTeam.nameHe.slice(0, 4)} -1
+                            </button>
+                            <button onClick={() => applyShinoo(match, 'away', 1)} disabled={!!powerupLoading} className="flex-1 py-1.5 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-bold active:scale-95 transition-all disabled:opacity-40">
+                              {match.awayTeam.nameHe.slice(0, 4)} +1
+                            </button>
+                            <button onClick={() => applyShinoo(match, 'away', -1)} disabled={!!powerupLoading} className="flex-1 py-1.5 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-bold active:scale-95 transition-all disabled:opacity-40">
+                              {match.awayTeam.nameHe.slice(0, 4)} -1
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex-1 py-2 rounded-xl bg-dark-50 border border-dark-border/30 text-gray-600 font-black text-sm text-center">
+                          {match.userPrediction.shinooApplied ? 'SHINOO הופעל ✓' : 'SHINOO נוצל'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Member predictions for finished/live/locked matches */}
-                {(isFinished || isLive || match.status === 'LOCKED') && match.memberPredictions && match.memberPredictions.length > 0 && (
+                {(isFinished || isLive || isPaused || match.status === 'LOCKED') && match.memberPredictions && match.memberPredictions.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-dark-border/50 space-y-1">
                     {match.memberPredictions.map((mp: any) => (
                       <div key={mp.id} className="flex items-center justify-between text-xs">

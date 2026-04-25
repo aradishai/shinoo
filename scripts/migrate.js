@@ -19,8 +19,21 @@ async function main() {
     } else {
       console.log('Tables already exist, skipping migration')
     }
-    // Incremental: add minute column if missing
     await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "minute" INTEGER`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "x2Applied" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "shinooApplied" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "PowerupUsage" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "leagueId" TEXT NOT NULL,
+        "matchday" INTEGER NOT NULL,
+        "type" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "PowerupUsage_pkey" PRIMARY KEY ("id")
+      )
+    `)
+    await pool.query(`CREATE INDEX IF NOT EXISTS "PowerupUsage_userId_leagueId_matchday_type_idx" ON "PowerupUsage"("userId", "leagueId", "matchday", "type")`)
     console.log('Column check complete')
   } finally {
     await pool.end()

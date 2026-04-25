@@ -119,6 +119,8 @@ model Prediction {
   predictedHomeScore         Int
   predictedAwayScore         Int
   predictedTopScorerPlayerId String?
+  x2Applied                  Boolean  @default(false)
+  shinooApplied              Boolean  @default(false)
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
   lockedSnapshot             String?
@@ -130,6 +132,17 @@ model Prediction {
   points             PredictionPoints?
 
   @@unique([userId, leagueId, matchId])
+}
+
+model PowerupUsage {
+  id         String   @id @default(cuid())
+  userId     String
+  leagueId   String
+  matchday   Int
+  type       String   // "X2" | "SHINOO"
+  createdAt  DateTime @default(now())
+
+  @@index([userId, leagueId, matchday, type])
 }
 
 model PredictionPoints {

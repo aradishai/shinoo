@@ -13,7 +13,10 @@ export async function GET(request: Request) {
     const leagueId = searchParams.get('leagueId')
 
     const whereClause: Record<string, unknown> = {}
-    if (status) whereClause.status = status
+    if (status) {
+      const statuses = status.split(',').map(s => s.trim()).filter(Boolean)
+      whereClause.status = statuses.length === 1 ? statuses[0] : { in: statuses }
+    }
 
     const matches = await db.match.findMany({
       where: whereClause,
@@ -38,8 +41,8 @@ export async function GET(request: Request) {
     })
     const predictionsMap = Object.fromEntries(predictions.map((p) => [p.matchId, p]))
 
-    // Member predictions for FINISHED/LIVE/LOCKED matches
-    const visibleStatuses = ['FINISHED', 'LIVE', 'LOCKED']
+    // Member predictions for FINISHED/LIVE/PAUSED/LOCKED matches
+    const visibleStatuses = ['FINISHED', 'LIVE', 'PAUSED', 'LOCKED']
     const visibleMatchIds = matches.filter(m => visibleStatuses.includes(m.status)).map(m => m.id)
 
     let memberPredMap: Record<string, any[]> = {}
@@ -61,10 +64,26 @@ export async function GET(request: Request) {
       }
     }
 
+    // Powerup usage for PAUSED matches
+    const pausedMatches = matches.filter(m => m.status === 'PAUSED')
+    const powerupMap: Record<string, { x2Used: number; shinooUsed: number }> = {}
+    for (const pm of pausedMatches) {
+      const pred = predictionsMap[pm.id]
+      const matchday = parseInt(pm.round?.replace(/\D/g, '') || '0')
+      if (pred && matchday > 0) {
+        const [x2Used, shinooUsed] = await Promise.all([
+          db.powerupUsage.count({ where: { userId, leagueId: pred.leagueId, matchday, type: 'X2' } }),
+          db.powerupUsage.count({ where: { userId, leagueId: pred.leagueId, matchday, type: 'SHINOO' } }),
+        ])
+        powerupMap[pm.id] = { x2Used, shinooUsed }
+      }
+    }
+
     const result = matches.map((match) => ({
       ...match,
       userPrediction: predictionsMap[match.id] || null,
       memberPredictions: memberPredMap[match.id] || [],
+      powerupUsage: powerupMap[match.id] || null,
     }))
 
     return NextResponse.json({ data: result })
