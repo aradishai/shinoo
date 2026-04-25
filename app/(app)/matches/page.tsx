@@ -331,7 +331,7 @@ export default function MatchesPage() {
                       {/* SHINOO */}
                       {!match.userPrediction.shinooApplied && match.powerupUsage.shinooUsed < 2 ? (
                         <div className="flex-1 flex flex-col gap-1">
-                          <div className="text-center text-xs text-purple-400 font-bold">SHINOO ({2 - match.powerupUsage.shinooUsed} נשאר)</div>
+                          <div className="text-center text-xs text-purple-400 font-bold">שינוי ({2 - match.powerupUsage.shinooUsed} נשאר)</div>
                           <div className="flex gap-1">
                             <button onClick={() => applyShinoo(match, 'home', 1)} disabled={!!powerupLoading} className="flex-1 py-1.5 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-bold active:scale-95 transition-all disabled:opacity-40">
                               {match.homeTeam.nameHe.slice(0, 4)} +1
@@ -349,7 +349,7 @@ export default function MatchesPage() {
                         </div>
                       ) : (
                         <div className="flex-1 py-2 rounded-xl bg-dark-50 border border-dark-border/30 text-gray-600 font-black text-sm text-center">
-                          {match.userPrediction.shinooApplied ? 'SHINOO הופעל ✓' : 'SHINOO נוצל'}
+                          {match.userPrediction.shinooApplied ? 'שינוי הופעל ✓' : 'שינוי נוצל'}
                         </div>
                       )}
                     </div>
