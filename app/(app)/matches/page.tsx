@@ -371,18 +371,18 @@ export default function MatchesPage() {
                       {/* X2 */}
                       {!x2Exhausted && (
                         x2Done ? (
-                          <div className="h-10 w-10 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
-                            <img src="/x2.png" alt="X2" className="w-8 h-8 object-contain" />
+                          <div className="h-14 w-14 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
+                            <img src="/x2.png" alt="X2" className="w-12 h-12 object-contain" />
                           </div>
                         ) : (
                           <button
                             onClick={() => { if (inWindow && !shinooDone) applyX2(match) }}
                             disabled={powerupLoading === `x2-${match.id}`}
-                            className={`h-10 w-10 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${
+                            className={`h-14 w-14 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${
                               !inWindow || shinooDone ? 'border-gray-700 cursor-default' : 'border-transparent cursor-pointer'
                             }`}
                           >
-                            <img src="/x2.png" alt="X2" className={`w-8 h-8 object-contain ${!inWindow || shinooDone ? 'grayscale opacity-30' : ''}`} />
+                            <img src="/x2.png" alt="X2" className={`w-12 h-12 object-contain ${!inWindow || shinooDone ? 'grayscale opacity-30' : ''}`} />
                           </button>
                         )
                       )}
@@ -390,17 +390,17 @@ export default function MatchesPage() {
                       {/* SHINOO */}
                       {!shinooExhausted && (
                         shinooDone ? (
-                          <div className="h-10 w-10 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
-                            <img src="/logo.png" alt="SHINOO" className="w-8 h-8 object-contain" style={{ mixBlendMode: 'lighten' }} />
+                          <div className="h-14 w-14 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
+                            <img src="/logo.png" alt="SHINOO" className="w-12 h-12 object-contain" style={{ mixBlendMode: 'lighten' }} />
                           </div>
                         ) : (
                           <button
                             onClick={() => { if (inWindow && !x2Done) setShinooModal(match) }}
-                            className={`h-10 w-10 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${
+                            className={`h-14 w-14 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${
                               !inWindow || x2Done ? 'border-gray-700 cursor-default' : 'border-transparent cursor-pointer'
                             }`}
                           >
-                            <img src="/logo.png" alt="SHINOO" className={`w-8 h-8 object-contain ${!inWindow || x2Done ? 'grayscale opacity-30' : ''}`} style={{ mixBlendMode: 'lighten' }} />
+                            <img src="/logo.png" alt="SHINOO" className={`w-12 h-12 object-contain ${!inWindow || x2Done ? 'grayscale opacity-30' : ''}`} style={{ mixBlendMode: 'lighten' }} />
                           </button>
                         )
                       )}
