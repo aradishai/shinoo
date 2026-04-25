@@ -193,12 +193,7 @@ export default function MatchDetailPage() {
     <div className="px-4 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <button
-          onClick={() => router.back()}
-          className="text-gray-400 hover:text-white transition-colors"
-        >
-          ← חזרה
-        </button>
+        <Link href="/matches" className="text-sm font-medium text-gray-300 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl hover:border-primary/40 hover:text-white transition-all">בית</Link>
         <Badge variant={matchStatusToBadgeVariant(match.status)} />
         <div className="text-xs text-gray-500">{match.tournament.nameHe}</div>
       </div>
