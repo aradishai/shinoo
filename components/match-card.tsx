@@ -223,15 +223,15 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       <div className="flex gap-2 justify-center px-4 pb-3 pt-1 border-t border-dark-border/40" dir="ltr">
         {!x2Exhausted && (
           x2Done ? (
-            <div className="h-8 px-4 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
-              <span className="text-green-400 font-black text-xs">X2</span>
+            <div className="h-10 w-10 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
+              <img src="/x2.png" alt="X2" className="w-8 h-8 object-contain" />
             </div>
           ) : (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !shinooDone) powerup.onX2() }}
-              className={`h-8 px-4 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${!inWindow || shinooDone ? 'bg-gray-800/50 border-gray-700 cursor-default' : 'bg-orange-500/20 border-orange-500 cursor-pointer'}`}
+              className={`h-10 w-10 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${!inWindow || shinooDone ? 'border-gray-700 cursor-default' : 'border-transparent cursor-pointer'}`}
             >
-              <span className={`font-black text-xs ${!inWindow || shinooDone ? 'text-gray-600' : 'text-orange-400'}`}>X2</span>
+              <img src="/x2.png" alt="X2" className={`w-8 h-8 object-contain ${!inWindow || shinooDone ? 'grayscale opacity-30' : ''}`} />
             </button>
           )
         )}
