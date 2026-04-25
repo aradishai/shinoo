@@ -70,7 +70,17 @@ const FIFA_TO_ISO: Record<string, string> = {
   CUW: 'cw', SWE: 'se', CPV: 'cv', NOR: 'no', ALG: 'dz', JOR: 'jo',
 }
 
-function TeamFlag({ code }: { code: string }) {
+function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) {
+  if (flagUrl) {
+    return (
+      <img
+        src={flagUrl}
+        alt={code}
+        className="w-14 h-14 object-contain rounded shadow-sm"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+    )
+  }
   const iso = FIFA_TO_ISO[code]
   if (iso) {
     return (
@@ -204,7 +214,7 @@ export default function MatchDetailPage() {
         <div className="flex items-center justify-between gap-4">
           {/* Home */}
           <div className="flex flex-col items-center gap-2 flex-1">
-            <TeamFlag code={match.homeTeam.code} />
+            <TeamFlag code={match.homeTeam.code} flagUrl={match.homeTeam.flagUrl} />
             <p className="text-white font-bold text-sm text-center">{match.homeTeam.nameHe}</p>
           </div>
 
@@ -248,7 +258,7 @@ export default function MatchDetailPage() {
 
           {/* Away */}
           <div className="flex flex-col items-center gap-2 flex-1">
-            <TeamFlag code={match.awayTeam.code} />
+            <TeamFlag code={match.awayTeam.code} flagUrl={match.awayTeam.flagUrl} />
             <p className="text-white font-bold text-sm text-center">{match.awayTeam.nameHe}</p>
           </div>
         </div>
