@@ -22,8 +22,9 @@ interface Match {
   homeScore?: number | null
   awayScore?: number | null
   round?: string | null
-  userPrediction?: { predictedHomeScore: number; predictedAwayScore: number } | null
+  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; user: { id: string; username: string } }[]
+  powerupUsage?: { x2Used: number; shinooUsed: number } | null
 }
 
 interface StandingEntry {
@@ -66,6 +67,8 @@ export default function HomePage() {
   const [joiningLeague, setJoiningLeague] = useState(false)
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [powerupLoading, setPowerupLoading] = useState<string | null>(null)
+  const [shinooModal, setShinooModal] = useState<Match | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const fetchPrimaryLeague = useCallback(async (leagueId: string) => {
@@ -164,7 +167,43 @@ export default function HomePage() {
     }
   }
 
-  const liveMatchCount = primaryLeague?.matches.filter(m => m.status === 'LIVE').length ?? 0
+  const applyX2 = async (match: Match) => {
+    if (!match.userPrediction) return
+    setPowerupLoading(`x2-${match.id}`)
+    const res = await fetch('/api/predictions/x2', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ predictionId: match.userPrediction.id }),
+    })
+    setPowerupLoading(null)
+    const data = await res.json()
+    if (res.ok) {
+      toast.success(`X2 הופעל!`)
+      if (primaryLeague) fetchPrimaryLeague(primaryLeague.id)
+    } else {
+      toast.error(data.error || 'שגיאה')
+    }
+  }
+
+  const applyShinoo = async (match: Match, team: 'home' | 'away', delta: 1 | -1) => {
+    if (!match.userPrediction) return
+    setPowerupLoading(`shinoo-${match.id}`)
+    const res = await fetch('/api/predictions/shinoo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ predictionId: match.userPrediction.id, team, delta }),
+    })
+    setPowerupLoading(null)
+    const data = await res.json()
+    if (res.ok) {
+      toast.success(`שינוי הופעל!`)
+      if (primaryLeague) fetchPrimaryLeague(primaryLeague.id)
+    } else {
+      toast.error(data.error || 'שגיאה')
+    }
+  }
+
+  const liveMatchCount = primaryLeague?.matches.filter(m => ['LIVE', 'PAUSED'].includes(m.status)).length ?? 0
 
   if (loading) {
     return (
@@ -179,6 +218,29 @@ export default function HomePage() {
 
   return (
     <div className="px-4 py-6">
+
+      {/* SHINOO modal */}
+      {shinooModal && shinooModal.userPrediction && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70" onClick={() => setShinooModal(null)}>
+          <div className="bg-dark-card border border-dark-border rounded-t-3xl p-6 w-full max-w-sm pb-10" onClick={e => e.stopPropagation()}>
+            <h3 className="text-white font-black text-lg text-center mb-1">שינוי</h3>
+            <p className="text-gray-500 text-xs text-center mb-6">שנה את הניחוש שלך ב-1 גול</p>
+            <div className="flex gap-3 mb-3">
+              <div className="flex-1 flex flex-col gap-2">
+                <p className="text-white text-sm font-bold text-center">{shinooModal.homeTeam.nameHe}</p>
+                <button onClick={() => { applyShinoo(shinooModal, 'home', 1); setShinooModal(null) }} disabled={!!powerupLoading} className="py-3 rounded-2xl bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-black text-xl active:scale-95 transition-all">+1</button>
+                <button onClick={() => { applyShinoo(shinooModal, 'home', -1); setShinooModal(null) }} disabled={(shinooModal.userPrediction?.predictedHomeScore ?? 0) <= 0 || !!powerupLoading} className="py-3 rounded-2xl bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-black text-xl active:scale-95 transition-all disabled:opacity-30">-1</button>
+              </div>
+              <div className="flex-1 flex flex-col gap-2">
+                <p className="text-white text-sm font-bold text-center">{shinooModal.awayTeam.nameHe}</p>
+                <button onClick={() => { applyShinoo(shinooModal, 'away', 1); setShinooModal(null) }} disabled={!!powerupLoading} className="py-3 rounded-2xl bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-black text-xl active:scale-95 transition-all">+1</button>
+                <button onClick={() => { applyShinoo(shinooModal, 'away', -1); setShinooModal(null) }} disabled={(shinooModal.userPrediction?.predictedAwayScore ?? 0) <= 0 || !!powerupLoading} className="py-3 rounded-2xl bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-black text-xl active:scale-95 transition-all disabled:opacity-30">-1</button>
+              </div>
+            </div>
+            <button onClick={() => setShinooModal(null)} className="w-full py-3 rounded-2xl bg-dark-50 border border-dark-border text-gray-500 font-medium text-sm mt-2">ביטול</button>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
         <button
@@ -249,7 +311,7 @@ export default function HomePage() {
           )}
 
           {/* Live Matches */}
-          {primaryLeague.matches.filter(m => m.status === 'LIVE').length > 0 && (
+          {primaryLeague.matches.filter(m => ['LIVE', 'PAUSED'].includes(m.status)).length > 0 && (
             <section className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="flex items-center gap-1.5 text-xs text-green-400 font-bold">
@@ -259,13 +321,22 @@ export default function HomePage() {
                 <h2 className="text-white font-bold text-lg">משחקים חיים</h2>
               </div>
               <div className="space-y-3">
-                {primaryLeague.matches.filter(m => m.status === 'LIVE').map((match) => (
+                {primaryLeague.matches.filter(m => ['LIVE', 'PAUSED'].includes(m.status)).map((match) => (
                   <MatchCard
                     key={match.id}
                     match={match}
                     prediction={match.userPrediction}
                     memberPredictions={match.memberPredictions}
                     leagueId={primaryLeague.id}
+                    powerup={match.userPrediction ? {
+                      predictionId: match.userPrediction.id,
+                      x2Applied: !!match.userPrediction.x2Applied,
+                      shinooApplied: !!match.userPrediction.shinooApplied,
+                      usage: match.powerupUsage || null,
+                      onX2: () => applyX2(match),
+                      onShinoo: () => setShinooModal(match),
+                      loading: powerupLoading,
+                    } : null}
                   />
                 ))}
               </div>
@@ -281,20 +352,29 @@ export default function HomePage() {
               <h2 className="text-white font-bold text-lg">משחקים קרובים</h2>
             </div>
 
-            {primaryLeague.matches.filter(m => m.status !== 'LIVE').length === 0 ? (
+            {primaryLeague.matches.filter(m => !['LIVE', 'PAUSED'].includes(m.status)).length === 0 ? (
               <div className="text-center py-10 text-gray-500">
                 <div className="text-4xl mb-3">📅</div>
                 <p>אין משחקים מתוכננים כרגע</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {primaryLeague.matches.filter(m => m.status !== 'LIVE').slice(0, 5).map((match) => (
+                {primaryLeague.matches.filter(m => !['LIVE', 'PAUSED'].includes(m.status)).slice(0, 5).map((match) => (
                   <MatchCard
                     key={match.id}
                     match={match}
                     prediction={match.userPrediction}
                     memberPredictions={match.memberPredictions}
                     leagueId={primaryLeague.id}
+                    powerup={match.userPrediction ? {
+                      predictionId: match.userPrediction.id,
+                      x2Applied: !!match.userPrediction.x2Applied,
+                      shinooApplied: !!match.userPrediction.shinooApplied,
+                      usage: match.powerupUsage || null,
+                      onX2: () => applyX2(match),
+                      onShinoo: () => setShinooModal(match),
+                      loading: powerupLoading,
+                    } : null}
                   />
                 ))}
               </div>

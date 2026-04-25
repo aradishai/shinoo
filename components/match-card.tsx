@@ -26,6 +26,16 @@ interface MemberPrediction {
   user: { id: string; username: string }
 }
 
+interface PowerupProps {
+  predictionId: string
+  x2Applied: boolean
+  shinooApplied: boolean
+  usage: { x2Used: number; shinooUsed: number } | null
+  onX2: () => void
+  onShinoo: () => void
+  loading?: string | null
+}
+
 interface MatchCardProps {
   match: {
     id: string
@@ -43,6 +53,7 @@ interface MatchCardProps {
   memberPredictions?: MemberPrediction[]
   leagueId?: string
   onPredictClick?: () => void
+  powerup?: PowerupProps | null
 }
 
 // FIFA code → ISO 3166-1 alpha-2 (for flagcdn.com)
@@ -75,7 +86,7 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
-export function MatchCard({ match, prediction, memberPredictions = [], leagueId, onPredictClick }: MatchCardProps) {
+export function MatchCard({ match, prediction, memberPredictions = [], leagueId, onPredictClick, powerup }: MatchCardProps) {
   const kickoff = new Date(match.kickoffAt)
   const lockAt = new Date(match.lockAt)
   const status = match.status
@@ -196,17 +207,72 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     </div>
   )
 
+  // Powerup buttons rendered outside the link so they don't navigate
+  const powerupButtons = (() => {
+    if (!powerup || isFinished) return null
+    const now = Date.now()
+    const kickoffMs = new Date(match.kickoffAt).getTime()
+    const inWindow = (isLive || match.status === 'PAUSED') && now >= kickoffMs + 45 * 60 * 1000 && now <= kickoffMs + 65 * 60 * 1000
+    const usage = powerup.usage || { x2Used: 0, shinooUsed: 0 }
+    const x2Done = powerup.x2Applied
+    const shinooDone = powerup.shinooApplied
+    const x2Exhausted = !x2Done && usage.x2Used >= 2
+    const shinooExhausted = !shinooDone && usage.shinooUsed >= 2
+    if ((x2Done || x2Exhausted) && (shinooDone || shinooExhausted)) return null
+    return (
+      <div className="flex gap-3 justify-center mt-1 pb-1">
+        {!x2Exhausted && (
+          x2Done ? (
+            <div className="w-14 h-12 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+              <span className="text-green-400 font-black text-base">X2</span>
+            </div>
+          ) : (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !shinooDone) powerup.onX2() }}
+              className={`w-14 h-12 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${!inWindow || shinooDone ? 'bg-gray-800/50 border-gray-700 cursor-default' : 'bg-orange-500/20 border-orange-500 cursor-pointer'}`}
+            >
+              <span className={`font-black text-base ${!inWindow || shinooDone ? 'text-gray-600' : 'text-orange-400'}`}>X2</span>
+            </button>
+          )
+        )}
+        {!shinooExhausted && (
+          shinooDone ? (
+            <div className="w-14 h-12 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+              <span className="text-green-400 font-black text-xs">SHINOO</span>
+            </div>
+          ) : (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !x2Done) powerup.onShinoo() }}
+              className={`w-14 h-12 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${!inWindow || x2Done ? 'bg-gray-800/50 border-gray-700 cursor-default' : 'bg-primary/10 border-primary/60 cursor-pointer'}`}
+            >
+              {!inWindow || x2Done
+                ? <span className="font-black text-xs text-gray-600">SHINOO</span>
+                : <span className="font-black text-xs bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">SHINOO</span>
+              }
+            </button>
+          )
+        )}
+      </div>
+    )
+  })()
+
   if (onPredictClick) {
     return (
-      <button className="block w-full text-right" onClick={onPredictClick}>
-        {cardContent}
-      </button>
+      <div>
+        <button className="block w-full text-right" onClick={onPredictClick}>
+          {cardContent}
+        </button>
+        {powerupButtons}
+      </div>
     )
   }
 
   return (
-    <Link href={matchUrl} className="block group">
-      {cardContent}
-    </Link>
+    <div>
+      <Link href={matchUrl} className="block group">
+        {cardContent}
+      </Link>
+      {powerupButtons}
+    </div>
   )
 }

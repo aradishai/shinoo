@@ -367,46 +367,50 @@ export default function MatchesPage() {
                   if (x2Done && shinooDone) return null
                   if (x2Exhausted && shinooExhausted) return null
                   return (
-                    <div className="mt-3 pt-3 border-t border-dark-border/50 flex gap-2 justify-center">
+                    <div className="mt-3 pt-3 border-t border-dark-border/50 flex gap-3 justify-center w-full">
                       {/* X2 */}
                       {!x2Exhausted && (
                         x2Done ? (
-                          <div className="w-16 h-16 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
-                            <span className="text-green-400 font-black text-lg">X2</span>
+                          <div className="w-14 h-12 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+                            <span className="text-green-400 font-black text-base">X2</span>
                           </div>
                         ) : (
                           <button
                             onClick={() => { if (inWindow && !shinooDone) applyX2(match) }}
                             disabled={powerupLoading === `x2-${match.id}`}
-                            className={`w-16 h-16 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${
+                            className={`w-14 h-12 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${
                               !inWindow || shinooDone
                                 ? 'bg-gray-800/50 border-gray-700 cursor-default'
                                 : 'bg-orange-500/20 border-orange-500 cursor-pointer'
                             }`}
                           >
-                            <span className={`font-black text-lg ${!inWindow || shinooDone ? 'text-gray-600' : 'text-orange-400'}`}>
+                            <span className={`font-black text-base ${!inWindow || shinooDone ? 'text-gray-600' : 'text-orange-400'}`}>
                               {powerupLoading === `x2-${match.id}` ? '...' : 'X2'}
                             </span>
                           </button>
                         )
                       )}
 
-                      {/* שינוי */}
+                      {/* SHINOO */}
                       {!shinooExhausted && (
                         shinooDone ? (
-                          <div className="w-16 h-16 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
-                            <span className="text-green-400 font-black text-sm">שינוי</span>
+                          <div className="w-14 h-12 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+                            <span className="text-green-400 font-black text-xs">SHINOO</span>
                           </div>
                         ) : (
                           <button
                             onClick={() => { if (inWindow && !x2Done) setShinooModal(match) }}
-                            className={`w-16 h-16 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${
+                            className={`w-14 h-12 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${
                               !inWindow || x2Done
                                 ? 'bg-gray-800/50 border-gray-700 cursor-default'
-                                : 'bg-yellow-500/20 border-yellow-400 cursor-pointer'
+                                : 'bg-primary/10 border-primary/60 cursor-pointer'
                             }`}
                           >
-                            <span className={`font-black text-sm ${!inWindow || x2Done ? 'text-gray-600' : 'text-yellow-400'}`}>שינוי</span>
+                            {!inWindow || x2Done ? (
+                              <span className="font-black text-xs text-gray-600">SHINOO</span>
+                            ) : (
+                              <span className="font-black text-xs bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">SHINOO</span>
+                            )}
                           </button>
                         )
                       )}

@@ -73,12 +73,12 @@ export async function GET(
       .sort((a, b) => b.totalPoints - a.totalPoints)
       .map((entry, index) => ({ ...entry, rank: index + 1 }))
 
-    // Get live + upcoming matches (LIVE can have kickoffAt in the past)
+    // Get live + upcoming matches (LIVE/PAUSED can have kickoffAt in the past)
     const now = new Date()
     const matches = await db.match.findMany({
       where: {
         OR: [
-          { status: { in: ['LIVE', 'LOCKED'] } },
+          { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
           { status: 'SCHEDULED', kickoffAt: { gte: now } },
         ],
       },
@@ -113,10 +113,27 @@ export async function GET(
       memberPredMap[p.matchId].push(p)
     }
 
+    // Powerup usage for LIVE/PAUSED matches
+    const liveMatchIds = matches.filter(m => ['LIVE', 'PAUSED'].includes(m.status)).map(m => m.id)
+    const powerupMap: Record<string, { x2Used: number; shinooUsed: number }> = {}
+    for (const matchId of liveMatchIds) {
+      const pred = predMap[matchId]
+      const match = matches.find(m => m.id === matchId)
+      const matchday = parseInt(match?.round?.replace(/\D/g, '') || '0')
+      if (pred && matchday > 0) {
+        const [x2Used, shinooUsed] = await Promise.all([
+          db.powerupUsage.count({ where: { userId, leagueId: params.id, matchday, type: 'X2' } }),
+          db.powerupUsage.count({ where: { userId, leagueId: params.id, matchday, type: 'SHINOO' } }),
+        ])
+        powerupMap[matchId] = { x2Used, shinooUsed }
+      }
+    }
+
     const matchesWithPredictions = matches.map((match) => ({
       ...match,
       userPrediction: predMap[match.id] || null,
       memberPredictions: memberPredMap[match.id] || [],
+      powerupUsage: powerupMap[match.id] || null,
     }))
 
     return NextResponse.json({
