@@ -253,10 +253,10 @@ export default function HomePage() {
           יציאה
         </button>
         <div className="text-center">
-          <img src="/shinoo-title.png" alt="SHINOO" className="h-12 w-auto mx-auto" style={{ mixBlendMode: 'lighten' }} />
+          <img src="/shinoo-title.png" alt="SHINOO" className="h-20 w-auto mx-auto" style={{ mixBlendMode: 'lighten' }} />
           <p className="text-gray-500 text-xs mt-1">שלום, {user?.username}! 👋</p>
         </div>
-        <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0" style={{ backgroundImage: 'url(/logo.png)', backgroundSize: '130%', backgroundPosition: 'center' }} />
+        <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0" style={{ backgroundImage: 'url(/logo.png)', backgroundSize: '130%', backgroundPosition: 'center' }} />
       </header>
 
       {leagues.length > 0 && primaryLeague ? (
