@@ -253,15 +253,8 @@ export default function HomePage() {
           יציאה
         </button>
         <div className="text-center">
-          <h1 className="text-2xl font-black tracking-tight" dir="ltr">
-            <span className="text-white">SH</span>
-            <span className="text-primary">I</span>
-            <span className="text-white">N</span>
-            <span className="text-primary">O</span>
-            <span className="text-white">O</span>
-            <span className="text-secondary">!</span>
-          </h1>
-          <p className="text-gray-500 text-xs">שלום, {user?.username}! 👋</p>
+          <div className="h-10 overflow-hidden" style={{ backgroundImage: 'url(/shinoo-title.png)', backgroundSize: '130%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', width: '140px', margin: '0 auto' }} />
+          <p className="text-gray-500 text-xs mt-1">שלום, {user?.username}! 👋</p>
         </div>
         <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0" style={{ backgroundImage: 'url(/logo.png)', backgroundSize: '130%', backgroundPosition: 'center' }} />
       </header>
