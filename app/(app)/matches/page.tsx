@@ -367,24 +367,24 @@ export default function MatchesPage() {
                   if (x2Done && shinooDone) return null
                   if (x2Exhausted && shinooExhausted) return null
                   return (
-                    <div className="mt-3 pt-3 border-t border-dark-border/50 flex gap-3 justify-center w-full">
+                    <div className="mt-3 pt-3 border-t border-dark-border/50 flex gap-2 justify-center w-full">
                       {/* X2 */}
                       {!x2Exhausted && (
                         x2Done ? (
-                          <div className="w-14 h-12 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
-                            <span className="text-green-400 font-black text-base">X2</span>
+                          <div className="h-8 px-4 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
+                            <span className="text-green-400 font-black text-xs">X2</span>
                           </div>
                         ) : (
                           <button
                             onClick={() => { if (inWindow && !shinooDone) applyX2(match) }}
                             disabled={powerupLoading === `x2-${match.id}`}
-                            className={`w-14 h-12 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${
+                            className={`h-8 px-4 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${
                               !inWindow || shinooDone
                                 ? 'bg-gray-800/50 border-gray-700 cursor-default'
                                 : 'bg-orange-500/20 border-orange-500 cursor-pointer'
                             }`}
                           >
-                            <span className={`font-black text-base ${!inWindow || shinooDone ? 'text-gray-600' : 'text-orange-400'}`}>
+                            <span className={`font-black text-xs ${!inWindow || shinooDone ? 'text-gray-600' : 'text-orange-400'}`}>
                               {powerupLoading === `x2-${match.id}` ? '...' : 'X2'}
                             </span>
                           </button>
@@ -394,13 +394,13 @@ export default function MatchesPage() {
                       {/* SHINOO */}
                       {!shinooExhausted && (
                         shinooDone ? (
-                          <div className="w-14 h-12 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+                          <div className="h-8 px-4 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
                             <span className="text-green-400 font-black text-xs">SHINOO</span>
                           </div>
                         ) : (
                           <button
                             onClick={() => { if (inWindow && !x2Done) setShinooModal(match) }}
-                            className={`w-14 h-12 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${
+                            className={`h-8 px-4 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${
                               !inWindow || x2Done
                                 ? 'bg-gray-800/50 border-gray-700 cursor-default'
                                 : 'bg-primary/10 border-primary/60 cursor-pointer'

@@ -101,7 +101,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     : `/matches/${match.id}`
 
   const cardContent = (
-    <div className="bg-dark-card border border-dark-border rounded-2xl p-4 hover:border-primary/30 hover:shadow-green-sm transition-all duration-200 active:scale-[0.98]">
+    <div className="p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <Badge variant={badgeVariant} />
@@ -207,8 +207,8 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     </div>
   )
 
-  // Powerup buttons rendered outside the link so they don't navigate
-  const powerupButtons = (() => {
+  // Powerup buttons — inside the card but outside the Link click area
+  const powerupRow = (() => {
     if (!powerup || isFinished) return null
     const now = Date.now()
     const kickoffMs = new Date(match.kickoffAt).getTime()
@@ -220,30 +220,30 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     const shinooExhausted = !shinooDone && usage.shinooUsed >= 2
     if ((x2Done || x2Exhausted) && (shinooDone || shinooExhausted)) return null
     return (
-      <div className="flex gap-3 justify-center mt-1 pb-1">
+      <div className="flex gap-2 justify-center px-4 pb-3 pt-1 border-t border-dark-border/40">
         {!x2Exhausted && (
           x2Done ? (
-            <div className="w-14 h-12 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
-              <span className="text-green-400 font-black text-base">X2</span>
+            <div className="h-8 px-4 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
+              <span className="text-green-400 font-black text-xs">X2</span>
             </div>
           ) : (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !shinooDone) powerup.onX2() }}
-              className={`w-14 h-12 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${!inWindow || shinooDone ? 'bg-gray-800/50 border-gray-700 cursor-default' : 'bg-orange-500/20 border-orange-500 cursor-pointer'}`}
+              className={`h-8 px-4 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${!inWindow || shinooDone ? 'bg-gray-800/50 border-gray-700 cursor-default' : 'bg-orange-500/20 border-orange-500 cursor-pointer'}`}
             >
-              <span className={`font-black text-base ${!inWindow || shinooDone ? 'text-gray-600' : 'text-orange-400'}`}>X2</span>
+              <span className={`font-black text-xs ${!inWindow || shinooDone ? 'text-gray-600' : 'text-orange-400'}`}>X2</span>
             </button>
           )
         )}
         {!shinooExhausted && (
           shinooDone ? (
-            <div className="w-14 h-12 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+            <div className="h-8 px-4 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
               <span className="text-green-400 font-black text-xs">SHINOO</span>
             </div>
           ) : (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !x2Done) powerup.onShinoo() }}
-              className={`w-14 h-12 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${!inWindow || x2Done ? 'bg-gray-800/50 border-gray-700 cursor-default' : 'bg-primary/10 border-primary/60 cursor-pointer'}`}
+              className={`h-8 px-4 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${!inWindow || x2Done ? 'bg-gray-800/50 border-gray-700 cursor-default' : 'bg-primary/10 border-primary/60 cursor-pointer'}`}
             >
               {!inWindow || x2Done
                 ? <span className="font-black text-xs text-gray-600">SHINOO</span>
@@ -256,23 +256,25 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     )
   })()
 
+  const outerClass = 'bg-dark-card border border-dark-border rounded-2xl hover:border-primary/30 transition-all duration-200 overflow-hidden'
+
   if (onPredictClick) {
     return (
-      <div>
-        <button className="block w-full text-right" onClick={onPredictClick}>
+      <div className={outerClass}>
+        <button className="block w-full text-right active:scale-[0.98]" onClick={onPredictClick}>
           {cardContent}
         </button>
-        {powerupButtons}
+        {powerupRow}
       </div>
     )
   }
 
   return (
-    <div>
-      <Link href={matchUrl} className="block group">
+    <div className={outerClass}>
+      <Link href={matchUrl} className="block active:scale-[0.98]">
         {cardContent}
       </Link>
-      {powerupButtons}
+      {powerupRow}
     </div>
   )
 }
