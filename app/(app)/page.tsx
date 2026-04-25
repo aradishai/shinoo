@@ -253,7 +253,7 @@ export default function HomePage() {
           יציאה
         </button>
         <div className="text-center">
-          <div className="h-10 overflow-hidden" style={{ backgroundImage: 'url(/shinoo-title.png)', backgroundSize: '130%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', width: '140px', margin: '0 auto' }} />
+          <img src="/shinoo-title.png" alt="SHINOO" className="h-12 w-auto mx-auto" style={{ mixBlendMode: 'lighten' }} />
           <p className="text-gray-500 text-xs mt-1">שלום, {user?.username}! 👋</p>
         </div>
         <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0" style={{ backgroundImage: 'url(/logo.png)', backgroundSize: '130%', backgroundPosition: 'center' }} />
