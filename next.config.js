@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['media.api-sports.io', 'flagcdn.com', 'upload.wikimedia.org'],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'media.api-sports.io' },
+      { protocol: 'https', hostname: 'flagcdn.com' },
+      { protocol: 'https', hostname: 'upload.wikimedia.org' },
+    ],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
