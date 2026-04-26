@@ -6,6 +6,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { MatchCard } from '@/components/match-card'
 import { LeagueTable } from '@/components/league-table'
+import { Onboarding } from '@/components/onboarding'
 
 interface User {
   id: string
@@ -69,6 +70,7 @@ export default function HomePage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [powerupLoading, setPowerupLoading] = useState<string | null>(null)
   const [shinooModal, setShinooModal] = useState<Match | null>(null)
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const fetchPrimaryLeague = useCallback(async (leagueId: string) => {
@@ -131,6 +133,13 @@ export default function HomePage() {
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  useEffect(() => {
+    if (localStorage.getItem('show_onboarding') === '1') {
+      setShowOnboarding(true)
+      localStorage.removeItem('show_onboarding')
+    }
+  }, [])
 
   useEffect(() => {
     syncIntervalRef.current = setInterval(pollLiveSync, 60_000)
@@ -218,6 +227,8 @@ export default function HomePage() {
 
   return (
     <div className="px-4 py-6">
+
+      {showOnboarding && <Onboarding onDone={() => setShowOnboarding(false)} />}
 
       {/* SHINOO modal */}
       {shinooModal && shinooModal.userPrediction && (
