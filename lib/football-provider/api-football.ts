@@ -8,7 +8,7 @@ const API_STATUS_MAP: Record<string, string> = {
   'TBD': 'SCHEDULED',
   'NS': 'SCHEDULED',       // Not Started
   '1H': 'LIVE',            // First Half
-  'HT': 'LIVE',            // Half Time
+  'HT': 'PAUSED',          // Half Time
   '2H': 'LIVE',            // Second Half
   'ET': 'LIVE',            // Extra Time
   'BT': 'LIVE',            // Break Time
