@@ -52,7 +52,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             {/* Prediction example */}
             <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-3 text-center">
               <p className="text-gray-400 text-xs mb-1">הניחוש שלך</p>
-              <p className="text-white font-black text-lg">4:1 <span className="text-gray-400 font-normal text-sm">לברצלונה</span></p>
+              <p className="text-white font-black text-lg">4:1 <span className="text-gray-400 font-normal text-sm">לברצלונה נגד ריאל מדריד</span></p>
             </div>
             {/* 0 points */}
             <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-3">
