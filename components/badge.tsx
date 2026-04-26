@@ -62,6 +62,7 @@ export function matchStatusToBadgeVariant(status: string): BadgeVariant {
     case 'LOCKED':
       return 'locked'
     case 'LIVE':
+    case 'PAUSED':
       return 'live'
     case 'FINISHED':
       return 'finished'
