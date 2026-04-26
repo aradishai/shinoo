@@ -138,7 +138,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
             {/* Tip */}
             <div className="bg-primary/5 border border-primary/20 rounded-xl px-3 py-2">
-              <p className="text-xs text-gray-400"><span className="text-primary font-bold">X2</span> – כשאתה בטוח בניחוש &nbsp;|&nbsp; <span className="text-primary font-bold">SHINOO!</span> – כשרוצה להגיב למגרש</p>
+              <p className="text-xs text-gray-400"><span className="text-primary font-bold">X2</span> – כשאתה בטוח בניחוש &nbsp;|&nbsp; <span className="text-primary font-bold">SHINOO!</span> – כשאתה רוצה להגיב למה שקורה במגרש!</p>
             </div>
           </div>
         )}
