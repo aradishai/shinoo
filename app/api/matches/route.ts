@@ -47,11 +47,18 @@ export async function GET(request: Request) {
 
     let memberPredMap: Record<string, any[]> = {}
     if (visibleMatchIds.length > 0) {
+      // Always filter by leagues the current user belongs to
+      const userLeagueMemberships = await db.leagueMember.findMany({
+        where: { userId },
+        select: { leagueId: true },
+      })
+      const userLeagueIds = userLeagueMemberships.map((m) => m.leagueId)
+
       const memberPredWhere: Record<string, unknown> = {
         matchId: { in: visibleMatchIds },
         userId: { not: userId },
+        leagueId: leagueId ? leagueId : { in: userLeagueIds },
       }
-      if (leagueId) memberPredWhere.leagueId = leagueId
 
       const memberPreds = await db.prediction.findMany({
         where: memberPredWhere,
