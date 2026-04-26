@@ -47,44 +47,44 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         )}
 
         {(slide as any).scoringDemo && (
-          <div className="w-full space-y-2 text-right">
+          <div className="w-full space-y-2.5 text-right">
             <h2 className="text-white font-black text-xl text-center mb-1">איך עובד הניקוד?</h2>
             {/* Prediction example */}
-            <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-2.5 text-center mb-1">
-              <p className="text-gray-500 text-xs mb-0.5">הניחוש שלך</p>
-              <p className="text-white font-black text-base">ברצלונה <span className="text-primary">4:1</span> ריאל מדריד</p>
+            <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-3 text-center">
+              <p className="text-gray-400 text-xs mb-1">הניחוש שלך</p>
+              <p className="text-white font-black text-lg">4:1 <span className="text-gray-400 font-normal text-sm">לברצלונה</span></p>
             </div>
             {/* 0 points */}
-            <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-2.5">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-red-500 font-black text-sm">0 נקודות</span>
-                <span className="text-gray-400 text-xs">לא צדקת במנצחת</span>
+            <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-gray-500 font-black text-base">0 נקודות</span>
+                <span className="text-gray-300 text-sm">לא צדקת במנצחת</span>
               </div>
-              <p className="text-gray-600 text-xs">תיקו / ניצחון ריאל מדריד</p>
+              <p className="text-gray-400 text-xs">תיקו / ניצחון ריאל מדריד</p>
             </div>
             {/* 1 point */}
-            <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-2.5">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-yellow-400 font-black text-sm">נקודה אחת</span>
-                <span className="text-gray-400 text-xs">צדקת במנצחת בלבד</span>
+            <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-gray-300 font-black text-base">נקודה אחת</span>
+                <span className="text-gray-300 text-sm">צדקת במנצחת בלבד</span>
               </div>
-              <p className="text-gray-600 text-xs">1:0 / 3:2 לברצלונה</p>
+              <p className="text-gray-400 text-xs">1:0 לברצלונה / 3:2 לברצלונה</p>
             </div>
             {/* 3 points */}
-            <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-2.5">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-orange-400 font-black text-sm">3 נקודות</span>
-                <span className="text-gray-400 text-xs">מנצחת + קבוצה אחת</span>
+            <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-yellow-400 font-black text-base">3 נקודות</span>
+                <span className="text-gray-300 text-sm">מנצחת + קבוצה אחת</span>
               </div>
-              <p className="text-gray-600 text-xs">4:0 (פגעת בברצלונה) / 2:1 (פגעת בריאל)</p>
+              <p className="text-gray-400 text-xs">4:0 (פגעת בברצלונה) / 2:1 (פגעת בריאל)</p>
             </div>
             {/* 5 points */}
-            <div className="bg-dark-card border border-primary/40 rounded-xl px-4 py-2.5">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-primary font-black text-sm">5 נקודות 🎯</span>
-                <span className="text-gray-400 text-xs">תוצאה מדויקת</span>
+            <div className="bg-dark-card border border-primary/40 rounded-xl px-4 py-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-primary font-black text-base">5 נקודות 🎯</span>
+                <span className="text-gray-300 text-sm">תוצאה מדויקת</span>
               </div>
-              <p className="text-gray-600 text-xs">בדיוק 4:1 לברצלונה</p>
+              <p className="text-gray-400 text-xs">בדיוק 4:1 לברצלונה</p>
             </div>
           </div>
         )}
