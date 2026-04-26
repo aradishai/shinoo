@@ -253,7 +253,7 @@ export default function HomePage() {
           יציאה
         </button>
         <div className="text-center">
-          <img src="/shinoo-title.png" alt="SHINOO" className="h-20 w-auto mx-auto" style={{ mixBlendMode: 'lighten' }} />
+          <img src="/shinoo-title.png" alt="SHINOO" className="h-28 w-auto mx-auto mt-2" style={{ mixBlendMode: 'lighten' }} />
         </div>
         <div className="w-8" />
       </header>
@@ -262,20 +262,14 @@ export default function HomePage() {
         <>
           {/* Primary League Standings */}
           <section className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12" />
+            <div className="flex items-center justify-end mb-2">
               <div className="text-right">
-                <h2 className="text-white font-bold text-lg">{primaryLeague.name}</h2>
                 <div className="flex items-center justify-end gap-2">
+                  <h2 className="text-gray-400 text-sm font-medium">{primaryLeague.name}</h2>
                   {liveMatchCount > 0 && (
                     <span className="flex items-center gap-1 text-xs text-green-400">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
                       {liveMatchCount} חי
-                    </span>
-                  )}
-                  {lastUpdated && (
-                    <span className="text-xs text-gray-600">
-                      עודכן {lastUpdated.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   )}
                 </div>
