@@ -47,7 +47,8 @@ export default function LoginPage() {
       {/* Logo */}
       <div className="text-center mb-10">
         <img src="/shinoo-title.png" alt="SHINOO" className="h-36 w-auto mx-auto" style={{ mixBlendMode: 'lighten' }} />
-        <p className="text-gray-400 mt-2 text-sm">תחרות ניחושי מונדיאל עם חברים</p>
+        <p className="text-gray-500 mt-1 text-xs tracking-wide">כדורגל | הימורים | חברים</p>
+        <p className="text-gray-400 mt-1 text-sm">- ליגת ניחושי משחקים עם חברים -</p>
       </div>
 
       {/* Card */}
