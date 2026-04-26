@@ -191,12 +191,22 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             />
           ))}
         </div>
-        <button
-          onClick={() => isLast ? onDone() : setCurrent(c => c + 1)}
-          className="w-full bg-primary text-black font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-green"
-        >
-          {isLast ? 'בואו נתחיל!' : 'הבא'}
-        </button>
+        <div className="flex gap-3 w-full">
+          {current > 0 && (
+            <button
+              onClick={() => setCurrent(c => c - 1)}
+              className="bg-dark-card border border-dark-border text-gray-300 font-bold text-lg py-4 px-6 rounded-2xl active:scale-95 transition-all"
+            >
+              הקודם
+            </button>
+          )}
+          <button
+            onClick={() => isLast ? onDone() : setCurrent(c => c + 1)}
+            className="flex-1 bg-primary text-black font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-green"
+          >
+            {isLast ? 'בואו נתחיל!' : 'הבא'}
+          </button>
+        </div>
       </div>
     </div>
   )
