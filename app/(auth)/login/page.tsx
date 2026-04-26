@@ -46,17 +46,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-dark field-bg flex flex-col items-center justify-center px-5 py-10">
       {/* Logo */}
       <div className="text-center mb-10">
-        <div className="relative inline-block">
-          <h1 className="text-6xl font-black tracking-tight" dir="ltr">
-            <span className="text-white">SH</span>
-            <span className="text-primary">I</span>
-            <span className="text-white">N</span>
-            <span className="text-primary">O</span>
-            <span className="text-white">O</span>
-            <span className="text-secondary">!</span>
-          </h1>
-          <div className="absolute -inset-4 bg-primary/5 blur-2xl rounded-full -z-10" />
-        </div>
+        <img src="/shinoo-title.png" alt="SHINOO" className="h-36 w-auto mx-auto" style={{ mixBlendMode: 'lighten' }} />
         <p className="text-gray-400 mt-2 text-sm">תחרות ניחושי מונדיאל עם חברים</p>
       </div>
 
