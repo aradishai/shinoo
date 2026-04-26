@@ -86,6 +86,14 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               </div>
               <p className="text-gray-400 text-xs">בדיוק 4:1 לברצלונה</p>
             </div>
+            {/* Draw note */}
+            <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-2.5 flex items-center gap-2">
+              <span className="text-gray-500 text-lg">🤝</span>
+              <div>
+                <p className="text-gray-300 text-xs font-bold">ניחוש תיקו</p>
+                <p className="text-gray-400 text-xs">תיקו לא מדויק = 2 נקודות &nbsp;·&nbsp; תיקו מדויק = 5</p>
+              </div>
+            </div>
           </div>
         )}
 
