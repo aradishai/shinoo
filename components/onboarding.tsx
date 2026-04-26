@@ -20,9 +20,10 @@ const slides = [
     ],
   },
   {
-    emoji: '🏆',
+    emoji: null,
+    leagueDemo: true,
     title: 'התחרו עם חברים',
-    body: 'צור ליגה, שלח קוד הזמנה לחברים, והתחרו על המקום הראשון בטבלת הניקוד.',
+    body: 'צור ליגה, שלח קוד הזמנה לחברים, והתחרו על המקום הראשון.',
   },
   {
     emoji: null,
@@ -55,6 +56,37 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         )}
         {slide.emoji && (
           <div className="text-7xl mt-4">{slide.emoji}</div>
+        )}
+
+        {(slide as any).leagueDemo && (
+          <div className="w-full space-y-3 mt-2">
+            {/* Create league button mockup */}
+            <div>
+              <p className="text-gray-500 text-xs mb-1.5 text-right">① לחץ על "צור ליגה חדשה"</p>
+              <div className="bg-dark-card border border-primary/30 rounded-2xl p-4 text-center">
+                <p className="text-white font-bold text-sm">צור ליגה חדשה</p>
+                <p className="text-gray-500 text-xs mt-0.5">הזמן חברים ותתחרו ביניכם</p>
+              </div>
+            </div>
+            {/* Invite code mockup */}
+            <div>
+              <p className="text-gray-500 text-xs mb-1.5 text-right">② שתף את קוד ההזמנה</p>
+              <div className="bg-dark-card border border-dark-border rounded-2xl p-4 flex items-center justify-between">
+                <div className="bg-primary/10 border border-primary/30 rounded-xl px-3 py-1.5">
+                  <span className="text-primary font-black text-sm tracking-widest">AB12CD34</span>
+                </div>
+                <span className="text-gray-500 text-xs">קוד הזמנה</span>
+              </div>
+            </div>
+            {/* Join mockup */}
+            <div>
+              <p className="text-gray-500 text-xs mb-1.5 text-right">③ החברים מצטרפים עם הקוד</p>
+              <div className="bg-dark-card border border-dark-border rounded-2xl p-3 flex gap-2">
+                <div className="bg-primary rounded-xl px-4 py-2 text-black font-bold text-sm">הצטרף</div>
+                <div className="flex-1 bg-dark-50 border border-dark-border rounded-xl px-3 py-2 text-gray-600 text-sm text-right">קוד הזמנה...</div>
+              </div>
+            </div>
+          </div>
         )}
         {slide.powerups && (
           <div className="flex gap-8 justify-center mt-4">
