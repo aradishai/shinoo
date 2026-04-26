@@ -92,7 +92,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         {(slide as any).powerupsDemo && (
           <div className="w-full space-y-3 text-right">
             <h2 className="text-white font-black text-xl text-center">לחצנים מיוחדים</h2>
-            <p className="text-gray-500 text-xs text-center">לווינרים האמיתיים</p>
+            <p className="text-gray-500 text-xs text-center">לווינרים אמיתיים</p>
 
             {/* X2 */}
             <div className="bg-dark-card border border-dark-border rounded-xl p-3">
