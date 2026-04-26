@@ -116,7 +116,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               </div>
               <p className="text-gray-400 text-xs mb-2">שנה את הניחוש ב־שער אחד לאחת הקבוצות.</p>
               <div className="bg-dark-50 rounded-lg px-3 py-2 text-xs space-y-1">
-                <p className="text-gray-500">הימרת: <span className="text-white font-bold">4:1 לברצלונה</span> &nbsp;|&nbsp; מחצית: <span className="text-white font-bold">3:0</span></p>
+                <p className="text-gray-500">הימרת: <span className="text-white font-bold">4:1 לברצלונה</span> &nbsp;|&nbsp; תוצאת המחצית לדוגמה: <span className="text-white font-bold">3:0</span></p>
                 <p className="text-gray-600">אפשרויות: 4:0 · 5:1 · 3:1 · 4:2</p>
               </div>
             </div>
