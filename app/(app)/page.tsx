@@ -254,7 +254,6 @@ export default function HomePage() {
         </button>
         <div className="text-center">
           <img src="/shinoo-title.png" alt="SHINOO" className="h-20 w-auto mx-auto" style={{ mixBlendMode: 'lighten' }} />
-          <p className="text-gray-500 text-xs mt-1">שלום, {user?.username}! 👋</p>
         </div>
         <div className="w-8" />
       </header>
