@@ -21,13 +21,7 @@ const slides = [
   },
   {
     emoji: null,
-    powerups: true,
-    title: 'לחצנים מיוחדים',
-    body: 'בזמן ההפסקה של המשחק אפשר להשתמש בלחצן אחד באותו משחק, ופעמיים במחזור. לדוגמה — ניחשת 2:1 והמשחק הולך 3:1, אפשר:',
-    powers: [
-      { img: '/x2.png', name: 'X2', desc: 'מכפיל את הנקודות שתקבל' },
-      { img: '/logo.png', name: 'SHINOO', desc: 'שנה את הניחוש שלך בגול 1 לאחת הקבוצות' },
-    ],
+    powerupsDemo: true,
   },
 ]
 
@@ -95,6 +89,60 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           </div>
         )}
 
+        {(slide as any).powerupsDemo && (
+          <div className="w-full space-y-3 text-right">
+            <h2 className="text-white font-black text-xl text-center">לחצנים מיוחדים</h2>
+            <p className="text-gray-500 text-xs text-center">לווינרים האמיתיים</p>
+
+            {/* X2 */}
+            <div className="bg-dark-card border border-dark-border rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <img src="/x2.png" alt="X2" className="w-8 h-8 object-contain" style={{ mixBlendMode: 'lighten' }} />
+                <span className="text-white font-black text-sm">X2 – הכפלת ניקוד</span>
+              </div>
+              <p className="text-gray-400 text-xs mb-2">מכפיל את הנקודות שתקבל בסיום המשחק:</p>
+              <div className="flex gap-2 justify-end" dir="ltr">
+                {[['1→2','text-gray-400'],['3→6','text-yellow-400'],['5→10','text-primary']].map(([val, cls]) => (
+                  <span key={val} className={`text-xs font-black ${cls} bg-dark-50 border border-dark-border rounded-lg px-2 py-1`}>{val}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* SHINOO */}
+            <div className="bg-dark-card border border-dark-border rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <img src="/logo.png" alt="SHINOO" className="w-8 h-8 object-contain" style={{ mixBlendMode: 'lighten' }} />
+                <span className="text-white font-black text-sm">SHINOO! – תיקון ניחוש</span>
+              </div>
+              <p className="text-gray-400 text-xs mb-2">שנה את הניחוש ב־שער אחד לאחת הקבוצות.</p>
+              <div className="bg-dark-50 rounded-lg px-3 py-2 text-xs space-y-1">
+                <p className="text-gray-500">הימרת: <span className="text-white font-bold">4:1 לברצלונה</span> &nbsp;|&nbsp; מחצית: <span className="text-white font-bold">3:0</span></p>
+                <p className="text-gray-600">אפשרויות: 4:0 · 5:1 · 3:1 · 4:2</p>
+              </div>
+            </div>
+
+            {/* Rules */}
+            <div className="bg-dark-card border border-dark-border rounded-xl p-3 space-y-1.5">
+              <p className="text-gray-500 text-xs font-bold mb-1">חוקים חשובים ⏱️</p>
+              {[
+                'ניתן להשתמש רק בזמן המחצית',
+                'לחצן אחד בלבד לכל משחק',
+                'עד פעמיים לכל לחצן במחזור',
+              ].map(r => (
+                <div key={r} className="flex items-start gap-2">
+                  <span className="text-primary text-xs mt-0.5">•</span>
+                  <span className="text-gray-400 text-xs">{r}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Tip */}
+            <div className="bg-primary/5 border border-primary/20 rounded-xl px-3 py-2">
+              <p className="text-xs text-gray-400"><span className="text-primary font-bold">X2</span> – כשאתה בטוח בניחוש &nbsp;|&nbsp; <span className="text-primary font-bold">SHINOO!</span> – כשרוצה להגיב למגרש</p>
+            </div>
+          </div>
+        )}
+
         {(slide as any).leagueDemo && (
           <div className="w-full space-y-3 mt-2">
             {/* Create league button mockup */}
@@ -125,42 +173,11 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             </div>
           </div>
         )}
-        {slide.powerups && (
-          <div className="flex gap-8 justify-center mt-4">
-            {slide.powers?.map((p) => (
-              <div key={p.name} className="flex flex-col items-center gap-2">
-                <div className="w-20 h-20 rounded-2xl bg-dark-card border border-dark-border flex items-center justify-center">
-                  <img src={p.img} alt={p.name} className="w-14 h-14 object-contain" style={{ mixBlendMode: 'lighten' }} />
-                </div>
-                <span className="text-white font-bold text-sm">{p.name}</span>
-              </div>
-            ))}
-          </div>
+        {slide.title && (
+          <h2 className="text-white font-black text-2xl mt-2">{slide.title}</h2>
         )}
-
-        <h2 className="text-white font-black text-2xl mt-2">{slide.title}</h2>
-        <p className="text-gray-400 text-sm leading-relaxed">{slide.body}</p>
-
-        {slide.points && (
-          <div className="w-full space-y-2">
-            {slide.points.map((p: { label: string; pts: string }) => (
-              <div key={p.label} className="flex items-center justify-between bg-dark-card border border-dark-border rounded-xl px-4 py-3">
-                <span className="text-primary font-black text-sm">{p.pts}</span>
-                <span className="text-gray-300 text-sm">{p.label}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {slide.powers && (
-          <div className="w-full space-y-2">
-            {slide.powers.map((p) => (
-              <div key={p.name} className="flex items-center justify-between bg-dark-card border border-dark-border rounded-xl px-4 py-3">
-                <span className="text-gray-400 text-sm">{p.desc}</span>
-                <span className="text-white font-bold text-sm">{p.name}</span>
-              </div>
-            ))}
-          </div>
+        {slide.body && (
+          <p className="text-gray-400 text-sm leading-relaxed">{slide.body}</p>
         )}
       </div>
 
