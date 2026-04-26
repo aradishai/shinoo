@@ -242,39 +242,48 @@ export default function HomePage() {
         </div>
       )}
       {/* Header */}
-      <header className="flex items-center justify-between mb-6">
-        <button
-          onClick={async () => {
-            await fetch('/api/auth/logout', { method: 'POST' })
-            router.push('/login')
-          }}
-          className="text-sm font-medium text-gray-300 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl hover:border-red-500/40 hover:text-red-400 transition-all"
-        >
-          יציאה
-        </button>
-        <div className="text-center">
-          <img src="/shinoo-title.png" alt="SHINOO" className="h-28 w-auto mx-auto mt-2" style={{ mixBlendMode: 'lighten' }} />
+      <header className="mb-6">
+        {/* Top row: יציאה on the right */}
+        <div className="flex justify-end">
+          <button
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' })
+              router.push('/login')
+            }}
+            className="text-sm font-medium text-gray-300 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl hover:border-red-500/40 hover:text-red-400 transition-all"
+          >
+            יציאה
+          </button>
         </div>
-        <div className="w-8" />
+
+        {/* Logo centered */}
+        <div className="flex justify-center -mt-1">
+          <img src="/shinoo-title.png" alt="SHINOO" className="h-24 w-auto" style={{ mixBlendMode: 'lighten' }} />
+        </div>
+
+        {/* Bottom row: update info left, league name right */}
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-xs text-gray-600">
+            {lastUpdated ? `עודכן ${lastUpdated.getHours().toString().padStart(2, '0')}:${lastUpdated.getMinutes().toString().padStart(2, '0')}` : ''}
+          </span>
+          {primaryLeague && (
+            <div className="flex items-center gap-1.5">
+              {liveMatchCount > 0 && (
+                <span className="flex items-center gap-1 text-xs text-green-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
+                  {liveMatchCount} חי
+                </span>
+              )}
+              <span className="text-xs text-gray-400 font-medium">{primaryLeague.name}</span>
+            </div>
+          )}
+        </div>
       </header>
 
       {leagues.length > 0 && primaryLeague ? (
         <>
           {/* Primary League Standings */}
           <section className="mb-6">
-            <div className="flex items-center justify-end mb-2">
-              <div className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <h2 className="text-gray-400 text-sm font-medium">{primaryLeague.name}</h2>
-                  {liveMatchCount > 0 && (
-                    <span className="flex items-center gap-1 text-xs text-green-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
-                      {liveMatchCount} חי
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
             <LeagueTable
               standings={primaryLeague.standings}
               currentUserId={user?.id}
