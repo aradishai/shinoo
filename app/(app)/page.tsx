@@ -243,8 +243,8 @@ export default function HomePage() {
       )}
       {/* Header */}
       <header className="mb-6">
-        {/* Top row: יציאה on the right */}
-        <div className="flex justify-end">
+        {/* Top row: יציאה on the left */}
+        <div className="flex justify-start">
           <button
             onClick={async () => {
               await fetch('/api/auth/logout', { method: 'POST' })
@@ -258,15 +258,12 @@ export default function HomePage() {
 
         {/* Logo centered */}
         <div className="flex justify-center -mt-1">
-          <img src="/shinoo-title.png" alt="SHINOO" className="h-24 w-auto" style={{ mixBlendMode: 'lighten' }} />
+          <img src="/shinoo-title.png" alt="SHINOO" className="h-32 w-auto" style={{ mixBlendMode: 'lighten' }} />
         </div>
 
-        {/* Bottom row: update info left, league name right */}
+        {/* Bottom row: league name left, update info right */}
         <div className="flex items-center justify-between mt-1">
-          <span className="text-xs text-gray-600">
-            {lastUpdated ? `עודכן ${lastUpdated.getHours().toString().padStart(2, '0')}:${lastUpdated.getMinutes().toString().padStart(2, '0')}` : ''}
-          </span>
-          {primaryLeague && (
+          {primaryLeague ? (
             <div className="flex items-center gap-1.5">
               {liveMatchCount > 0 && (
                 <span className="flex items-center gap-1 text-xs text-green-400">
@@ -276,7 +273,10 @@ export default function HomePage() {
               )}
               <span className="text-xs text-gray-400 font-medium">{primaryLeague.name}</span>
             </div>
-          )}
+          ) : <span />}
+          <span className="text-xs text-gray-600">
+            {lastUpdated ? `עודכן ${lastUpdated.getHours().toString().padStart(2, '0')}:${lastUpdated.getMinutes().toString().padStart(2, '0')}` : ''}
+          </span>
         </div>
       </header>
 
