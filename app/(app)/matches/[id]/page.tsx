@@ -180,7 +180,7 @@ export default function MatchDetailPage() {
 
   const kickoff = new Date(match.kickoffAt)
   const lockAt = new Date(match.lockAt)
-  const isLocked = match.status === 'LOCKED' || match.status === 'LIVE' || match.status === 'FINISHED'
+  const isLocked = match.status === 'LOCKED' || match.status === 'LIVE' || match.status === 'PAUSED' || match.status === 'FINISHED'
   const isFinished = match.status === 'FINISHED'
   const isLive = match.status === 'LIVE'
   const isOpen = match.status === 'SCHEDULED' && new Date() < lockAt
