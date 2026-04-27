@@ -248,30 +248,30 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     const shinooExhausted = !shinooDone && usage.shinooUsed >= 2
     if ((x2Done || x2Exhausted) && (shinooDone || shinooExhausted)) return null
     return (
-      <div className="flex gap-2 justify-center px-4 pb-3 pt-1 border-t border-dark-border/40" dir="ltr">
+      <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
         {!x2Exhausted && (
           x2Done ? (
-            <div className="h-14 w-14 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
-              <img src="/x2.png" alt="X2" className="w-12 h-12 object-contain" />
+            <div className="h-16 w-16 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center shadow-lg">
+              <img src="/x2.png" alt="X2" className="w-12 h-12 object-contain" style={{ mixBlendMode: 'lighten' }} />
             </div>
           ) : (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !shinooDone) powerup.onX2() }}
-              className={`h-14 w-14 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${!inWindow || shinooDone ? 'border-gray-700 cursor-default' : 'border-transparent cursor-pointer'}`}
+              className={`h-16 w-16 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 shadow-lg ${inWindow && !shinooDone ? 'border-primary/60 bg-primary/10 cursor-pointer' : 'border-gray-700 bg-dark-50 cursor-default'}`}
             >
-              <img src="/x2.png" alt="X2" className={`w-12 h-12 object-contain ${!inWindow || shinooDone ? 'grayscale opacity-30' : ''}`} />
+              <img src="/x2.png" alt="X2" className={`w-12 h-12 object-contain ${!inWindow || shinooDone ? 'grayscale opacity-30' : ''}`} style={{ mixBlendMode: 'lighten' }} />
             </button>
           )
         )}
         {!shinooExhausted && (
           shinooDone ? (
-            <div className="h-14 w-14 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
+            <div className="h-16 w-16 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center shadow-lg">
               <img src="/logo.png" alt="SHINOO" className="w-12 h-12 object-contain" style={{ mixBlendMode: 'lighten' }} />
             </div>
           ) : (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !x2Done) powerup.onShinoo() }}
-              className={`h-14 w-14 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${!inWindow || x2Done ? 'border-gray-700 cursor-default' : 'border-transparent cursor-pointer'}`}
+              className={`h-16 w-16 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 shadow-lg ${inWindow && !x2Done ? 'border-primary/60 bg-primary/10 cursor-pointer' : 'border-gray-700 bg-dark-50 cursor-default'}`}
             >
               <img src="/logo.png" alt="SHINOO" className={`w-12 h-12 object-contain ${!inWindow || x2Done ? 'grayscale opacity-30' : ''}`} style={{ mixBlendMode: 'lighten' }} />
             </button>
