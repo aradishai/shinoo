@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         tournament: true,
         scorers: { include: { player: true } },
       },
-      orderBy: { kickoffAt: 'asc' },
+      orderBy: { kickoffAt: status === 'FINISHED' ? 'desc' : 'asc' },
     })
 
     const matchIds = matches.map((m) => m.id)
