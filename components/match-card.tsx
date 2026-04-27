@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Badge, matchStatusToBadgeVariant } from './badge'
 import { Countdown } from './countdown'
@@ -86,6 +87,32 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
+function useLiveMinute(kickoffAt: Date | string, status: string) {
+  const [minute, setMinute] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (status !== 'LIVE' && status !== 'PAUSED') { setMinute(null); return }
+
+    const calc = () => {
+      if (status === 'PAUSED') { setMinute('HT'); return }
+      const elapsed = Math.floor((Date.now() - new Date(kickoffAt).getTime()) / 60000)
+      if (elapsed <= 50) {
+        setMinute(`${Math.min(elapsed, 45)}'`)
+      } else {
+        // Assume ~15min break, second half started at elapsed ~60min
+        const secondHalf = Math.max(0, elapsed - 60)
+        setMinute(`${Math.min(45 + secondHalf, 90)}'`)
+      }
+    }
+
+    calc()
+    const interval = setInterval(calc, 30000)
+    return () => clearInterval(interval)
+  }, [kickoffAt, status])
+
+  return minute
+}
+
 export function MatchCard({ match, prediction, memberPredictions = [], leagueId, onPredictClick, powerup }: MatchCardProps) {
   const kickoff = new Date(match.kickoffAt)
   const lockAt = new Date(match.lockAt)
@@ -95,6 +122,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const isLocked = status === 'LOCKED' || status === 'LIVE' || status === 'PAUSED'
   const isOpen = status === 'SCHEDULED' && new Date() < lockAt
   const badgeVariant = matchStatusToBadgeVariant(status)
+  const liveMinute = useLiveMinute(match.kickoffAt, status)
 
   const matchUrl = leagueId
     ? `/matches/${match.id}?leagueId=${leagueId}`
@@ -133,9 +161,9 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
                   {match.awayScore}
                 </span>
               </div>
-              {isLive && (
-                <span className="text-xs text-primary font-bold animate-pulse">
-                  {match.minute ? `${match.minute}'` : 'LIVE'}
+              {(isLive || status === 'PAUSED') && liveMinute && (
+                <span className={`text-xs font-bold ${status === 'PAUSED' ? 'text-yellow-400' : 'text-primary animate-pulse'}`}>
+                  {liveMinute}
                 </span>
               )}
             </div>
