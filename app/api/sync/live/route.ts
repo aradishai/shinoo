@@ -50,13 +50,14 @@ async function syncFootballData() {
     if (!match) continue
 
     const status = FD_STATUS_MAP[m.status] ?? match.status
-    const homeScore = m.score?.fullTime?.home ?? match.homeScore
-    const awayScore = m.score?.fullTime?.away ?? match.awayScore
+    const homeScore = m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore
+    const awayScore = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? match.awayScore
+    const minute = m.minute ?? null
     const hasScore = homeScore !== null && awayScore !== null
 
     await db.match.update({
       where: { id: match.id },
-      data: { status, homeScore, awayScore },
+      data: { status, homeScore, awayScore, minute },
     })
 
     if (hasScore) {
