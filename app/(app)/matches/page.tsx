@@ -367,7 +367,7 @@ export default function MatchesPage() {
                   if (x2Done && shinooDone) return null
                   if (x2Exhausted && shinooExhausted) return null
                   return (
-                    <div className="mt-3 pt-3 border-t border-dark-border/50 flex gap-3 justify-center" dir="ltr">
+                    <div className="mt-3 pt-3 border-t border-dark-border/50 flex gap-3 justify-start" dir="ltr">
                       {!x2Exhausted && (
                         x2Done ? (
                           <div className="h-12 w-28 rounded-xl border-2 border-green-500 overflow-hidden opacity-70">
