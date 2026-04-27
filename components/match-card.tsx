@@ -92,7 +92,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const status = match.status
   const isFinished = status === 'FINISHED'
   const isLive = status === 'LIVE'
-  const isLocked = status === 'LOCKED' || status === 'LIVE'
+  const isLocked = status === 'LOCKED' || status === 'LIVE' || status === 'PAUSED'
   const isOpen = status === 'SCHEDULED' && new Date() < lockAt
   const badgeVariant = matchStatusToBadgeVariant(status)
 
