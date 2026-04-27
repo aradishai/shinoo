@@ -56,8 +56,6 @@ export default function MatchesPage() {
   const [leagueId, setLeagueId] = useState<string | null>(null)
   const [scores, setScores] = useState<Record<string, { home: string; away: string; topScorerId: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
-  const [powerupLoading, setPowerupLoading] = useState<string | null>(null)
-  const [shinooModal, setShinooModal] = useState<Match | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -159,101 +157,10 @@ export default function MatchesPage() {
     }
   }
 
-  const applyX2 = async (match: Match) => {
-    if (!match.userPrediction) return
-    setPowerupLoading(`x2-${match.id}`)
-    const res = await fetch('/api/predictions/x2', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ predictionId: match.userPrediction.id }),
-    })
-    setPowerupLoading(null)
-    const data = await res.json()
-    if (res.ok) {
-      toast.success(`X2 הופעל! נשאר: ${data.remaining}`)
-      setMatches(prev => prev.map(m => m.id !== match.id ? m : {
-        ...m,
-        userPrediction: m.userPrediction ? { ...m.userPrediction, x2Applied: true } : m.userPrediction,
-        powerupUsage: m.powerupUsage ? { ...m.powerupUsage, x2Used: (m.powerupUsage.x2Used || 0) + 1 } : m.powerupUsage,
-      }))
-    } else {
-      toast.error(data.error || 'שגיאה')
-    }
-  }
-
-  const applyShinoo = async (match: Match, team: 'home' | 'away', delta: 1 | -1) => {
-    if (!match.userPrediction) return
-    setPowerupLoading(`shinoo-${match.id}`)
-    const res = await fetch('/api/predictions/shinoo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ predictionId: match.userPrediction.id, team, delta }),
-    })
-    setPowerupLoading(null)
-    const data = await res.json()
-    if (res.ok) {
-      toast.success(`SHINOO הופעל! נשאר: ${data.remaining}`)
-      setMatches(prev => prev.map(m => m.id !== match.id ? m : {
-        ...m,
-        userPrediction: m.userPrediction ? {
-          ...m.userPrediction,
-          predictedHomeScore: data.newHome,
-          predictedAwayScore: data.newAway,
-          shinooApplied: true,
-        } : m.userPrediction,
-        powerupUsage: m.powerupUsage ? { ...m.powerupUsage, shinooUsed: (m.powerupUsage.shinooUsed || 0) + 1 } : m.powerupUsage,
-      }))
-    } else {
-      toast.error(data.error || 'שגיאה')
-    }
-  }
-
   return (
     <div className="px-4 py-6 pb-24">
 
-      {/* שינוי modal */}
-      {shinooModal && shinooModal.userPrediction && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70" onClick={() => setShinooModal(null)}>
-          <div className="bg-dark-card border border-dark-border rounded-t-3xl p-6 w-full max-w-sm pb-10" onClick={e => e.stopPropagation()}>
-            <h3 className="text-white font-black text-lg text-center mb-1">שינוי</h3>
-            <p className="text-gray-500 text-xs text-center mb-6">שנה את הניחוש שלך ב-1 גול</p>
 
-            <div className="flex gap-3 mb-3">
-              {/* Home team */}
-              <div className="flex-1 flex flex-col gap-2">
-                <p className="text-white text-sm font-bold text-center">{shinooModal.homeTeam.nameHe}</p>
-                <button
-                  onClick={() => { applyShinoo(shinooModal, 'home', 1); setShinooModal(null) }}
-                  disabled={!!powerupLoading}
-                  className="py-3 rounded-2xl bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-black text-xl active:scale-95 transition-all"
-                >+1</button>
-                <button
-                  onClick={() => { applyShinoo(shinooModal, 'home', -1); setShinooModal(null) }}
-                  disabled={shinooModal.userPrediction.predictedHomeScore <= 0 || !!powerupLoading}
-                  className="py-3 rounded-2xl bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-black text-xl active:scale-95 transition-all disabled:opacity-30"
-                >-1</button>
-              </div>
-
-              {/* Away team */}
-              <div className="flex-1 flex flex-col gap-2">
-                <p className="text-white text-sm font-bold text-center">{shinooModal.awayTeam.nameHe}</p>
-                <button
-                  onClick={() => { applyShinoo(shinooModal, 'away', 1); setShinooModal(null) }}
-                  disabled={!!powerupLoading}
-                  className="py-3 rounded-2xl bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-black text-xl active:scale-95 transition-all"
-                >+1</button>
-                <button
-                  onClick={() => { applyShinoo(shinooModal, 'away', -1); setShinooModal(null) }}
-                  disabled={shinooModal.userPrediction.predictedAwayScore <= 0 || !!powerupLoading}
-                  className="py-3 rounded-2xl bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-black text-xl active:scale-95 transition-all disabled:opacity-30"
-                >-1</button>
-              </div>
-            </div>
-
-            <button onClick={() => setShinooModal(null)} className="w-full py-3 rounded-2xl bg-dark-50 border border-dark-border text-gray-500 font-medium text-sm mt-2">ביטול</button>
-          </div>
-        </div>
-      )}
       <div className="flex items-center justify-between mb-6">
         <Link href="/" className="text-sm font-medium text-gray-300 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl hover:border-primary/40 hover:text-white transition-all">בית</Link>
         <h1 className="text-white font-black text-xl">ניחושים</h1>
@@ -288,7 +195,6 @@ export default function MatchesPage() {
             const isPaused = match.status === 'PAUSED'
             const s = scores[match.id] || { home: '', away: '', topScorerId: '' }
             const hasPrediction = !!match.userPrediction
-            const allPlayers = [...(match.homeTeam.players || []), ...(match.awayTeam.players || [])]
 
             return (
               <div key={match.id} className={`bg-dark-card border rounded-2xl p-4 ${hasPrediction ? 'border-primary/30' : 'border-dark-border'}`}>
@@ -354,53 +260,6 @@ export default function MatchesPage() {
 
                 </div>
 
-                {/* Powerup buttons — always visible when prediction exists */}
-                {match.userPrediction && !isFinished && (() => {
-                  const now = Date.now()
-                  const kickoffMs = new Date(match.kickoffAt).getTime()
-                  const inWindow = (isLive || isPaused) && now >= kickoffMs + 45 * 60 * 1000 && now <= kickoffMs + 65 * 60 * 1000
-                  const usage = match.powerupUsage || { x2Used: 0, shinooUsed: 0 }
-                  const x2Done = !!match.userPrediction.x2Applied
-                  const shinooDone = !!match.userPrediction.shinooApplied
-                  const x2Exhausted = !x2Done && usage.x2Used >= 2
-                  const shinooExhausted = !shinooDone && usage.shinooUsed >= 2
-                  if (x2Done && shinooDone) return null
-                  if (x2Exhausted && shinooExhausted) return null
-                  return (
-                    <div className="mt-3 pt-3 border-t border-dark-border/50 relative flex gap-3 justify-center" dir="ltr">
-                      {!x2Exhausted && (
-                        x2Done ? (
-                          <div className="absolute left-0 h-12 w-28 rounded-xl border-2 border-green-500 overflow-hidden opacity-70">
-                            <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => { if (inWindow && !shinooDone) applyX2(match) }}
-                            disabled={powerupLoading === `x2-${match.id}`}
-                            className={`absolute left-0 h-12 w-28 rounded-xl overflow-hidden transition-all active:scale-95 ${!inWindow || shinooDone ? 'grayscale opacity-20 cursor-default' : 'cursor-pointer'}`}
-                          >
-                            <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
-                          </button>
-                        )
-                      )}
-                      {!x2Exhausted && <div className="w-28 flex-shrink-0" />}
-                      {!shinooExhausted && (
-                        shinooDone ? (
-                          <div className="h-12 w-28 rounded-xl border-2 border-green-500 overflow-hidden opacity-70">
-                            <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => { if (inWindow && !x2Done) setShinooModal(match) }}
-                            className={`h-12 w-28 rounded-xl overflow-hidden transition-all active:scale-95 ${!inWindow || x2Done ? 'grayscale opacity-20 cursor-default' : 'cursor-pointer'}`}
-                          >
-                            <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
-                          </button>
-                        )
-                      )}
-                    </div>
-                  )
-                })()}
 
                 {/* Member predictions for finished/live/locked matches */}
                 {(isFinished || isLive || isPaused || match.status === 'LOCKED') && match.memberPredictions && match.memberPredictions.length > 0 && (
