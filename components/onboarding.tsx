@@ -110,7 +110,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               </div>
               <p className="text-gray-400 text-xs mb-2">מכפיל את הנקודות שתקבל בסיום המשחק:</p>
               <div className="flex gap-2 justify-end" dir="ltr">
-                {[['1→2','text-gray-400'],['3→6','text-yellow-400'],['5→10','text-primary']].map(([val, cls]) => (
+                {[['1→2','text-gray-400'],['2→4','text-yellow-400'],['3→6','text-blue-400'],['5→10','text-green-400']].map(([val, cls]) => (
                   <span key={val} className={`text-xs font-black ${cls} bg-dark-50 border border-dark-border rounded-lg px-2 py-1`}>{val}</span>
                 ))}
               </div>
