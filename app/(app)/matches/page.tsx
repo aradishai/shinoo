@@ -367,22 +367,20 @@ export default function MatchesPage() {
                   if (x2Done && shinooDone) return null
                   if (x2Exhausted && shinooExhausted) return null
                   return (
-                    <div className="mt-3 pt-3 border-t border-dark-border/50 flex gap-2 justify-center w-full" dir="ltr">
+                    <div className="mt-3 pt-3 border-t border-dark-border/50 flex gap-3 justify-center w-full" dir="ltr">
                       {/* X2 */}
                       {!x2Exhausted && (
                         x2Done ? (
-                          <div className="h-14 w-14 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
-                            <img src="/x2.png" alt="X2" className="w-12 h-12 object-contain" />
+                          <div className="h-14 w-28 rounded-2xl border-2 border-green-500 overflow-hidden opacity-70">
+                            <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
                           </div>
                         ) : (
                           <button
                             onClick={() => { if (inWindow && !shinooDone) applyX2(match) }}
                             disabled={powerupLoading === `x2-${match.id}`}
-                            className={`h-14 w-14 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${
-                              !inWindow || shinooDone ? 'border-gray-700 cursor-default' : 'border-transparent cursor-pointer'
-                            }`}
+                            className={`h-14 w-28 rounded-2xl overflow-hidden transition-all active:scale-95 ${!inWindow || shinooDone ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
                           >
-                            <img src="/x2.png" alt="X2" className={`w-12 h-12 object-contain ${!inWindow || shinooDone ? 'grayscale opacity-30' : ''}`} />
+                            <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
                           </button>
                         )
                       )}
@@ -390,17 +388,15 @@ export default function MatchesPage() {
                       {/* SHINOO */}
                       {!shinooExhausted && (
                         shinooDone ? (
-                          <div className="h-14 w-14 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center">
-                            <img src="/logo.png" alt="SHINOO" className="w-12 h-12 object-contain" style={{ mixBlendMode: 'lighten' }} />
+                          <div className="h-14 w-28 rounded-2xl border-2 border-green-500 overflow-hidden opacity-70">
+                            <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
                           </div>
                         ) : (
                           <button
                             onClick={() => { if (inWindow && !x2Done) setShinooModal(match) }}
-                            className={`h-14 w-14 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${
-                              !inWindow || x2Done ? 'border-gray-700 cursor-default' : 'border-transparent cursor-pointer'
-                            }`}
+                            className={`h-14 w-28 rounded-2xl overflow-hidden transition-all active:scale-95 ${!inWindow || x2Done ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
                           >
-                            <img src="/logo.png" alt="SHINOO" className={`w-12 h-12 object-contain ${!inWindow || x2Done ? 'grayscale opacity-30' : ''}`} style={{ mixBlendMode: 'lighten' }} />
+                            <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
                           </button>
                         )
                       )}
