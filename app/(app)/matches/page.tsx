@@ -51,7 +51,7 @@ const STATUS_TABS = [
 export default function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeStatus, setActiveStatus] = useState('SCHEDULED')
+  const [activeStatus, setActiveStatus] = useState('')
   const [defaultSet, setDefaultSet] = useState(false)
   const [leagueId, setLeagueId] = useState<string | null>(null)
   const [scores, setScores] = useState<Record<string, { home: string; away: string; topScorerId: string }>>({})
@@ -81,8 +81,9 @@ export default function MatchesPage() {
         // On first load (all matches), pick the smartest default tab
         if (!defaultSet && activeStatus === '') {
           const hasLive = data.some(m => m.status === 'LIVE' || m.status === 'PAUSED')
+          const hasScheduled = data.some(m => m.status === 'SCHEDULED')
           const hasLocked = data.some(m => m.status === 'LOCKED')
-          const defaultTab = hasLive ? 'LIVE' : hasLocked ? 'LOCKED' : 'SCHEDULED'
+          const defaultTab = hasLive ? 'LIVE' : hasScheduled ? 'SCHEDULED' : hasLocked ? 'LOCKED' : 'FINISHED'
           setDefaultSet(true)
           setActiveStatus(defaultTab)
           return
