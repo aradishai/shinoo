@@ -251,29 +251,29 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
         {!x2Exhausted && (
           x2Done ? (
-            <div className="h-16 w-16 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center shadow-lg">
-              <img src="/x2.png" alt="X2" className="w-12 h-12 object-contain" style={{ mixBlendMode: 'lighten' }} />
+            <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center shadow-lg">
+              <span className="text-black font-black text-xl">×2</span>
             </div>
           ) : (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !shinooDone) powerup.onX2() }}
-              className={`h-16 w-16 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 shadow-lg ${inWindow && !shinooDone ? 'border-primary/60 bg-primary/10 cursor-pointer' : 'border-gray-700 bg-dark-50 cursor-default'}`}
+              className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-lg ${inWindow && !shinooDone ? 'bg-white cursor-pointer' : 'bg-gray-800 cursor-default'}`}
             >
-              <img src="/x2.png" alt="X2" className={`w-12 h-12 object-contain ${!inWindow || shinooDone ? 'grayscale opacity-30' : ''}`} style={{ mixBlendMode: 'lighten' }} />
+              <span className={`font-black text-xl ${inWindow && !shinooDone ? 'text-black' : 'text-gray-600'}`}>×2</span>
             </button>
           )
         )}
         {!shinooExhausted && (
           shinooDone ? (
-            <div className="h-16 w-16 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center shadow-lg">
-              <img src="/logo.png" alt="SHINOO" className="w-12 h-12 object-contain" style={{ mixBlendMode: 'lighten' }} />
+            <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center shadow-lg">
+              <span className="text-black font-black text-2xl italic">S</span>
             </div>
           ) : (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !x2Done) powerup.onShinoo() }}
-              className={`h-16 w-16 rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 shadow-lg ${inWindow && !x2Done ? 'border-primary/60 bg-primary/10 cursor-pointer' : 'border-gray-700 bg-dark-50 cursor-default'}`}
+              className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-lg ${inWindow && !x2Done ? 'bg-white cursor-pointer' : 'bg-gray-800 cursor-default'}`}
             >
-              <img src="/logo.png" alt="SHINOO" className={`w-12 h-12 object-contain ${!inWindow || x2Done ? 'grayscale opacity-30' : ''}`} style={{ mixBlendMode: 'lighten' }} />
+              <span className={`font-black text-2xl italic ${inWindow && !x2Done ? 'text-black' : 'text-gray-600'}`}>S</span>
             </button>
           )
         )}
