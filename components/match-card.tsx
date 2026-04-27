@@ -240,7 +240,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     if (!powerup || isFinished) return null
     const now = Date.now()
     const kickoffMs = new Date(match.kickoffAt).getTime()
-    const inWindow = (isLive || match.status === 'PAUSED') && now >= kickoffMs + 45 * 60 * 1000 && now <= kickoffMs + 65 * 60 * 1000
+    const inWindow = true // DEV: always active for testing
     const usage = powerup.usage || { x2Used: 0, shinooUsed: 0 }
     const x2Done = powerup.x2Applied
     const shinooDone = powerup.shinooApplied
