@@ -252,28 +252,28 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         {!x2Exhausted && (
           x2Done ? (
             <div className="h-14 w-28 rounded-2xl border-2 border-green-500 overflow-hidden opacity-70">
-              <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" />
+              <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
             </div>
           ) : (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !shinooDone) powerup.onX2() }}
               className={`h-14 w-28 rounded-2xl overflow-hidden transition-all active:scale-95 ${!inWindow || shinooDone ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
             >
-              <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" />
+              <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
             </button>
           )
         )}
         {!shinooExhausted && (
           shinooDone ? (
             <div className="h-14 w-28 rounded-2xl border-2 border-green-500 overflow-hidden opacity-70">
-              <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" />
+              <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
             </div>
           ) : (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !x2Done) powerup.onShinoo() }}
               className={`h-14 w-28 rounded-2xl overflow-hidden transition-all active:scale-95 ${!inWindow || x2Done ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
             >
-              <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" />
+              <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
             </button>
           )
         )}
