@@ -42,7 +42,6 @@ interface Match {
 }
 
 const STATUS_TABS = [
-  { label: 'הכל', value: '' },
   { label: 'חי', value: 'LIVE' },
   { label: 'נעול', value: 'LOCKED' },
   { label: 'פתוח', value: 'SCHEDULED' },
@@ -52,7 +51,7 @@ const STATUS_TABS = [
 export default function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeStatus, setActiveStatus] = useState('')
+  const [activeStatus, setActiveStatus] = useState('SCHEDULED')
   const [defaultSet, setDefaultSet] = useState(false)
   const [leagueId, setLeagueId] = useState<string | null>(null)
   const [scores, setScores] = useState<Record<string, { home: string; away: string; topScorerId: string }>>({})
