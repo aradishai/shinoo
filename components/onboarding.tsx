@@ -105,7 +105,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             {/* X2 */}
             <div className="bg-dark-card border border-dark-border rounded-xl p-3">
               <div className="flex items-center gap-2 mb-2">
-                <img src="/x2.png" alt="X2" className="w-8 h-8 object-contain" style={{ mixBlendMode: 'lighten' }} />
+                <img src="/btn-x2.png" alt="X2" className="h-8 w-20 object-cover rounded-lg" style={{ mixBlendMode: 'lighten' }} />
                 <span className="text-white font-black text-sm">X2 – הכפלת ניקוד</span>
               </div>
               <p className="text-gray-400 text-xs mb-2">מכפיל את הנקודות שתקבל בסיום המשחק:</p>
@@ -119,7 +119,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             {/* SHINOO */}
             <div className="bg-dark-card border border-dark-border rounded-xl p-3">
               <div className="flex items-center gap-2 mb-2">
-                <img src="/logo.png" alt="SHINOO" className="w-8 h-8 object-contain" style={{ mixBlendMode: 'lighten' }} />
+                <img src="/btn-shinoo.png" alt="SHINOO" className="h-8 w-20 object-cover rounded-lg" style={{ mixBlendMode: 'lighten' }} />
                 <span className="text-white font-black text-sm">SHINOO! – תיקון ניחוש</span>
               </div>
               <p className="text-gray-400 text-xs mb-2">שנה את הניחוש ב־שער אחד לאחת הקבוצות.</p>
