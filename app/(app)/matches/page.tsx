@@ -367,22 +367,23 @@ export default function MatchesPage() {
                   if (x2Done && shinooDone) return null
                   if (x2Exhausted && shinooExhausted) return null
                   return (
-                    <div className="mt-3 pt-3 border-t border-dark-border/50 flex gap-3 justify-center" dir="ltr">
+                    <div className="mt-3 pt-3 border-t border-dark-border/50 relative flex gap-3 justify-center" dir="ltr">
                       {!x2Exhausted && (
                         x2Done ? (
-                          <div className="h-12 w-28 rounded-xl border-2 border-green-500 overflow-hidden opacity-70">
+                          <div className="absolute left-0 h-12 w-28 rounded-xl border-2 border-green-500 overflow-hidden opacity-70">
                             <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
                           </div>
                         ) : (
                           <button
                             onClick={() => { if (inWindow && !shinooDone) applyX2(match) }}
                             disabled={powerupLoading === `x2-${match.id}`}
-                            className={`h-12 w-28 rounded-xl overflow-hidden transition-all active:scale-95 ${!inWindow || shinooDone ? 'grayscale opacity-20 cursor-default' : 'cursor-pointer'}`}
+                            className={`absolute left-0 h-12 w-28 rounded-xl overflow-hidden transition-all active:scale-95 ${!inWindow || shinooDone ? 'grayscale opacity-20 cursor-default' : 'cursor-pointer'}`}
                           >
                             <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
                           </button>
                         )
                       )}
+                      {!x2Exhausted && <div className="w-28 flex-shrink-0" />}
                       {!shinooExhausted && (
                         shinooDone ? (
                           <div className="h-12 w-28 rounded-xl border-2 border-green-500 overflow-hidden opacity-70">
