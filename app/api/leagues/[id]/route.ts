@@ -80,6 +80,7 @@ export async function GET(
         OR: [
           { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
           { status: 'SCHEDULED', kickoffAt: { gte: now } },
+          { status: 'SCHEDULED', lockAt: { gte: now } },
         ],
       },
       include: {
