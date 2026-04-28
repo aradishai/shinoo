@@ -89,6 +89,15 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
 
 function useLiveMinute(kickoffAt: Date | string, status: string) {
   const [minute, setMinute] = useState<string | null>(null)
+  const secondHalfStart = useRef<number | null>(null)
+  const prevStatus = useRef<string>(status)
+
+  useEffect(() => {
+    if (prevStatus.current === 'PAUSED' && status === 'LIVE') {
+      secondHalfStart.current = Date.now()
+    }
+    prevStatus.current = status
+  }, [status])
 
   useEffect(() => {
     if (status !== 'LIVE' && status !== 'PAUSED') { setMinute(null); return }
@@ -98,15 +107,17 @@ function useLiveMinute(kickoffAt: Date | string, status: string) {
       const elapsed = Math.floor((Date.now() - new Date(kickoffAt).getTime()) / 60000)
       if (elapsed <= 50) {
         setMinute(`${Math.min(elapsed, 45)}'`)
+      } else if (secondHalfStart.current) {
+        const sh = Math.floor((Date.now() - secondHalfStart.current) / 60000)
+        setMinute(`${Math.min(45 + sh, 90)}'`)
       } else {
-        // Assume ~15min break, second half started at elapsed ~60min
         const secondHalf = Math.max(0, elapsed - 60)
         setMinute(`${Math.min(45 + secondHalf, 90)}'`)
       }
     }
 
     calc()
-    const interval = setInterval(calc, 30000)
+    const interval = setInterval(calc, 15000)
     return () => clearInterval(interval)
   }, [kickoffAt, status])
 
@@ -122,8 +133,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const isLocked = status === 'LOCKED' || status === 'LIVE' || status === 'PAUSED'
   const isOpen = status === 'SCHEDULED' && new Date() < lockAt
   const badgeVariant = matchStatusToBadgeVariant(status)
-  const calculatedMinute = useLiveMinute(match.kickoffAt, status)
-  const liveMinute = match.minute != null ? `${match.minute}'` : calculatedMinute
+  const liveMinute = useLiveMinute(match.kickoffAt, status)
 
   const matchUrl = leagueId
     ? `/matches/${match.id}?leagueId=${leagueId}`
