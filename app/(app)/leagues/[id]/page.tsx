@@ -55,6 +55,9 @@ export default function LeagueDetailPage() {
   const [addingMember, setAddingMember] = useState(false)
   const [activeTab, setActiveTab] = useState<'standings' | 'matches' | 'members'>('standings')
   const [copiedCode, setCopiedCode] = useState(false)
+  const [editingName, setEditingName] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [removingMember, setRemovingMember] = useState<string | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const fetchData = useCallback(async () => {
@@ -149,6 +152,40 @@ export default function LeagueDetailPage() {
     (s) => s.userId === currentUserId && s.role === 'ADMIN'
   )
 
+  const handleRename = async () => {
+    if (!newName.trim() || !league) return
+    const res = await fetch(`/api/leagues/${leagueId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName.trim() }),
+    })
+    if (res.ok) {
+      toast.success('שם הליגה עודכן')
+      setEditingName(false)
+      fetchData()
+    } else {
+      toast.error('שגיאה בשינוי שם')
+    }
+  }
+
+  const handleRemoveMember = async (memberId: string, username: string) => {
+    if (!confirm(`להסיר את ${username} מהליגה?`)) return
+    setRemovingMember(memberId)
+    const res = await fetch(`/api/leagues/${leagueId}/members`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memberId }),
+    })
+    setRemovingMember(null)
+    if (res.ok) {
+      toast.success(`${username} הוסר מהליגה`)
+      fetchData()
+    } else {
+      const d = await res.json()
+      toast.error(d.error || 'שגיאה')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -169,7 +206,27 @@ export default function LeagueDetailPage() {
         <Link href="/leagues" className="text-gray-400 hover:text-white transition-colors">
           ← חזרה
         </Link>
-        <h1 className="text-white font-black text-xl text-center flex-1 mx-2 truncate">{league.name}</h1>
+        {isAdmin && editingName ? (
+          <div className="flex items-center gap-2 flex-1 mx-2">
+            <button onClick={handleRename} className="text-primary font-bold text-sm">שמור</button>
+            <input
+              autoFocus
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleRename()}
+              className="flex-1 bg-dark-card border border-primary rounded-xl px-3 py-1.5 text-white text-center text-sm focus:outline-none"
+            />
+            <button onClick={() => setEditingName(false)} className="text-gray-500 text-sm">ביטול</button>
+          </div>
+        ) : (
+          <h1
+            className={`text-white font-black text-xl text-center flex-1 mx-2 truncate ${isAdmin ? 'cursor-pointer' : ''}`}
+            onClick={() => { if (isAdmin) { setNewName(league.name); setEditingName(true) } }}
+          >
+            {league.name}
+            {isAdmin && <span className="text-gray-600 text-xs mr-1">✎</span>}
+          </h1>
+        )}
         <button
           onClick={shareOnWhatsApp}
           className="bg-green-600/20 text-green-400 border border-green-600/30 px-3 py-1.5 rounded-xl text-sm font-medium"
@@ -241,6 +298,15 @@ export default function LeagueDetailPage() {
                 }`}
               >
                 <div className="flex items-center gap-2">
+                  {isAdmin && member.userId !== currentUserId && (
+                    <button
+                      onClick={() => handleRemoveMember(member.userId, member.username)}
+                      disabled={removingMember === member.userId}
+                      className="text-red-500 text-xs border border-red-500/30 bg-red-500/10 px-2 py-1 rounded-lg active:scale-95 transition-all"
+                    >
+                      {removingMember === member.userId ? '...' : 'הסר'}
+                    </button>
+                  )}
                   <span className="text-primary font-bold">{member.totalPoints} נק'</span>
                   {member.role === 'ADMIN' && (
                     <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full border border-primary/30">

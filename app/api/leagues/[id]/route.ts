@@ -152,3 +152,27 @@ export async function GET(
     return NextResponse.json({ error: 'שגיאת שרת פנימית' }, { status: 500 })
   }
 }
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const userId = request.headers.get('x-user-id')
+  if (!userId) return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
+
+  const { name } = await request.json()
+  if (!name?.trim()) return NextResponse.json({ error: 'שם ליגה נדרש' }, { status: 400 })
+
+  const membership = await db.leagueMember.findUnique({
+    where: { leagueId_userId: { leagueId: params.id, userId } },
+  })
+  if (!membership || membership.role !== 'ADMIN')
+    return NextResponse.json({ error: 'רק מנהל יכול לשנות את שם הליגה' }, { status: 403 })
+
+  const updated = await db.league.update({
+    where: { id: params.id },
+    data: { name: name.trim() },
+  })
+
+  return NextResponse.json({ ok: true, name: updated.name })
+}

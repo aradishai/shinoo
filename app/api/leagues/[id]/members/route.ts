@@ -1,6 +1,30 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const userId = request.headers.get('x-user-id')
+  if (!userId) return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
+
+  const { memberId } = await request.json()
+  if (!memberId) return NextResponse.json({ error: 'חסר memberId' }, { status: 400 })
+  if (memberId === userId) return NextResponse.json({ error: 'לא ניתן להסיר את עצמך' }, { status: 400 })
+
+  const requester = await db.leagueMember.findUnique({
+    where: { leagueId_userId: { leagueId: params.id, userId } },
+  })
+  if (!requester || requester.role !== 'ADMIN')
+    return NextResponse.json({ error: 'רק מנהל יכול להסיר חברים' }, { status: 403 })
+
+  await db.leagueMember.delete({
+    where: { leagueId_userId: { leagueId: params.id, userId: memberId } },
+  })
+
+  return NextResponse.json({ ok: true })
+}
+
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
