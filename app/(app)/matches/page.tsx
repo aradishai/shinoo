@@ -117,6 +117,7 @@ export default function MatchesPage() {
         if (data.synced) loadMatches()
       } catch { /* silent */ }
     }
+    poll() // sync immediately on mount
     syncIntervalRef.current = setInterval(poll, 60_000)
     return () => { if (syncIntervalRef.current) clearInterval(syncIntervalRef.current) }
   }, [loadMatches])

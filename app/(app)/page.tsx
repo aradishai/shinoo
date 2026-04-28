@@ -142,6 +142,7 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
+    pollLiveSync() // sync immediately on mount
     syncIntervalRef.current = setInterval(pollLiveSync, 60_000)
     return () => {
       if (syncIntervalRef.current) clearInterval(syncIntervalRef.current)
