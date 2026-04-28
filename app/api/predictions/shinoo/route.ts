@@ -3,6 +3,14 @@ import { db } from '@/lib/db'
 
 const MAX_USES = 2
 
+function getRoundNumber(round: string | null | undefined): number {
+  if (!round) return 0
+  const digits = round.replace(/\D/g, '')
+  if (digits) return parseInt(digits)
+  if (round.includes('גמר')) return 100
+  return 0
+}
+
 // adjustment: { team: 'home' | 'away', delta: 1 | -1 }
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
@@ -45,7 +53,7 @@ export async function POST(request: Request) {
   if (newHome < 0 || newAway < 0)
     return NextResponse.json({ error: 'לא ניתן להוריד מתחת ל-0' }, { status: 400 })
 
-  const matchday = parseInt(prediction.match.round?.replace(/\D/g, '') || '0')
+  const matchday = getRoundNumber(prediction.match.round)
 
   const usageCount = await db.powerupUsage.count({
     where: { userId, leagueId: prediction.leagueId, matchday, type: 'SHINOO' },

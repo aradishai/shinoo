@@ -3,6 +3,14 @@ import { db } from '@/lib/db'
 
 const MAX_USES = 2
 
+function getRoundNumber(round: string | null | undefined): number {
+  if (!round) return 0
+  const digits = round.replace(/\D/g, '')
+  if (digits) return parseInt(digits)
+  if (round.includes('גמר')) return 100
+  return 0
+}
+
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
   if (!userId) return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
@@ -34,7 +42,7 @@ export async function POST(request: Request) {
   if (prediction.x2Applied)
     return NextResponse.json({ error: 'X2 כבר הופעל על משחק זה' }, { status: 400 })
 
-  const matchday = parseInt(prediction.match.round?.replace(/\D/g, '') || '0')
+  const matchday = getRoundNumber(prediction.match.round)
 
   const usageCount = await db.powerupUsage.count({
     where: { userId, leagueId: prediction.leagueId, matchday, type: 'X2' },

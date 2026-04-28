@@ -11,6 +11,14 @@ const MIN_INTERVAL_MS = 60_000
 const FD_API = 'https://api.football-data.org/v4'
 const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
 
+function getRoundNumber(round: string | null | undefined): number {
+  if (!round) return 0
+  const digits = round.replace(/\D/g, '')
+  if (digits) return parseInt(digits)
+  if (round.includes('גמר')) return 100
+  return 0
+}
+
 const FD_STATUS_MAP: Record<string, string> = {
   'TIMED': 'SCHEDULED',
   'SCHEDULED': 'SCHEDULED',

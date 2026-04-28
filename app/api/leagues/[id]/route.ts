@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+function getRoundNumber(round: string | null | undefined): number {
+  if (!round) return 0
+  const digits = round.replace(/\D/g, '')
+  if (digits) return parseInt(digits)
+  if (round.includes('גמר')) return 100
+  return 0
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -120,7 +128,7 @@ export async function GET(
     for (const matchId of liveMatchIds) {
       const pred = predMap[matchId]
       const match = matches.find(m => m.id === matchId)
-      const matchday = parseInt(match?.round?.replace(/\D/g, '') || '0')
+      const matchday = getRoundNumber(match?.round)
       if (pred && matchday > 0) {
         const [x2Used, shinooUsed] = await Promise.all([
           db.powerupUsage.count({ where: { userId, leagueId: params.id, matchday, type: 'X2' } }),
