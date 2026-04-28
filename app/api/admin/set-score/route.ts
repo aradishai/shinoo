@@ -31,5 +31,5 @@ export async function POST(request: Request) {
     await recalculatePoints(match.id)
   }
 
-  return NextResponse.json({ ok: true, match: `${home} vs ${away}`, homeScore, awayScore })
+  return NextResponse.json({ ok: true, match: `${home} vs ${away}`, homeScore, awayScore, minute })
 }

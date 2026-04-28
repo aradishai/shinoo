@@ -76,7 +76,8 @@ export async function GET(request: Request) {
     const powerupMap: Record<string, { x2Used: number; shinooUsed: number }> = {}
     for (const pm of pausedMatches) {
       const pred = predictionsMap[pm.id]
-      const matchday = parseInt(pm.round?.replace(/\D/g, '') || '0')
+      const digits = pm.round?.replace(/\D/g, '') || ''
+      const matchday = digits ? parseInt(digits) : pm.round?.includes('גמר') ? 100 : 0
       if (pred && matchday > 0) {
         const [x2Used, shinooUsed] = await Promise.all([
           db.powerupUsage.count({ where: { userId, leagueId: pred.leagueId, matchday, type: 'X2' } }),

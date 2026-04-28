@@ -22,6 +22,7 @@ interface Match {
   status: string
   homeScore?: number | null
   awayScore?: number | null
+  minute?: number | null
   round?: string | null
   userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; user: { id: string; username: string } }[]

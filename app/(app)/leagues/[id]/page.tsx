@@ -29,6 +29,7 @@ interface Match {
   status: string
   homeScore?: number | null
   awayScore?: number | null
+  minute?: number | null
   round?: string | null
   userPrediction?: { predictedHomeScore: number; predictedAwayScore: number } | null
 }
