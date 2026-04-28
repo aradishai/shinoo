@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const lockAt = new Date(kickoffAt.getTime() - 60 * 60 * 1000)
     await db.match.update({
       where: { id: match.id },
-      data: { kickoffAt, lockAt }
+      data: { kickoffAt, lockAt, round: 'חצי גמר' }
     })
     results.push(`${fix.home} vs ${fix.away} → ${kickoffAt.toISOString()}`)
   }
