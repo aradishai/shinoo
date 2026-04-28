@@ -100,7 +100,7 @@ export async function GET(
     })
 
     const matchIds = matches.map((m) => m.id)
-    const lockedStatuses = ['LOCKED', 'LIVE', 'FINISHED']
+    const lockedStatuses = ['LOCKED', 'LIVE', 'PAUSED', 'FINISHED']
 
     // User predictions
     const userPredictions = await db.prediction.findMany({
