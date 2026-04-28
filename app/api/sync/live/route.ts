@@ -52,9 +52,32 @@ async function syncFootballData() {
   const allMatches = [...liveMatches, ...recentFinished]
 
   for (const m of allMatches) {
-    const match = await db.match.findUnique({
+    // Try to find by providerMatchId first, then fall back to team name matching
+    let match = await db.match.findUnique({
       where: { providerMatchId: `fd-${m.id}` },
     })
+
+    if (!match) {
+      const homeTeam = await db.team.findFirst({
+        where: { nameEn: { contains: m.homeTeam?.name?.split(' ')[0] ?? '__' } }
+      })
+      const awayTeam = await db.team.findFirst({
+        where: { nameEn: { contains: m.awayTeam?.name?.split(' ')[0] ?? '__' } }
+      })
+      if (homeTeam && awayTeam) {
+        const kickoffDate = new Date(m.utcDate)
+        const from = new Date(kickoffDate.getTime() - 2 * 60 * 60 * 1000)
+        const to = new Date(kickoffDate.getTime() + 2 * 60 * 60 * 1000)
+        match = await db.match.findFirst({
+          where: { homeTeamId: homeTeam.id, awayTeamId: awayTeam.id, kickoffAt: { gte: from, lte: to }, providerMatchId: null }
+        }) ?? null
+        // Save the providerMatchId so future syncs are instant
+        if (match) {
+          await db.match.update({ where: { id: match.id }, data: { providerMatchId: `fd-${m.id}` } })
+        }
+      }
+    }
+
     if (!match) continue
 
     const status = FD_STATUS_MAP[m.status] ?? match.status
