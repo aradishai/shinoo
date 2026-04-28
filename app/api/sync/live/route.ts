@@ -75,8 +75,10 @@ async function syncFootballData() {
 }
 
 async function lockExpiredMatches() {
+  // Only auto-lock matches that have a providerMatchId (synced from API)
+  // Manually created matches (CL seeds) are managed via admin endpoints
   await db.match.updateMany({
-    where: { status: 'SCHEDULED', lockAt: { lte: new Date() } },
+    where: { status: 'SCHEDULED', lockAt: { lte: new Date() }, providerMatchId: { not: null } },
     data: { status: 'LOCKED' },
   })
 }
