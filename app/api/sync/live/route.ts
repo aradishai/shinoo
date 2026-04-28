@@ -66,12 +66,19 @@ async function syncFootballData() {
     })
 
     if (!match) {
-      const homeTeam = await db.team.findFirst({
-        where: { nameEn: { contains: m.homeTeam?.name?.split(' ')[0] ?? '__' } }
-      })
-      const awayTeam = await db.team.findFirst({
-        where: { nameEn: { contains: m.awayTeam?.name?.split(' ')[0] ?? '__' } }
-      })
+      const SKIP = new Set(['FC', 'AC', 'AS', 'CD', 'CF', 'RC', 'RCD', 'SD', 'UD', 'SC', 'FK'])
+      const findTeamFallback = async (apiTeam: any) => {
+        if (!apiTeam) return null
+        // Try TLA code first (e.g. "PSG", "ARS")
+        const byCode = await db.team.findFirst({ where: { code: apiTeam.tla } })
+        if (byCode) return byCode
+        // Fall back to first meaningful word in name (skip short prefixes like FC, AC)
+        const keyword = (apiTeam.name ?? '').split(' ').find((w: string) => w.length > 3 && !SKIP.has(w))
+        if (!keyword) return null
+        return db.team.findFirst({ where: { nameEn: { contains: keyword } } })
+      }
+      const homeTeam = await findTeamFallback(m.homeTeam)
+      const awayTeam = await findTeamFallback(m.awayTeam)
       if (homeTeam && awayTeam) {
         const kickoffDate = new Date(m.utcDate)
         const from = new Date(kickoffDate.getTime() - 2 * 60 * 60 * 1000)
