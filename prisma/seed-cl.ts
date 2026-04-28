@@ -8,7 +8,7 @@ const db = new PrismaClient({ adapter } as any)
 
 const CL_TEAMS = [
   { nameHe: 'פריז סן-ז\'רמן', nameEn: 'Paris Saint-Germain', code: 'PSG', flagUrl: 'https://crests.football-data.org/524.png' },
-  { nameHe: 'בייארן מינכן',   nameEn: 'Bayern Munich',        code: 'BAY', flagUrl: 'https://crests.football-data.org/5.png'   },
+  { nameHe: 'באיירן מינכן',   nameEn: 'Bayern Munich',        code: 'BAY', flagUrl: 'https://crests.football-data.org/5.png'   },
   { nameHe: 'אטלטיקו מדריד', nameEn: 'Atletico Madrid',      code: 'ATM', flagUrl: 'https://crests.football-data.org/78.png'  },
   { nameHe: 'ארסנל',          nameEn: 'Arsenal',              code: 'ARS', flagUrl: 'https://crests.football-data.org/57.png'  },
 ]
