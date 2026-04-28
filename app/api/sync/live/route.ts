@@ -26,17 +26,25 @@ const FD_STATUS_MAP: Record<string, string> = {
 async function syncFootballData() {
   if (!FD_KEY) return
 
-  const [liveRes, recentRes] = await Promise.allSettled([
-    axios.get(`${FD_API}/competitions/PD/matches?status=IN_PLAY,PAUSED`, {
-      headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
-    }),
-    axios.get(`${FD_API}/competitions/PD/matches?status=FINISHED`, {
-      headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
-    }),
-  ])
+  const competitions = ['PD', 'CL']
+  const fetchResults = await Promise.allSettled(
+    competitions.flatMap(comp => [
+      axios.get(`${FD_API}/competitions/${comp}/matches?status=IN_PLAY,PAUSED`, {
+        headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
+      }),
+      axios.get(`${FD_API}/competitions/${comp}/matches?status=FINISHED`, {
+        headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
+      }),
+    ])
+  )
 
-  const liveMatches = liveRes.status === 'fulfilled' ? (liveRes.value.data?.matches ?? []) : []
-  const recentMatches = recentRes.status === 'fulfilled' ? (recentRes.value.data?.matches ?? []) : []
+  const liveMatches = fetchResults
+    .filter((_, i) => i % 2 === 0)
+    .flatMap(r => r.status === 'fulfilled' ? (r.value.data?.matches ?? []) : [])
+
+  const recentMatches = fetchResults
+    .filter((_, i) => i % 2 === 1)
+    .flatMap(r => r.status === 'fulfilled' ? (r.value.data?.matches ?? []) : [])
 
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
   const recentFinished = recentMatches.filter((m: any) => new Date(m.lastUpdated) > cutoff)
