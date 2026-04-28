@@ -122,7 +122,8 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const isLocked = status === 'LOCKED' || status === 'LIVE' || status === 'PAUSED'
   const isOpen = status === 'SCHEDULED' && new Date() < lockAt
   const badgeVariant = matchStatusToBadgeVariant(status)
-  const liveMinute = useLiveMinute(match.kickoffAt, status)
+  const calculatedMinute = useLiveMinute(match.kickoffAt, status)
+  const liveMinute = match.minute != null ? `${match.minute}'` : calculatedMinute
 
   const matchUrl = leagueId
     ? `/matches/${match.id}?leagueId=${leagueId}`

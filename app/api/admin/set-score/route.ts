@@ -5,7 +5,7 @@ import { recalculatePoints } from '@/lib/sync-service'
 const SECRET = process.env.ADMIN_SECRET || 'shinoo-admin-2026'
 
 export async function POST(request: Request) {
-  const { secret, home, away, homeScore, awayScore, status } = await request.json()
+  const { secret, home, away, homeScore, awayScore, status, minute } = await request.json()
   if (secret !== SECRET) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   const homeTeam = await db.team.findUnique({ where: { code: home } })
@@ -23,6 +23,7 @@ export async function POST(request: Request) {
       homeScore,
       awayScore,
       ...(status && { status }),
+      ...(minute !== undefined && { minute }),
     }
   })
 
