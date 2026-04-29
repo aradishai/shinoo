@@ -94,6 +94,7 @@ export async function GET(
       include: {
         homeTeam: true,
         awayTeam: true,
+        tournament: { select: { type: true } },
       },
       orderBy: { kickoffAt: 'asc' },
       take: 10,

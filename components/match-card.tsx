@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Badge, matchStatusToBadgeVariant } from './badge'
 import { Countdown } from './countdown'
@@ -49,6 +49,7 @@ interface MatchCardProps {
     awayScore?: number | null
     minute?: number | null
     round?: string | null
+    tournament?: { type: string } | null
   }
   prediction?: Prediction | null
   memberPredictions?: MemberPrediction[]
@@ -87,10 +88,15 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
-function useLiveMinute(kickoffAt: Date | string, status: string) {
+function useLiveMinute(kickoffAt: Date | string, status: string, tournamentType?: string | null) {
   const [minute, setMinute] = useState<string | null>(null)
   const secondHalfStart = useRef<number | null>(null)
   const prevStatus = useRef<string>(status)
+
+  const extra = tournamentType === 'world_cup' ? 5 : 3
+  const firstHalfEnd = 45 + extra        // 48 or 50
+  const breakDuration = 15
+  const secondHalfStartElapsed = firstHalfEnd + breakDuration  // 63 or 65
 
   useEffect(() => {
     if (prevStatus.current === 'PAUSED' && status === 'LIVE') {
@@ -104,22 +110,27 @@ function useLiveMinute(kickoffAt: Date | string, status: string) {
 
     const calc = () => {
       if (status === 'PAUSED') { setMinute('HT'); return }
-      const elapsed = Math.floor((Date.now() - new Date(kickoffAt).getTime()) / 60000)
-      if (elapsed <= 50) {
-        setMinute(`${Math.min(elapsed, 45)}'`)
+      const elapsed = (Date.now() - new Date(kickoffAt).getTime()) / 60000
+
+      if (elapsed < 1) { setMinute(null); return }
+
+      if (elapsed <= firstHalfEnd) {
+        setMinute(`${Math.min(Math.floor(elapsed), firstHalfEnd)}'`)
       } else if (secondHalfStart.current) {
+        // Accurate: track from when we saw PAUSED→LIVE transition
         const sh = Math.floor((Date.now() - secondHalfStart.current) / 60000)
-        setMinute(`${Math.min(45 + sh, 90)}'`)
+        setMinute(`${Math.min(45 + sh, 90 + extra)}'`)
       } else {
-        const secondHalf = Math.max(0, elapsed - 60)
-        setMinute(`${Math.min(45 + secondHalf, 90)}'`)
+        // Fallback estimate: assume standard break duration
+        const sh = Math.max(0, Math.floor(elapsed - secondHalfStartElapsed))
+        setMinute(`${Math.min(45 + sh, 90 + extra)}'`)
       }
     }
 
     calc()
     const interval = setInterval(calc, 15000)
     return () => clearInterval(interval)
-  }, [kickoffAt, status])
+  }, [kickoffAt, status, firstHalfEnd, secondHalfStartElapsed, extra])
 
   return minute
 }
@@ -133,7 +144,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const isLocked = status === 'LOCKED' || status === 'LIVE' || status === 'PAUSED'
   const isOpen = status === 'SCHEDULED' && new Date() < lockAt
   const badgeVariant = matchStatusToBadgeVariant(status)
-  const liveMinute = useLiveMinute(match.kickoffAt, status)
+  const liveMinute = useLiveMinute(match.kickoffAt, status, match.tournament?.type)
 
   const matchUrl = leagueId
     ? `/matches/${match.id}?leagueId=${leagueId}`

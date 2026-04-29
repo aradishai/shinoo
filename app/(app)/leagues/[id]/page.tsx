@@ -31,6 +31,7 @@ interface Match {
   awayScore?: number | null
   minute?: number | null
   round?: string | null
+  tournament?: { type: string } | null
   userPrediction?: { predictedHomeScore: number; predictedAwayScore: number } | null
 }
 

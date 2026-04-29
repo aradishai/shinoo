@@ -24,6 +24,7 @@ interface Match {
   awayScore?: number | null
   minute?: number | null
   round?: string | null
+  tournament?: { type: string } | null
   userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; user: { id: string; username: string } }[]
   powerupUsage?: { x2Used: number; shinooUsed: number } | null
