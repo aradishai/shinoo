@@ -116,6 +116,17 @@ CREATE TABLE IF NOT EXISTS "PredictionPoints" (
   FOREIGN KEY ("predictionId") REFERENCES "Prediction"("id")
 );
 
+CREATE TABLE IF NOT EXISTS "PowerupUsage" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "userId" TEXT NOT NULL,
+  "leagueId" TEXT NOT NULL,
+  "matchday" INTEGER NOT NULL,
+  "type" TEXT NOT NULL,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS "PowerupUsage_userId_leagueId_matchday_type" ON "PowerupUsage"("userId", "leagueId", "matchday", "type");
+
 CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
   "id" TEXT NOT NULL PRIMARY KEY,
   "checksum" TEXT NOT NULL,
@@ -128,5 +139,15 @@ CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
 );
 `)
 
-console.log('✅ Database tables created successfully')
+// Add new columns to existing tables (safe — silently ignores if already present)
+const alterStatements = [
+  `ALTER TABLE "Prediction" ADD COLUMN "x2Applied" INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE "Prediction" ADD COLUMN "shinooApplied" INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE "Match" ADD COLUMN "minute" INTEGER`,
+]
+for (const sql of alterStatements) {
+  try { db.exec(sql) } catch (_) { /* column already exists */ }
+}
+
+console.log('✅ Database tables created/updated successfully')
 db.close()

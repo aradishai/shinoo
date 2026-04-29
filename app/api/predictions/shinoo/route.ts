@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   const prediction = await db.prediction.findUnique({
     where: { id: predictionId },
-    include: { match: true },
+    include: { match: { include: { tournament: true } } },
   })
 
   if (!prediction || prediction.userId !== userId)
@@ -36,10 +36,13 @@ export async function POST(request: Request) {
 
   const kickoff = prediction.match.kickoffAt
   const now = new Date()
-  const windowStart = new Date(kickoff.getTime() + 45 * 60 * 1000)
-  const windowEnd = new Date(kickoff.getTime() + 65 * 60 * 1000)
+  const extra = prediction.match.tournament?.type === 'world_cup' ? 5 : 3
+  const windowOpenMin = 45 + extra - 3
+  const windowCloseMin = 45 + extra + 15
+  const windowStart = new Date(kickoff.getTime() + windowOpenMin * 60 * 1000)
+  const windowEnd = new Date(kickoff.getTime() + windowCloseMin * 60 * 1000)
   if (now < windowStart || now > windowEnd)
-    return NextResponse.json({ error: 'שינוי זמין רק בין דקה 45 ל-65' }, { status: 400 })
+    return NextResponse.json({ error: `שינוי זמין רק בחלון ההפסקה (דקה ${windowOpenMin}-${windowCloseMin})` }, { status: 400 })
 
   if (prediction.x2Applied)
     return NextResponse.json({ error: 'לא ניתן להשתמש ב-X2 ובשינוי על אותו משחק' }, { status: 400 })
