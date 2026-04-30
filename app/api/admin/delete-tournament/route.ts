@@ -8,18 +8,33 @@ export async function POST(request: Request) {
   if (secret !== SECRET) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   if (slug === 'debug') {
-    const all = await db.match.findMany({ select: { id: true, round: true, status: true }, take: 20 })
-    return NextResponse.json({ matches: all })
+    const total = await db.match.count()
+    const all = await db.match.findMany({
+      select: { id: true, round: true, status: true, kickoffAt: true, tournamentId: true },
+      orderBy: { kickoffAt: 'desc' },
+      take: 100,
+    })
+    const tournaments = await db.tournament.findMany({ select: { id: true, name: true, slug: true } })
+    return NextResponse.json({ total, tournaments, matches: all })
   }
 
-  // Find matches by round (partial match)
-  const matches = await db.match.findMany({ where: { round: { contains: slug } }, select: { id: true, round: true } })
+  // Find tournament by slug
+  const tournament = await db.tournament.findFirst({ where: { slug: { contains: slug } } })
+  if (!tournament) return NextResponse.json({ error: 'tournament not found', slug }, { status: 404 })
+
+  const matches = await db.match.findMany({ where: { tournamentId: tournament.id }, select: { id: true } })
   const matchIds = matches.map(m => m.id)
-  if (matchIds.length === 0) return NextResponse.json({ error: 'no matches found', count: 0 }, { status: 404 })
+
+  if (matchIds.length === 0) {
+    // Delete the empty tournament anyway
+    await db.tournament.delete({ where: { id: tournament.id } })
+    return NextResponse.json({ ok: true, matchCount: 0, tournamentDeleted: true })
+  }
 
   await db.predictionPoints.deleteMany({ where: { prediction: { matchId: { in: matchIds } } } })
   await db.prediction.deleteMany({ where: { matchId: { in: matchIds } } })
-  await db.match.deleteMany({ where: { id: { in: matchIds } } })
+  await db.match.deleteMany({ where: { tournamentId: tournament.id } })
+  await db.tournament.delete({ where: { id: tournament.id } })
 
-  return NextResponse.json({ ok: true, matchCount: matchIds.length })
+  return NextResponse.json({ ok: true, matchCount: matchIds.length, tournamentDeleted: true })
 }
