@@ -7,27 +7,19 @@ export async function POST(request: Request) {
   const { secret, slug } = await request.json()
   if (secret !== SECRET) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  // Get all matches for this tournament slug via raw SQL
+  // Find matches by round name (e.g. "חצי גמר") — works even if tournament slug doesn't match
   const rows = await db.$queryRawUnsafe<{ id: string }[]>(`
-    SELECT m.id FROM "Match" m
-    JOIN "Tournament" t ON t.id = m."tournamentId"
-    WHERE t.slug = '${slug}'
+    SELECT id FROM "Match" WHERE "round" = '${slug}'
   `)
 
   const matchIds = rows.map(r => r.id)
-
-  if (matchIds.length === 0) {
-    // Try to find and delete just the tournament record
-    await db.$executeRawUnsafe(`DELETE FROM "Tournament" WHERE slug = '${slug}'`)
-    return NextResponse.json({ ok: true, matchCount: 0 })
-  }
+  if (matchIds.length === 0) return NextResponse.json({ error: 'no matches found', slug }, { status: 404 })
 
   const ids = matchIds.map(id => `'${id}'`).join(',')
 
   await db.$executeRawUnsafe(`DELETE FROM "PredictionPoints" WHERE "predictionId" IN (SELECT id FROM "Prediction" WHERE "matchId" IN (${ids}))`)
   await db.$executeRawUnsafe(`DELETE FROM "Prediction" WHERE "matchId" IN (${ids})`)
   await db.$executeRawUnsafe(`DELETE FROM "Match" WHERE id IN (${ids})`)
-  await db.$executeRawUnsafe(`DELETE FROM "Tournament" WHERE slug = '${slug}'`)
 
   return NextResponse.json({ ok: true, matchCount: matchIds.length })
 }
