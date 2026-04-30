@@ -7,14 +7,15 @@ export async function POST(request: Request) {
   const { secret, slug } = await request.json()
   if (secret !== SECRET) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  // Find matches by round (partial match to handle variants like "חצי גמר | רגל 1")
+  if (slug === 'debug') {
+    const all = await db.match.findMany({ select: { id: true, round: true, status: true }, take: 20 })
+    return NextResponse.json({ matches: all })
+  }
+
+  // Find matches by round (partial match)
   const matches = await db.match.findMany({ where: { round: { contains: slug } }, select: { id: true, round: true } })
   const matchIds = matches.map(m => m.id)
-  if (matchIds.length === 0) {
-    // Debug: return all rounds to diagnose
-    const allRounds = await db.match.findMany({ select: { round: true }, distinct: ['round'] })
-    return NextResponse.json({ error: 'no matches found', slug, availableRounds: allRounds.map(m => m.round) }, { status: 404 })
-  }
+  if (matchIds.length === 0) return NextResponse.json({ error: 'no matches found', count: 0 }, { status: 404 })
 
   await db.predictionPoints.deleteMany({ where: { prediction: { matchId: { in: matchIds } } } })
   await db.prediction.deleteMany({ where: { matchId: { in: matchIds } } })
