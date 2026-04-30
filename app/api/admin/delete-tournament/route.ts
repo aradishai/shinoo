@@ -7,19 +7,14 @@ export async function POST(request: Request) {
   const { secret, slug } = await request.json()
   if (secret !== SECRET) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  // Find matches by round name (e.g. "חצי גמר") — works even if tournament slug doesn't match
-  const rows = await db.$queryRawUnsafe<{ id: string }[]>(`
-    SELECT id FROM "Match" WHERE "round" = '${slug}'
-  `)
-
-  const matchIds = rows.map(r => r.id)
+  // Find matches by round using Prisma (handles encoding correctly)
+  const matches = await db.match.findMany({ where: { round: slug }, select: { id: true } })
+  const matchIds = matches.map(m => m.id)
   if (matchIds.length === 0) return NextResponse.json({ error: 'no matches found', slug }, { status: 404 })
 
-  const ids = matchIds.map(id => `'${id}'`).join(',')
-
-  await db.$executeRawUnsafe(`DELETE FROM "PredictionPoints" WHERE "predictionId" IN (SELECT id FROM "Prediction" WHERE "matchId" IN (${ids}))`)
-  await db.$executeRawUnsafe(`DELETE FROM "Prediction" WHERE "matchId" IN (${ids})`)
-  await db.$executeRawUnsafe(`DELETE FROM "Match" WHERE id IN (${ids})`)
+  await db.predictionPoints.deleteMany({ where: { prediction: { matchId: { in: matchIds } } } })
+  await db.prediction.deleteMany({ where: { matchId: { in: matchIds } } })
+  await db.match.deleteMany({ where: { id: { in: matchIds } } })
 
   return NextResponse.json({ ok: true, matchCount: matchIds.length })
 }
