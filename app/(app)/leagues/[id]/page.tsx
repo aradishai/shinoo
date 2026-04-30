@@ -6,6 +6,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { LeagueTable } from '@/components/league-table'
 import { MatchCard } from '@/components/match-card'
+import { PushButton } from '@/components/push-button'
 
 interface StandingEntry {
   rank: number
@@ -42,6 +43,7 @@ interface LeagueDetail {
   createdAt: string
   createdBy: { id: string; username: string }
   standings: StandingEntry[]
+  rounds: string[]
   matches: Match[]
 }
 
@@ -60,12 +62,19 @@ export default function LeagueDetailPage() {
   const [editingName, setEditingName] = useState(false)
   const [newName, setNewName] = useState('')
   const [removingMember, setRemovingMember] = useState<string | null>(null)
+  const [selectedRound, setSelectedRound] = useState<string | null>(null)
+  const [allRounds, setAllRounds] = useState<string[]>([])
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (round?: string | null) => {
     try {
+      const effectiveRound = round !== undefined ? round : selectedRound
+      const leagueUrl = effectiveRound
+        ? `/api/leagues/${leagueId}?round=${encodeURIComponent(effectiveRound)}`
+        : `/api/leagues/${leagueId}`
+
       const [leagueRes, meRes] = await Promise.all([
-        fetch(`/api/leagues/${leagueId}`),
+        fetch(leagueUrl),
         fetch('/api/auth/me'),
       ])
 
@@ -83,13 +92,14 @@ export default function LeagueDetailPage() {
       ])
 
       setLeague(leagueData.data)
+      if (leagueData.data?.rounds?.length) setAllRounds(leagueData.data.rounds)
       setCurrentUserId(meData.data?.id)
     } catch (err) {
       console.error(err)
     } finally {
       setLoading(false)
     }
-  }, [leagueId, router])
+  }, [leagueId, router, selectedRound])
 
   useEffect(() => {
     fetchData()
@@ -106,6 +116,11 @@ export default function LeagueDetailPage() {
     syncIntervalRef.current = setInterval(poll, 60_000)
     return () => { if (syncIntervalRef.current) clearInterval(syncIntervalRef.current) }
   }, [fetchData])
+
+  const handleRoundSelect = (round: string | null) => {
+    setSelectedRound(round)
+    fetchData(round)
+  }
 
   const copyInviteCode = () => {
     if (!league) return
@@ -192,7 +207,6 @@ export default function LeagueDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          
           <p className="text-gray-500">טוען...</p>
         </div>
       </div>
@@ -261,7 +275,44 @@ export default function LeagueDetailPage() {
       {/* Standings Tab */}
       {activeTab === 'standings' && (
         <div>
+          {/* Round filter */}
+          {allRounds.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+              <button
+                onClick={() => handleRoundSelect(null)}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  selectedRound === null
+                    ? 'bg-primary text-black'
+                    : 'bg-dark-card border border-dark-border text-gray-400'
+                }`}
+              >
+                הכל
+              </button>
+              {allRounds.map(round => (
+                <button
+                  key={round}
+                  onClick={() => handleRoundSelect(round)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    selectedRound === round
+                      ? 'bg-primary text-black'
+                      : 'bg-dark-card border border-dark-border text-gray-400'
+                  }`}
+                >
+                  {round}
+                </button>
+              ))}
+            </div>
+          )}
+
           <LeagueTable standings={league.standings} currentUserId={currentUserId || undefined} />
+
+          {/* History link */}
+          <Link
+            href={`/leagues/${leagueId}/history`}
+            className="mt-4 flex items-center justify-center gap-2 text-gray-500 text-sm hover:text-gray-300 transition-colors py-2"
+          >
+            📋 היסטוריית הניחושים שלי
+          </Link>
         </div>
       )}
 
@@ -327,6 +378,11 @@ export default function LeagueDetailPage() {
             ))}
           </div>
 
+          {/* Push notifications */}
+          <div className="flex justify-center mb-4">
+            <PushButton />
+          </div>
+
           {/* Add Member (admin only) */}
           {isAdmin && (
             <div>
@@ -352,7 +408,7 @@ export default function LeagueDetailPage() {
         </div>
       )}
 
-      {/* Invite Code — bottom */}
+      {/* Invite Code */}
       <div className="mt-8 flex items-center justify-between py-3 px-4 bg-dark-card border border-dark-border rounded-xl">
         <button onClick={copyInviteCode} className="text-primary text-xs font-medium">
           {copiedCode ? 'הועתק! ✓' : 'העתק'}

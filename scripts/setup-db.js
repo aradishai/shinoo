@@ -127,6 +127,16 @@ CREATE TABLE IF NOT EXISTS "PowerupUsage" (
 
 CREATE INDEX IF NOT EXISTS "PowerupUsage_userId_leagueId_matchday_type" ON "PowerupUsage"("userId", "leagueId", "matchday", "type");
 
+CREATE TABLE IF NOT EXISTS "PushSubscription" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "userId" TEXT NOT NULL,
+  "endpoint" TEXT NOT NULL UNIQUE,
+  "p256dh" TEXT NOT NULL,
+  "auth" TEXT NOT NULL,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("userId") REFERENCES "User"("id")
+);
+
 CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
   "id" TEXT NOT NULL PRIMARY KEY,
   "checksum" TEXT NOT NULL,

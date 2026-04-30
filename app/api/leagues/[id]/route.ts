@@ -18,6 +18,9 @@ export async function GET(
     return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
   }
 
+  const { searchParams } = new URL(request.url)
+  const selectedRound = searchParams.get('round')
+
   try {
     const league = await db.league.findUnique({
       where: { id: params.id },
@@ -31,7 +34,7 @@ export async function GET(
                 username: true,
                 predictions: {
                   where: { leagueId: params.id },
-                  include: { points: true, match: { select: { status: true } } },
+                  include: { points: true, match: { select: { status: true, round: true } } },
                 },
               },
             },
@@ -51,10 +54,19 @@ export async function GET(
       return NextResponse.json({ error: 'אינך חבר בליגה זו' }, { status: 403 })
     }
 
+    // Collect available rounds
+    const roundSet = new Set<string>()
+    for (const member of league.members)
+      for (const p of member.user.predictions)
+        if (p.match?.round) roundSet.add(p.match.round)
+    const rounds = Array.from(roundSet).sort((a, b) => getRoundNumber(a) - getRoundNumber(b))
+
     // Build standings
     const standings = league.members
       .map((member) => {
-        const predictions = member.user.predictions
+        const predictions = selectedRound
+          ? member.user.predictions.filter(p => p.match?.round === selectedRound)
+          : member.user.predictions
         const totalPoints = predictions.reduce(
           (sum, pred) => sum + (pred.points?.totalPoints || 0),
           0
@@ -154,6 +166,7 @@ export async function GET(
         createdAt: league.createdAt,
         createdBy: league.createdBy,
         standings,
+        rounds,
         matches: matchesWithPredictions,
       },
     })
