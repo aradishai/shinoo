@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 const POWERUP_COST = 2
 
@@ -9,17 +10,15 @@ const SHOP_ITEMS = [
     id: 'x2',
     name: 'כפול 2',
     description: 'מכפיל את הנקודות שתקבל אם הניחוש שלך נכון. מופעל בהפסקה.',
-    icon: '✕2',
-    iconBg: 'from-blue-500/20 to-blue-600/10 border-blue-500/40',
-    iconColor: 'text-blue-400',
+    img: '/btn-x2.png',
+    bg: 'from-blue-500/10 to-blue-600/5 border-blue-500/30',
   },
   {
     id: 'shinoo',
     name: 'שינוי',
     description: 'משנה את ניחוש הניקוד שלך ב-1 גול לכיוון אחד. מופעל בהפסקה.',
-    icon: '✏️',
-    iconBg: 'from-yellow-500/20 to-yellow-600/10 border-yellow-500/40',
-    iconColor: 'text-yellow-400',
+    img: '/btn-shinoo.png',
+    bg: 'from-yellow-500/10 to-yellow-600/5 border-yellow-500/30',
   },
 ]
 
@@ -53,16 +52,18 @@ export default function ShopPage() {
         {SHOP_ITEMS.map(item => (
           <div
             key={item.id}
-            className={`bg-gradient-to-br ${item.iconBg} border rounded-2xl p-5`}
+            className={`bg-gradient-to-br ${item.bg} border rounded-2xl p-5`}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 px-3 py-1 rounded-full">
                 <span className="text-yellow-400 font-black text-sm">🪙 {POWERUP_COST}</span>
                 <span className="text-gray-400 text-xs">לשימוש</span>
               </div>
-              <div className="flex items-center gap-2">
-                <p className={`text-white font-black text-lg`}>{item.name}</p>
-                <span className={`text-2xl font-black ${item.iconColor}`}>{item.icon}</span>
+              <div className="flex items-center gap-3">
+                <p className="text-white font-black text-lg">{item.name}</p>
+                <div className="relative w-16 h-10" style={{ mixBlendMode: 'lighten' }}>
+                  <Image src={item.img} alt={item.name} fill className="object-contain" />
+                </div>
               </div>
             </div>
             <p className="text-gray-400 text-sm text-right leading-relaxed">{item.description}</p>
