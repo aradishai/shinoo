@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { matchId, leagueId, predictedHomeScore, predictedAwayScore, predictedTopScorerPlayerId, coinBet } = body
+    const { matchId, leagueId, predictedHomeScore, predictedAwayScore, predictedTopScorerPlayerId } = body
 
     if (!matchId || !leagueId) {
       return NextResponse.json({ error: 'matchId ו-leagueId נדרשים' }, { status: 400 })
@@ -87,14 +87,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'אינך חבר בליגה זו' }, { status: 403 })
     }
 
-    // Validate coin bet
-    const betAmount = typeof coinBet === 'number' && coinBet > 0 ? Math.floor(coinBet) : 0
-    if (betAmount > 0) {
-      const user = await db.user.findUnique({ where: { id: userId }, select: { coins: true } })
-      if (!user || user.coins < betAmount)
-        return NextResponse.json({ error: 'אין מספיק מטבעות' }, { status: 400 })
-    }
-
     // Upsert prediction
     const prediction = await db.prediction.upsert({
       where: { userId_leagueId_matchId: { userId, leagueId, matchId } },
@@ -111,19 +103,11 @@ export async function POST(request: Request) {
         predictedAwayScore,
         predictedTopScorerPlayerId: predictedTopScorerPlayerId || null,
       },
-      include: { points: true, coinBet: true },
+      include: { points: true },
     })
 
-    // Handle coin bet (only on new bets or when no bet exists yet)
-    if (betAmount > 0 && !prediction.coinBet) {
-      await db.user.update({ where: { id: userId }, data: { coins: { decrement: betAmount } } })
-      await db.coinBet.create({ data: { userId, predictionId: prediction.id, betAmount } })
-    }
-
-    const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { coins: true } })
-
     return NextResponse.json(
-      { data: prediction, message: 'הניחוש נשמר!', coins: updatedUser?.coins },
+      { data: prediction, message: 'הניחוש נשמר!' },
       { status: 200 }
     )
   } catch (error) {
