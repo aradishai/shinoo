@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Badge, matchStatusToBadgeVariant } from './badge'
 import { Countdown } from './countdown'
@@ -90,49 +90,30 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
-function useLiveMinute(kickoffAt: Date | string, status: string, tournamentType?: string | null) {
+function useLiveMinute(kickoffAt: Date | string, status: string) {
   const [minute, setMinute] = useState<string | null>(null)
-  const secondHalfStart = useRef<number | null>(null)
-  const prevStatus = useRef<string>(status)
-
-  const extra = tournamentType === 'world_cup' ? 5 : 3
-  const firstHalfEnd = 45 + extra        // 48 or 50
-  const breakDuration = 15
-  const secondHalfStartElapsed = firstHalfEnd + breakDuration  // 63 or 65
-
-  useEffect(() => {
-    if (prevStatus.current === 'PAUSED' && status === 'LIVE') {
-      secondHalfStart.current = Date.now()
-    }
-    prevStatus.current = status
-  }, [status])
 
   useEffect(() => {
     if (status !== 'LIVE' && status !== 'PAUSED') { setMinute(null); return }
 
     const calc = () => {
-      if (status === 'PAUSED') { setMinute('HT'); return }
       const elapsed = (Date.now() - new Date(kickoffAt).getTime()) / 60000
-
       if (elapsed < 1) { setMinute(null); return }
 
-      if (secondHalfStart.current) {
-        // Accurate second half: track from when we saw PAUSED→LIVE transition
-        const sh = Math.floor((Date.now() - secondHalfStart.current) / 60000)
-        setMinute(`${Math.min(45 + sh, 90 + extra)}'`)
-      } else if (elapsed <= firstHalfEnd + 10) {
-        // First half (inc. extra time up to +10) — show real elapsed
+      if (elapsed <= 48) {
         setMinute(`${Math.floor(elapsed)}'`)
+      } else if (elapsed <= 64) {
+        setMinute('HT')
       } else {
-        // Long elapsed, no halftime seen yet — hold at cap
-        setMinute(`${firstHalfEnd + 10}'`)
+        const sh = Math.min(Math.floor(45 + (elapsed - 64)), 93)
+        setMinute(`${sh}'`)
       }
     }
 
     calc()
     const interval = setInterval(calc, 15000)
     return () => clearInterval(interval)
-  }, [kickoffAt, status, firstHalfEnd, secondHalfStartElapsed, extra])
+  }, [kickoffAt, status])
 
   return minute
 }
@@ -146,7 +127,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const isLocked = status === 'LOCKED' || status === 'LIVE' || status === 'PAUSED'
   const isOpen = status === 'SCHEDULED' && new Date() < lockAt
   const badgeVariant = matchStatusToBadgeVariant(status)
-  const liveMinute = useLiveMinute(match.kickoffAt, status, match.tournament?.type)
+  const liveMinute = useLiveMinute(match.kickoffAt, status)
 
   const matchUrl = leagueId
     ? `/matches/${match.id}?leagueId=${leagueId}`
