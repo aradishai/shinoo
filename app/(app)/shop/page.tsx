@@ -69,9 +69,9 @@ export default function ShopPage() {
 
       {/* Header row */}
       <div className="flex items-center mb-2">
-        <div className="flex-1 text-center text-white font-black text-xl">לרכישה</div>
+        <div className="flex-1 text-right text-white font-black text-xl pr-1">כפתורים לרכישה</div>
         <div className="w-20 text-center text-white font-black text-xl">קנה</div>
-        <div className="w-12 text-center text-white font-black text-xl">יש לי</div>
+        <div className="w-12" />
       </div>
       <div className="w-full h-px bg-dark-border mb-5" />
 
@@ -84,10 +84,10 @@ export default function ShopPage() {
           const showTooltip = tooltip === item.id
           return (
             <div key={item.id}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center">
 
                 {/* Logo + ? */}
-                <div className="flex-1 flex items-center gap-2">
+                <div className="flex-1 flex items-center gap-2 pr-1">
                   <div className="h-12 w-32 rounded-xl overflow-hidden shrink-0">
                     <Image src={item.img} alt={item.name} width={128} height={48} className="w-full h-full object-cover" priority />
                   </div>
@@ -129,18 +129,6 @@ export default function ShopPage() {
             </div>
           )
         })}
-      </div>
-
-      {/* How to earn */}
-      <div className="border-t border-dark-border mt-8 pt-6">
-        <h2 className="text-white font-bold text-right mb-3">איך מרוויחים מטבעות?</h2>
-        <div className="space-y-2 text-right">
-          <div className="flex items-center justify-end gap-2">
-            <span className="text-gray-400 text-sm">בתחילת כל מחזור</span>
-            <span className="text-yellow-400 font-bold">🪙 10</span>
-          </div>
-          <p className="text-gray-500 text-xs">עוד דרכים יתווספו בקרוב...</p>
-        </div>
       </div>
     </div>
   )
