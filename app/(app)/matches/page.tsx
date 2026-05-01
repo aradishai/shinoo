@@ -97,7 +97,7 @@ export default function MatchesPage() {
               topScorerId: m.userPrediction.predictedTopScorerPlayerId || '',
             }
           } else {
-            init[m.id] = { home: '', away: '', topScorerId: '' }
+            init[m.id] = { home: '0', away: '0', topScorerId: '' }
           }
         }
         setScores(init)
@@ -205,7 +205,7 @@ export default function MatchesPage() {
                   {isOpen && (
                     <button
                       onClick={() => save(match)}
-                      disabled={saving === match.id || s.home === '' || s.away === ''}
+                      disabled={saving === match.id}
                       className={`w-10 h-10 rounded-xl font-black text-lg flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all flex-shrink-0 ${
                         hasPrediction ? 'bg-green-500 text-white' : 'bg-primary text-black'
                       }`}
@@ -219,11 +219,13 @@ export default function MatchesPage() {
                     <span className="text-white text-xs font-semibold">{match.awayTeam.nameHe}</span>
                     <Flag code={match.awayTeam.code} flagUrl={match.awayTeam.flagUrl} />
                     {isOpen ? (
-                      <input type="number" min={0} max={20} placeholder="0"
-                        value={s.away}
-                        onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, away: e.target.value } }))}
-                        className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
-                      />
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, away: String(Math.max(0, parseInt(s.away||'0') - 1)) } }))}
+                          className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
+                        <span className="w-8 text-center text-2xl font-black text-white">{s.away || '0'}</span>
+                        <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, away: String(Math.min(20, parseInt(s.away||'0') + 1)) } }))}
+                          className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">+</button>
+                      </div>
                     ) : (isLive || isPaused || isFinished) && match.userPrediction ? (
                       <span className="text-primary font-black text-xl">{match.userPrediction.predictedAwayScore}</span>
                     ) : null}
@@ -249,11 +251,13 @@ export default function MatchesPage() {
                     <span className="text-white text-xs font-semibold">{match.homeTeam.nameHe}</span>
                     <Flag code={match.homeTeam.code} flagUrl={match.homeTeam.flagUrl} />
                     {isOpen ? (
-                      <input type="number" min={0} max={20} placeholder="0"
-                        value={s.home}
-                        onChange={e => setScores(prev => ({ ...prev, [match.id]: { ...s, home: e.target.value } }))}
-                        className="w-12 h-10 text-center text-xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none"
-                      />
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, home: String(Math.max(0, parseInt(s.home||'0') - 1)) } }))}
+                          className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
+                        <span className="w-8 text-center text-2xl font-black text-white">{s.home || '0'}</span>
+                        <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, home: String(Math.min(20, parseInt(s.home||'0') + 1)) } }))}
+                          className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">+</button>
+                      </div>
                     ) : (isLive || isPaused || isFinished) && match.userPrediction ? (
                       <span className="text-primary font-black text-xl">{match.userPrediction.predictedHomeScore}</span>
                     ) : null}
