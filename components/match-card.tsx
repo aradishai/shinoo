@@ -261,8 +261,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     return (
       <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
         {showX2 && (x2Done ? (
-          <div className="h-9 w-20 rounded-xl overflow-hidden opacity-50">
+          <div className="relative h-9 w-20 rounded-xl overflow-hidden">
             <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <span className="text-green-400 font-black text-lg">✓</span>
+            </div>
           </div>
         ) : (
           <button
@@ -273,8 +276,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           </button>
         ))}
         {showShinoo && (shinooDone ? (
-          <div className="h-9 w-20 rounded-xl overflow-hidden opacity-50">
+          <div className="relative h-9 w-20 rounded-xl overflow-hidden">
             <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <span className="text-green-400 font-black text-lg">✓</span>
+            </div>
           </div>
         ) : (
           <button
