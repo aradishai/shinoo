@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   const kickoff = prediction.match.kickoffAt
   const now = new Date()
   const extra = (prediction.match as any).tournament?.type === 'world_cup' ? 5 : 3
-  const windowOpenMin = 45 + extra - 3
+  const windowOpenMin = 45 + extra
   const windowCloseMin = 45 + extra + 15
   const windowStart = new Date(kickoff.getTime() + windowOpenMin * 60 * 1000)
   const windowEnd = new Date(kickoff.getTime() + windowCloseMin * 60 * 1000)

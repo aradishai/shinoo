@@ -11,6 +11,8 @@ import { Onboarding } from '@/components/onboarding'
 interface User {
   id: string
   username: string
+  x2Stock?: number
+  shinooStock?: number
 }
 
 interface Match {
@@ -341,6 +343,8 @@ export default function HomePage() {
                       predictionId: match.userPrediction.id,
                       x2Applied: !!match.userPrediction.x2Applied,
                       shinooApplied: !!match.userPrediction.shinooApplied,
+                      x2Stock: user?.x2Stock ?? 0,
+                      shinooStock: user?.shinooStock ?? 0,
                       usage: match.powerupUsage || null,
                       onX2: () => applyX2(match),
                       onShinoo: () => setShinooModal(match),
@@ -379,6 +383,8 @@ export default function HomePage() {
                       predictionId: match.userPrediction.id,
                       x2Applied: !!match.userPrediction.x2Applied,
                       shinooApplied: !!match.userPrediction.shinooApplied,
+                      x2Stock: user?.x2Stock ?? 0,
+                      shinooStock: user?.shinooStock ?? 0,
                       usage: match.powerupUsage || null,
                       onX2: () => applyX2(match),
                       onShinoo: () => setShinooModal(match),
