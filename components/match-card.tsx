@@ -227,11 +227,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       {isOpen && (
         <div className="mt-3">
           {!prediction ? (
-            <div className="bg-primary/10 border border-primary/30 text-primary text-center py-2 rounded-xl text-sm font-bold">
+            <div className="bg-black border border-white/30 text-white text-center py-2 rounded-xl text-sm font-bold">
               נחש עכשיו
             </div>
           ) : (
-            <div className="bg-dark-muted text-gray-300 text-center py-2 rounded-xl text-sm font-medium">
+            <div className="bg-black border border-white/20 text-white text-center py-2 rounded-xl text-sm font-medium">
               ערוך ניחוש
             </div>
           )}
@@ -263,9 +263,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         {showX2 && (x2Done ? (
           <div className="relative h-9 w-20 rounded-xl overflow-hidden">
             <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <span className="text-green-400 font-black text-lg">✓</span>
-            </div>
+            <div className="absolute inset-0 bg-black/50" />
           </div>
         ) : (
           <button
@@ -278,9 +276,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         {showShinoo && (shinooDone ? (
           <div className="relative h-9 w-20 rounded-xl overflow-hidden">
             <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <span className="text-green-400 font-black text-lg">✓</span>
-            </div>
+            <div className="absolute inset-0 bg-black/50" />
           </div>
         ) : (
           <button
