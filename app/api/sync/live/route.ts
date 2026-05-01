@@ -124,7 +124,11 @@ async function lockExpiredMatches() {
 async function autoFinishStaleMatches() {
   const staleTime = new Date(Date.now() - 150 * 60 * 1000)
   await db.match.updateMany({
-    where: { status: { in: ['LIVE', 'PAUSED'] }, kickoffAt: { lte: staleTime } },
+    where: {
+      status: { in: ['LIVE', 'PAUSED'] },
+      kickoffAt: { lte: staleTime },
+      providerMatchId: { not: null },
+    },
     data: { status: 'FINISHED' },
   })
 }
