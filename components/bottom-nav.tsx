@@ -22,10 +22,10 @@ export function BottomNav() {
   }
 
   const navItems = [
-    { href: '/matches', label: 'ניחושים', icon: '/icons/money.png' },
-    { href: '/', label: 'בית', icon: '/icons/home.png' },
-    { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png' },
-    { href: '/shop', label: 'מרקט', icon: '/icons/money.png' },
+    { href: '/matches', label: 'ניחושים', icon: '/icons/money.png', emoji: null },
+    { href: '/', label: 'בית', icon: '/icons/home.png', emoji: null },
+    { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png', emoji: null },
+    { href: '/shop', label: 'מרקט', icon: null, emoji: '🛒' },
   ]
 
   return (
@@ -42,9 +42,15 @@ export function BottomNav() {
                 className="flex flex-col items-center gap-0.5 py-1 px-4 rounded-xl transition-all"
               >
                 <div className="relative">
-                  <div style={{ mixBlendMode: 'lighten' }} className={clsx('w-14 h-14 relative', !active && 'opacity-40')}>
-                    <Image src={item.icon} alt={item.label} fill className="object-contain" />
-                  </div>
+                  {item.emoji ? (
+                    <div className={clsx('w-14 h-14 flex items-center justify-center text-3xl', !active && 'opacity-40')}>
+                      {item.emoji}
+                    </div>
+                  ) : (
+                    <div style={{ mixBlendMode: 'lighten' }} className={clsx('w-14 h-14 relative', !active && 'opacity-40')}>
+                      <Image src={item.icon!} alt={item.label} fill className="object-contain" />
+                    </div>
+                  )}
                   {isShop && coins !== null && (
                     <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-[10px] font-black rounded-full px-1 min-w-[18px] text-center leading-[18px]">
                       {coins}

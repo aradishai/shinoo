@@ -52,67 +52,63 @@ export default function ShopPage() {
       </div>
 
       {/* Coin Balance */}
-      <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border border-yellow-500/30 rounded-2xl p-4 mb-6 text-center">
+      <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border border-yellow-500/30 rounded-2xl p-4 mb-8 text-center">
         <p className="text-gray-400 text-sm mb-1">היתרה שלך</p>
         <p className="text-4xl font-black text-yellow-400">🪙 {coins ?? '...'}</p>
       </div>
 
       {/* Two columns */}
-      <div className="flex gap-4">
+      <div className="flex gap-6">
 
-        {/* RIGHT — shop (buy) */}
-        <div className="flex-1">
-          <p className="text-white font-black text-xl text-right mb-4">לרכישה</p>
-          <div className="flex flex-col gap-4">
-            {SHOP_ITEMS.map(item => {
-              const canBuy = (coins ?? 0) >= POWERUP_COST
-              const isLoading = loading === item.id
-              return (
-                <div key={item.id} className="bg-dark-card border border-dark-border rounded-2xl p-4 flex flex-col items-center gap-3">
-                  <div className="relative w-full h-20" style={{ mixBlendMode: 'lighten' }}>
-                    <Image src={item.img} alt={item.name} fill className="object-contain" />
-                  </div>
-                  <p className="text-gray-400 text-xs text-center leading-relaxed">{item.description}</p>
-                  <div className="flex items-center gap-2 w-full">
-                    <button
-                      onClick={() => buy(item.id)}
-                      disabled={!canBuy || isLoading}
-                      className="w-10 h-10 rounded-xl font-black text-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed bg-yellow-500 text-black flex items-center justify-center shrink-0"
-                    >
-                      {isLoading ? '...' : 'קנה'}
-                    </button>
-                    <span className="text-yellow-400 font-bold text-sm">{POWERUP_COST} מטבעות</span>
-                  </div>
+        {/* RIGHT — buy */}
+        <div className="flex-1 flex flex-col items-center gap-4">
+          <p className="text-white font-black text-xl">לרכישה</p>
+          {SHOP_ITEMS.map(item => {
+            const canBuy = (coins ?? 0) >= POWERUP_COST
+            const isLoading = loading === item.id
+            return (
+              <div key={item.id} className="flex flex-col items-center gap-2 w-full">
+                <div className="relative w-full h-20" style={{ mixBlendMode: 'lighten' }}>
+                  <Image src={item.img} alt={item.name} fill className="object-contain" />
                 </div>
-              )
-            })}
-          </div>
+                <p className="text-gray-400 text-xs text-center leading-relaxed">{item.description}</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => buy(item.id)}
+                    disabled={!canBuy || isLoading}
+                    className="w-10 h-10 rounded-xl font-black text-xs transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed bg-yellow-500 text-black flex items-center justify-center"
+                  >
+                    {isLoading ? '…' : 'קנה'}
+                  </button>
+                  <span className="text-yellow-400 font-bold text-sm">{POWERUP_COST} מטבעות 🪙</span>
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         {/* LEFT — inventory */}
-        <div className="flex-1">
-          <p className="text-white font-black text-xl text-right mb-4">ברשותך</p>
-          <div className="flex flex-col gap-4">
-            {SHOP_ITEMS.map(item => {
-              const owned = stock[item.stockKey]
-              return (
-                <div key={item.id} className="bg-dark-card border border-dark-border rounded-2xl p-4 flex flex-col items-center gap-3">
-                  <div className={`relative w-full h-20 transition-opacity ${owned === 0 ? 'opacity-20' : ''}`} style={{ mixBlendMode: 'lighten' }}>
-                    <Image src={item.img} alt={item.name} fill className="object-contain" />
-                  </div>
-                  <span className={`font-black text-2xl ${owned > 0 ? 'text-white' : 'text-gray-600'}`}>
-                    ×{owned}
-                  </span>
+        <div className="flex-1 flex flex-col items-center gap-4">
+          <p className="text-white font-black text-xl">ברשותך</p>
+          {SHOP_ITEMS.map(item => {
+            const owned = stock[item.stockKey]
+            return (
+              <div key={item.id} className="flex flex-col items-center gap-1 w-full">
+                <div className={`relative w-full h-20 transition-opacity ${owned === 0 ? 'opacity-20' : ''}`} style={{ mixBlendMode: 'lighten' }}>
+                  <Image src={item.img} alt={item.name} fill className="object-contain" />
                 </div>
-              )
-            })}
-          </div>
+                <span className={`font-black text-2xl leading-none ${owned > 0 ? 'text-white' : 'text-gray-600'}`}>
+                  ×{owned}
+                </span>
+              </div>
+            )
+          })}
         </div>
 
       </div>
 
       {/* How to earn */}
-      <div className="bg-dark-card border border-dark-border rounded-xl p-4 mt-8">
+      <div className="bg-dark-card border border-dark-border rounded-xl p-4 mt-10">
         <h2 className="text-white font-bold text-right mb-3">איך מרוויחים מטבעות?</h2>
         <div className="space-y-2 text-right">
           <div className="flex items-center justify-end gap-2">
