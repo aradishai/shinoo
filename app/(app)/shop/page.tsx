@@ -7,8 +7,8 @@ import toast from 'react-hot-toast'
 const POWERUP_COST = 2
 
 const SHOP_ITEMS = [
-  { id: 'x2', name: 'כפול 2', description: 'מכפיל נקודות בהפסקה', img: '/btn-x2.png', stockKey: 'x2Stock' as const },
-  { id: 'shinoo', name: 'שינוי', description: 'שינוי ב-1 גול בהפסקה', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const },
+  { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const },
+  { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const },
 ]
 
 export default function ShopPage() {
@@ -45,12 +45,10 @@ export default function ShopPage() {
     }
   }
 
-  const totalOwned = stock.x2Stock + stock.shinooStock
-
   return (
     <div className="px-4 py-6">
       <div className="flex items-center justify-center mb-6">
-        <h1 className="text-white font-black text-xl">חנות</h1>
+        <h1 className="text-white font-black text-xl">מרקט</h1>
       </div>
 
       {/* Coin Balance */}
@@ -60,30 +58,30 @@ export default function ShopPage() {
       </div>
 
       {/* Two columns */}
-      <div className="flex gap-3">
+      <div className="flex gap-4">
 
         {/* RIGHT — shop (buy) */}
         <div className="flex-1">
-          <p className="text-gray-400 text-xs text-right mb-3 font-bold">לרכישה</p>
-          <div className="flex flex-col gap-3">
+          <p className="text-white font-black text-xl text-right mb-4">לרכישה</p>
+          <div className="flex flex-col gap-4">
             {SHOP_ITEMS.map(item => {
               const canBuy = (coins ?? 0) >= POWERUP_COST
               const isLoading = loading === item.id
               return (
-                <div key={item.id} className="bg-dark-card border border-dark-border rounded-2xl p-3 flex flex-col items-center gap-2">
-                  <div className="relative w-20 h-12" style={{ mixBlendMode: 'lighten' }}>
+                <div key={item.id} className="bg-dark-card border border-dark-border rounded-2xl p-4 flex flex-col items-center gap-3">
+                  <div className="relative w-full h-20" style={{ mixBlendMode: 'lighten' }}>
                     <Image src={item.img} alt={item.name} fill className="object-contain" />
                   </div>
-                  <p className="text-gray-500 text-xs text-center">{item.description}</p>
+                  <p className="text-gray-400 text-xs text-center leading-relaxed">{item.description}</p>
                   <div className="flex items-center gap-2 w-full">
                     <button
                       onClick={() => buy(item.id)}
                       disabled={!canBuy || isLoading}
-                      className="flex-1 py-1.5 rounded-lg font-black text-xs transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed bg-yellow-500 text-black"
+                      className="w-10 h-10 rounded-xl font-black text-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed bg-yellow-500 text-black flex items-center justify-center shrink-0"
                     >
                       {isLoading ? '...' : 'קנה'}
                     </button>
-                    <span className="text-yellow-400 font-bold text-xs whitespace-nowrap">{POWERUP_COST} 🪙</span>
+                    <span className="text-yellow-400 font-bold text-sm">{POWERUP_COST} מטבעות</span>
                   </div>
                 </div>
               )
@@ -93,23 +91,22 @@ export default function ShopPage() {
 
         {/* LEFT — inventory */}
         <div className="flex-1">
-          <p className="text-gray-400 text-xs text-right mb-3 font-bold">ברשותך</p>
-          {totalOwned === 0 ? (
-            <div className="bg-dark-card border border-dark-border rounded-2xl p-4 flex items-center justify-center h-24">
-              <p className="text-gray-600 text-sm">אין לחצנים עדיין</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {SHOP_ITEMS.filter(item => stock[item.stockKey] > 0).map(item => (
-                <div key={item.id} className="bg-dark-card border border-dark-border rounded-2xl p-3 flex flex-col items-center gap-2">
-                  <div className="relative w-20 h-12" style={{ mixBlendMode: 'lighten' }}>
+          <p className="text-white font-black text-xl text-right mb-4">ברשותך</p>
+          <div className="flex flex-col gap-4">
+            {SHOP_ITEMS.map(item => {
+              const owned = stock[item.stockKey]
+              return (
+                <div key={item.id} className="bg-dark-card border border-dark-border rounded-2xl p-4 flex flex-col items-center gap-3">
+                  <div className={`relative w-full h-20 transition-opacity ${owned === 0 ? 'opacity-20' : ''}`} style={{ mixBlendMode: 'lighten' }}>
                     <Image src={item.img} alt={item.name} fill className="object-contain" />
                   </div>
-                  <span className="text-white font-black text-xl">×{stock[item.stockKey]}</span>
+                  <span className={`font-black text-2xl ${owned > 0 ? 'text-white' : 'text-gray-600'}`}>
+                    ×{owned}
+                  </span>
                 </div>
-              ))}
-            </div>
-          )}
+              )
+            })}
+          </div>
         </div>
 
       </div>

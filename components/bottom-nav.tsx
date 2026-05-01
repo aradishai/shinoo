@@ -25,7 +25,7 @@ export function BottomNav() {
     { href: '/matches', label: 'ניחושים', icon: '/icons/money.png' },
     { href: '/', label: 'בית', icon: '/icons/home.png' },
     { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png' },
-    { href: '/shop', label: 'חנות', icon: '/icons/money.png' },
+    { href: '/shop', label: 'מרקט', icon: '/icons/money.png' },
   ]
 
   return (
