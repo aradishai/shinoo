@@ -2,12 +2,6 @@ import { NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { db } from '@/lib/db'
 
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:admin@shinoo.app',
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-)
-
 // Called by an external cron job every hour
 // cron-job.org → POST https://shinoo-production-7ab8.up.railway.app/api/push/notify
 // Header: Authorization: Bearer shinoo-cron-2026
@@ -15,6 +9,15 @@ export async function POST(request: Request) {
   const auth = request.headers.get('authorization')
   const expected = `Bearer ${process.env.CRON_SECRET || 'shinoo-cron-2026'}`
   if (auth !== expected) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+
+  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY)
+    return NextResponse.json({ error: 'VAPID keys not configured' }, { status: 503 })
+
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || 'mailto:admin@shinoo.app',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  )
 
   const now = new Date()
   const windowStart = new Date(now.getTime() + 30 * 60 * 1000)
