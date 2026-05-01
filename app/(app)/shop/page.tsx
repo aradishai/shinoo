@@ -80,7 +80,7 @@ export default function ShopPage() {
           const isLoading = loading === item.id
           return (
             <div key={item.id} className={`bg-gradient-to-br ${item.bg} border rounded-2xl p-5`}>
-              {/* Top row: image + name + stock badge */}
+              {/* Top row: image + stock badge */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   {owned > 0 && (
@@ -89,11 +89,8 @@ export default function ShopPage() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <p className="text-white font-black text-lg">{item.name}</p>
-                  <div className="relative w-16 h-10" style={{ mixBlendMode: 'lighten' }}>
-                    <Image src={item.img} alt={item.name} fill className="object-contain" />
-                  </div>
+                <div className="relative w-28 h-14" style={{ mixBlendMode: 'lighten' }}>
+                  <Image src={item.img} alt={item.name} fill className="object-contain" />
                 </div>
               </div>
 
