@@ -87,7 +87,7 @@ export default function ShopPage() {
               <div className="flex items-center">
 
                 {/* Logo + ? */}
-                <div className="flex-1 flex items-center gap-2 pr-1">
+                <div className="flex-1 flex items-center justify-end gap-2 pr-2">
                   <div className="h-12 w-32 rounded-xl overflow-hidden shrink-0">
                     <Image src={item.img} alt={item.name} width={128} height={48} className="w-full h-full object-cover" priority />
                   </div>
