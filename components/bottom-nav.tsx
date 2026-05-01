@@ -45,7 +45,7 @@ export function BottomNav() {
                 <div className="relative w-14 h-14 flex items-center justify-center">
                   <div
                     style={{ mixBlendMode: 'lighten' }}
-                    className={clsx('w-14 h-14 relative', !active && 'opacity-40')}
+                    className={clsx('relative', isShop ? 'w-9 h-9' : 'w-14 h-14', !active && 'opacity-40')}
                   >
                     <Image src={item.icon} alt={item.label} fill className="object-contain" />
                   </div>
