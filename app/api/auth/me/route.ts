@@ -14,6 +14,8 @@ export async function GET(request: Request) {
         id: true,
         username: true,
         coins: true,
+        x2Stock: true,
+        shinooStock: true,
         createdAt: true,
         _count: {
           select: {

@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-const COIN_COST = 2
-
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
   const digits = round.replace(/\D/g, '')
@@ -51,23 +49,22 @@ export async function POST(request: Request) {
 
   const newHome = prediction.predictedHomeScore + (team === 'home' ? delta : 0)
   const newAway = prediction.predictedAwayScore + (team === 'away' ? delta : 0)
-
   if (newHome < 0 || newAway < 0)
     return NextResponse.json({ error: 'לא ניתן להוריד מתחת ל-0' }, { status: 400 })
 
-  const user = await db.user.findUnique({ where: { id: userId }, select: { coins: true } })
-  if (!user || user.coins < COIN_COST)
-    return NextResponse.json({ error: `חסרים מטבעות — שינוי עולה 🪙${COIN_COST}` }, { status: 400 })
+  const user = await db.user.findUnique({ where: { id: userId }, select: { shinooStock: true } })
+  if (!user || user.shinooStock < 1)
+    return NextResponse.json({ error: 'אין לך שינוי — קנה בחנות' }, { status: 400 })
 
   const matchday = getRoundNumber(prediction.match.round)
 
-  await db.user.update({ where: { id: userId }, data: { coins: { decrement: COIN_COST } } })
+  await db.user.update({ where: { id: userId }, data: { shinooStock: { decrement: 1 } } })
   await db.prediction.update({
     where: { id: predictionId },
     data: { predictedHomeScore: newHome, predictedAwayScore: newAway, shinooApplied: true },
   })
   await db.powerupUsage.create({ data: { id: `shinoo-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'SHINOO' } })
 
-  const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { coins: true } })
-  return NextResponse.json({ success: true, newHome, newAway, coins: updatedUser?.coins })
+  const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { x2Stock: true, shinooStock: true } })
+  return NextResponse.json({ success: true, newHome, newAway, x2Stock: updatedUser?.x2Stock, shinooStock: updatedUser?.shinooStock })
 }

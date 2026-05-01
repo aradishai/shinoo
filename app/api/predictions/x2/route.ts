@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-const COIN_COST = 2
-
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
   const digits = round.replace(/\D/g, '')
@@ -45,16 +43,16 @@ export async function POST(request: Request) {
   if (prediction.x2Applied)
     return NextResponse.json({ error: 'X2 כבר הופעל על משחק זה' }, { status: 400 })
 
-  const user = await db.user.findUnique({ where: { id: userId }, select: { coins: true } })
-  if (!user || user.coins < COIN_COST)
-    return NextResponse.json({ error: `חסרים מטבעות — X2 עולה 🪙${COIN_COST}` }, { status: 400 })
+  const user = await db.user.findUnique({ where: { id: userId }, select: { x2Stock: true } })
+  if (!user || user.x2Stock < 1)
+    return NextResponse.json({ error: 'אין לך X2 — קנה בחנות' }, { status: 400 })
 
   const matchday = getRoundNumber(prediction.match.round)
 
-  await db.user.update({ where: { id: userId }, data: { coins: { decrement: COIN_COST } } })
+  await db.user.update({ where: { id: userId }, data: { x2Stock: { decrement: 1 } } })
   await db.prediction.update({ where: { id: predictionId }, data: { x2Applied: true } })
   await db.powerupUsage.create({ data: { id: `x2-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'X2' } })
 
-  const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { coins: true } })
-  return NextResponse.json({ success: true, coins: updatedUser?.coins })
+  const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { x2Stock: true, shinooStock: true } })
+  return NextResponse.json({ success: true, x2Stock: updatedUser?.x2Stock, shinooStock: updatedUser?.shinooStock })
 }

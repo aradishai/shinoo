@@ -13,6 +13,8 @@ model User {
   createdAt    DateTime @default(now())
 
   coins             Int                @default(5)
+  x2Stock           Int                @default(0)
+  shinooStock       Int                @default(0)
   leagueMembers     LeagueMember[]
   predictions       Prediction[]
   createdLeagues    League[]
