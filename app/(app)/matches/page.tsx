@@ -198,72 +198,80 @@ export default function MatchesPage() {
             const hasPrediction = !!match.userPrediction
 
             return (
-              <div key={match.id} className={`bg-dark-card border rounded-2xl p-4 ${hasPrediction ? 'border-primary/30' : 'border-dark-border'}`}>
-                <div className="flex items-center gap-3">
+              <div key={match.id} className={`bg-dark-card border rounded-2xl overflow-hidden ${hasPrediction ? 'border-primary/30' : 'border-dark-border'}`}>
 
-                  {/* ✓ button - right edge */}
-                  {isOpen && (
+                {/* Row 1: Teams + score/time */}
+                <div className="flex items-center justify-between px-4 pt-4 pb-3">
+                  {/* Home team */}
+                  <div className="flex flex-col items-center gap-1 flex-1">
+                    <Flag code={match.homeTeam.code} flagUrl={match.homeTeam.flagUrl} />
+                    <span className="text-white text-xs font-semibold text-center leading-tight">{match.homeTeam.nameHe}</span>
+                    {(isLive || isPaused || isFinished) && match.userPrediction && (
+                      <span className="text-primary font-black text-sm">{match.userPrediction.predictedHomeScore}</span>
+                    )}
+                  </div>
+
+                  {/* Center */}
+                  <div className="text-center px-3 flex-shrink-0">
+                    {(isFinished || isLive || isPaused) && match.homeScore !== null ? (
+                      <div>
+                        <span className={`text-xl font-black ${isLive || isPaused ? 'text-primary' : 'text-white'}`}>
+                          {match.homeScore} - {match.awayScore}
+                        </span>
+                        {isPaused && <div className="text-yellow-400 text-xs font-bold">הפסקה</div>}
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="text-white text-sm font-bold">{format(kickoff, 'HH:mm', { locale: he })}</div>
+                        <div className="text-gray-500 text-xs">{format(kickoff, 'dd/MM', { locale: he })}</div>
+                      </div>
+                    )}
+                    {match.round && <div className="text-gray-600 text-[10px] mt-0.5">{match.round}</div>}
+                  </div>
+
+                  {/* Away team */}
+                  <div className="flex flex-col items-center gap-1 flex-1">
+                    <Flag code={match.awayTeam.code} flagUrl={match.awayTeam.flagUrl} />
+                    <span className="text-white text-xs font-semibold text-center leading-tight">{match.awayTeam.nameHe}</span>
+                    {(isLive || isPaused || isFinished) && match.userPrediction && (
+                      <span className="text-primary font-black text-sm">{match.userPrediction.predictedAwayScore}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 2: Stepper (only when open) */}
+                {isOpen && (
+                  <div className="flex items-center justify-between px-4 pb-4 gap-2 border-t border-dark-border/40 pt-3">
+                    {/* Home stepper */}
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, home: String(Math.max(0, parseInt(s.home||'0') - 1)) } }))}
+                        className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
+                      <span className="w-7 text-center text-2xl font-black text-white">{s.home || '0'}</span>
+                      <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, home: String(Math.min(20, parseInt(s.home||'0') + 1)) } }))}
+                        className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">+</button>
+                    </div>
+
+                    {/* Save button */}
                     <button
                       onClick={() => save(match)}
                       disabled={saving === match.id}
-                      className={`w-10 h-10 rounded-xl font-black text-lg flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all flex-shrink-0 ${
-                        hasPrediction ? 'bg-green-500 text-white' : 'bg-primary text-black'
+                      className={`px-5 h-9 rounded-xl font-black text-sm flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all ${
+                        hasPrediction ? 'bg-green-500 text-white' : 'bg-white text-black'
                       }`}
                     >
                       {saving === match.id ? '...' : '✓'}
                     </button>
-                  )}
 
-                  {/* Away team + input */}
-                  <div className="flex flex-col items-center gap-3 flex-1">
-                    <span className="text-white text-xs font-semibold">{match.awayTeam.nameHe}</span>
-                    <Flag code={match.awayTeam.code} flagUrl={match.awayTeam.flagUrl} />
-                    {isOpen ? (
-                      <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, away: String(Math.max(0, parseInt(s.away||'0') - 1)) } }))}
-                          className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
-                        <span className="w-8 text-center text-2xl font-black text-white">{s.away || '0'}</span>
-                        <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, away: String(Math.min(20, parseInt(s.away||'0') + 1)) } }))}
-                          className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">+</button>
-                      </div>
-                    ) : (isLive || isPaused || isFinished) && match.userPrediction ? (
-                      <span className="text-primary font-black text-xl">{match.userPrediction.predictedAwayScore}</span>
-                    ) : null}
+                    {/* Away stepper */}
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, away: String(Math.max(0, parseInt(s.away||'0') - 1)) } }))}
+                        className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
+                      <span className="w-7 text-center text-2xl font-black text-white">{s.away || '0'}</span>
+                      <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, away: String(Math.min(20, parseInt(s.away||'0') + 1)) } }))}
+                        className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">+</button>
+                    </div>
                   </div>
-
-                  {/* Center: time / result */}
-                  <div className="text-center flex-shrink-0">
-                    {(isFinished || isLive || isPaused) && match.homeScore !== null ? (
-                      <>
-                        <span className={`text-sm font-black ${isLive || isPaused ? 'text-primary' : 'text-white'}`}>
-                          {match.homeScore}-{match.awayScore}
-                        </span>
-                        {isPaused && <div className="text-yellow-400 text-xs font-bold mt-0.5">הפסקה</div>}
-                      </>
-                    ) : (
-                      <span className="text-gray-500 text-xs">{format(kickoff, 'HH:mm dd/MM', { locale: he })}</span>
-                    )}
-                    {match.round && <div className="text-gray-600 text-xs">{match.round}</div>}
-                  </div>
-
-                  {/* Home team + input */}
-                  <div className="flex flex-col items-center gap-3 flex-1">
-                    <span className="text-white text-xs font-semibold">{match.homeTeam.nameHe}</span>
-                    <Flag code={match.homeTeam.code} flagUrl={match.homeTeam.flagUrl} />
-                    {isOpen ? (
-                      <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, home: String(Math.max(0, parseInt(s.home||'0') - 1)) } }))}
-                          className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
-                        <span className="w-8 text-center text-2xl font-black text-white">{s.home || '0'}</span>
-                        <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, home: String(Math.min(20, parseInt(s.home||'0') + 1)) } }))}
-                          className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">+</button>
-                      </div>
-                    ) : (isLive || isPaused || isFinished) && match.userPrediction ? (
-                      <span className="text-primary font-black text-xl">{match.userPrediction.predictedHomeScore}</span>
-                    ) : null}
-                  </div>
-
-                </div>
+                )}
 
 
                 {/* Member predictions for finished/live/locked matches */}
