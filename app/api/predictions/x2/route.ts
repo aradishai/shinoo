@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-const MAX_USES = 2
+const COIN_COST = 2
 
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
@@ -45,17 +45,16 @@ export async function POST(request: Request) {
   if (prediction.x2Applied)
     return NextResponse.json({ error: 'X2 כבר הופעל על משחק זה' }, { status: 400 })
 
+  const user = await db.user.findUnique({ where: { id: userId }, select: { coins: true } })
+  if (!user || user.coins < COIN_COST)
+    return NextResponse.json({ error: `חסרים מטבעות — X2 עולה 🪙${COIN_COST}` }, { status: 400 })
+
   const matchday = getRoundNumber(prediction.match.round)
 
-  const usageCount = await db.powerupUsage.count({
-    where: { userId, leagueId: prediction.leagueId, matchday, type: 'X2' },
-  })
-
-  if (usageCount >= MAX_USES)
-    return NextResponse.json({ error: `השתמשת בX2 פעמיים במחזור ${matchday}` }, { status: 400 })
-
+  await db.user.update({ where: { id: userId }, data: { coins: { decrement: COIN_COST } } })
   await db.prediction.update({ where: { id: predictionId }, data: { x2Applied: true } })
   await db.powerupUsage.create({ data: { id: `x2-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'X2' } })
 
-  return NextResponse.json({ success: true, usedThisMatchday: usageCount + 1, remaining: MAX_USES - usageCount - 1 })
+  const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { coins: true } })
+  return NextResponse.json({ success: true, coins: updatedUser?.coins })
 }

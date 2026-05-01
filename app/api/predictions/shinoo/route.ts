@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-const MAX_USES = 2
+const COIN_COST = 2
 
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
@@ -11,7 +11,6 @@ function getRoundNumber(round: string | null | undefined): number {
   return 0
 }
 
-// adjustment: { team: 'home' | 'away', delta: 1 | -1 }
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
   if (!userId) return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
@@ -56,20 +55,19 @@ export async function POST(request: Request) {
   if (newHome < 0 || newAway < 0)
     return NextResponse.json({ error: 'לא ניתן להוריד מתחת ל-0' }, { status: 400 })
 
+  const user = await db.user.findUnique({ where: { id: userId }, select: { coins: true } })
+  if (!user || user.coins < COIN_COST)
+    return NextResponse.json({ error: `חסרים מטבעות — שינוי עולה 🪙${COIN_COST}` }, { status: 400 })
+
   const matchday = getRoundNumber(prediction.match.round)
 
-  const usageCount = await db.powerupUsage.count({
-    where: { userId, leagueId: prediction.leagueId, matchday, type: 'SHINOO' },
-  })
-
-  if (usageCount >= MAX_USES)
-    return NextResponse.json({ error: `השתמשת בSHINOO פעמיים במחזור ${matchday}` }, { status: 400 })
-
+  await db.user.update({ where: { id: userId }, data: { coins: { decrement: COIN_COST } } })
   await db.prediction.update({
     where: { id: predictionId },
     data: { predictedHomeScore: newHome, predictedAwayScore: newAway, shinooApplied: true },
   })
   await db.powerupUsage.create({ data: { id: `shinoo-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'SHINOO' } })
 
-  return NextResponse.json({ success: true, newHome, newAway, usedThisMatchday: usageCount + 1, remaining: MAX_USES - usageCount - 1 })
+  const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { coins: true } })
+  return NextResponse.json({ success: true, newHome, newAway, coins: updatedUser?.coins })
 }
