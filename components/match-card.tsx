@@ -261,29 +261,23 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     return (
       <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
         {showX2 && (x2Done ? (
-          <div className="relative h-9 w-20 rounded-xl overflow-hidden">
-            <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/50" />
-          </div>
+          <img src="/btn-x2.png" alt="X2" className="h-10 w-auto rounded-xl" />
         ) : (
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !shinooDone) powerup.onX2() }}
-            className={`h-9 w-20 rounded-xl overflow-hidden transition-all active:scale-95 ${!inWindow || shinooDone ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
+            className={`transition-all active:scale-95 ${!inWindow || shinooDone ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
           >
-            <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" />
+            <img src="/btn-x2.png" alt="X2" className="h-10 w-auto rounded-xl" />
           </button>
         ))}
         {showShinoo && (shinooDone ? (
-          <div className="relative h-9 w-20 rounded-xl overflow-hidden">
-            <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/50" />
-          </div>
+          <img src="/btn-shinoo.png" alt="SHINOO" className="h-10 w-auto rounded-xl" />
         ) : (
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !x2Done) powerup.onShinoo() }}
-            className={`h-9 w-20 rounded-xl overflow-hidden transition-all active:scale-95 ${!inWindow || x2Done ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
+            className={`transition-all active:scale-95 ${!inWindow || x2Done ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
           >
-            <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" />
+            <img src="/btn-shinoo.png" alt="SHINOO" className="h-10 w-auto rounded-xl" />
           </button>
         ))}
       </div>

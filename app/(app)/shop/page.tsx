@@ -88,9 +88,7 @@ export default function ShopPage() {
 
                 {/* Logo + ? */}
                 <div className="flex-1 flex items-center justify-start gap-2 pl-2">
-                  <div className="h-12 w-32 rounded-xl overflow-hidden shrink-0">
-                    <Image src={item.img} alt={item.name} width={128} height={48} className="w-full h-full object-cover" priority />
-                  </div>
+                  <img src={item.img} alt={item.name} className="h-12 w-auto rounded-xl shrink-0" />
                   <div className="relative">
                     <button
                       onClick={() => setTooltip(showTooltip ? null : item.id)}
