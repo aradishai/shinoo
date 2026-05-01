@@ -92,9 +92,7 @@ export default function ShopPage() {
 
               {/* RIGHT col — owned */}
               <div className="flex-1 flex flex-col items-center gap-1">
-                <div className={`relative w-36 h-16 ${owned === 0 ? 'opacity-20' : ''}`} style={{ mixBlendMode: 'lighten' }}>
-                  <Image src={item.img} alt={item.name} fill className="object-contain" />
-                </div>
+                <img src={item.img} alt={item.name} style={{ mixBlendMode: 'lighten', maxWidth: '140px', opacity: owned === 0 ? 0.2 : 1 }} />
                 <span className={`font-black text-2xl ${owned > 0 ? 'text-white' : 'text-gray-600'}`}>×{owned}</span>
               </div>
 
