@@ -59,7 +59,7 @@ export default function ShopPage() {
 
   return (
     <div className="px-4 py-6">
-      <h1 className="text-white font-black text-xl text-center mb-6">מרקט</h1>
+      <h1 className="text-white font-black text-xl text-center mb-6">ברוכים הבאים למרקט!</h1>
 
       {/* Balance */}
       <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border border-yellow-500/30 rounded-2xl p-4 mb-8 text-center">
@@ -70,7 +70,7 @@ export default function ShopPage() {
       {/* Header row */}
       <div className="flex items-center mb-2">
         <div className="flex-1 text-right text-white font-black text-xl pr-1">כפתורים לרכישה</div>
-        <div className="w-20 text-center text-white font-black text-xl">קנה</div>
+        <div className="w-20" />
         <div className="w-12" />
       </div>
       <div className="w-full h-px bg-dark-border mb-5" />
