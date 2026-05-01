@@ -274,7 +274,7 @@ export default function HomePage() {
 
         {/* Logo centered */}
         <div className="flex justify-center -mt-1">
-          <img src="/shinoo-logo.png" alt="SHINOO" className="h-28 w-auto" style={{ mixBlendMode: 'lighten' }} />
+          <img src="/shinoo-logo.png" alt="SHINOO" className="h-48 w-auto" style={{ mixBlendMode: 'lighten' }} />
         </div>
 
         {/* Bottom row: league name left, update info right */}
