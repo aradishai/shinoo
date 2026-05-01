@@ -130,12 +130,13 @@ async function autoFinishStaleMatches() {
 }
 
 async function recalculateMissingPoints() {
+  // Only recalculate matches where at least one prediction has NO points yet
   const finished = await db.match.findMany({
     where: {
       status: { in: ['FINISHED', 'PAUSED', 'LIVE'] },
       homeScore: { not: null },
       awayScore: { not: null },
-      predictions: { some: {} },
+      predictions: { some: { points: null } },
     },
     select: { id: true },
   })
