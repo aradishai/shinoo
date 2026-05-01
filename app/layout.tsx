@@ -29,6 +29,9 @@ export default function RootLayout({
     <html lang="he" dir="rtl">
       <head>
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="preload" href="/btn-x2.png" as="image" />
+        <link rel="preload" href="/btn-shinoo.png" as="image" />
+        <link rel="preload" href="/shinoo-title.png" as="image" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

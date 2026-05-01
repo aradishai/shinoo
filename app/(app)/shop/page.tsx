@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import toast from 'react-hot-toast'
 
 const POWERUP_COST = 2
@@ -75,7 +76,7 @@ export default function ShopPage() {
               {/* LEFT col — buy */}
               <div className="flex-1 flex flex-col items-center gap-3">
                 <div className="h-14 w-36 rounded-2xl overflow-hidden" style={{ backgroundColor: '#000' }}>
-                  <img src={item.img} alt={item.name} className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} />
+                  <Image src={item.img} alt={item.name} width={144} height={56} className="w-full h-full object-cover" style={{ mixBlendMode: 'lighten' }} priority />
                 </div>
                 <p className="text-gray-400 text-xs text-center leading-relaxed">{item.description}</p>
                 <div className="flex items-center gap-2">
