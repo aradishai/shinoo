@@ -123,9 +123,8 @@ function useLiveMinute(kickoffAt: Date | string, status: string, tournamentType?
         const sh = Math.floor((Date.now() - secondHalfStart.current) / 60000)
         setMinute(`${Math.min(45 + sh, 90 + extra)}'`)
       } else {
-        // Fallback estimate: assume standard break duration
-        const sh = Math.max(0, Math.floor(elapsed - secondHalfStartElapsed))
-        setMinute(`${Math.min(45 + sh, 90 + extra)}'`)
+        // Still LIVE but haven't seen halftime yet — hold at firstHalfEnd
+        setMinute(`${firstHalfEnd}'`)
       }
     }
 
@@ -273,35 +272,36 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       now <= kickoffMs + windowCloseMin * 60 * 1000
     const x2Done = powerup.x2Applied
     const shinooDone = powerup.shinooApplied
-    const x2NoStock = !x2Done && powerup.x2Stock < 1
-    const shinooNoStock = !shinooDone && powerup.shinooStock < 1
+    const showX2 = x2Done || powerup.x2Stock > 0
+    const showShinoo = shinooDone || powerup.shinooStock > 0
+    if (!showX2 && !showShinoo) return null
     if (x2Done && shinooDone) return null
     return (
       <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
-        {x2Done ? (
-          <div className="h-14 w-28 rounded-2xl border-2 border-green-500 flex items-center justify-center opacity-70">
-            <img src="/btn-x2.png" alt="X2" className="h-full w-full object-contain" />
+        {showX2 && (x2Done ? (
+          <div className="h-14 w-28 rounded-2xl border-2 border-green-500 overflow-hidden opacity-70">
+            <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" />
           </div>
         ) : (
           <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !shinooDone && !x2NoStock) powerup.onX2() }}
-            className={`h-14 w-28 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${!inWindow || shinooDone || x2NoStock ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !shinooDone) powerup.onX2() }}
+            className={`h-14 w-28 rounded-2xl overflow-hidden transition-all active:scale-95 ${!inWindow || shinooDone ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
           >
-            <img src="/btn-x2.png" alt="X2" className="h-full w-full object-contain" />
+            <img src="/btn-x2.png" alt="X2" className="w-full h-full object-cover" />
           </button>
-        )}
-        {shinooDone ? (
-          <div className="h-14 w-28 rounded-2xl border-2 border-green-500 flex items-center justify-center opacity-70">
-            <img src="/btn-shinoo.png" alt="SHINOO" className="h-full w-full object-contain" />
+        ))}
+        {showShinoo && (shinooDone ? (
+          <div className="h-14 w-28 rounded-2xl border-2 border-green-500 overflow-hidden opacity-70">
+            <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" />
           </div>
         ) : (
           <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !x2Done && !shinooNoStock) powerup.onShinoo() }}
-            className={`h-14 w-28 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${!inWindow || x2Done || shinooNoStock ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !x2Done) powerup.onShinoo() }}
+            className={`h-14 w-28 rounded-2xl overflow-hidden transition-all active:scale-95 ${!inWindow || x2Done ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
           >
-            <img src="/btn-shinoo.png" alt="SHINOO" className="h-full w-full object-contain" />
+            <img src="/btn-shinoo.png" alt="SHINOO" className="w-full h-full object-cover" />
           </button>
-        )}
+        ))}
       </div>
     )
   })()
