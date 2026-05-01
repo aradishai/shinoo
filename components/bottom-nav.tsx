@@ -47,7 +47,7 @@ export function BottomNav() {
                       {item.emoji}
                     </div>
                   ) : (
-                    <div style={{ mixBlendMode: 'lighten' }} className={clsx('w-14 h-14 relative', !active && 'opacity-40', isShop && 'scale-125')}>
+                    <div style={{ mixBlendMode: 'lighten' }} className={clsx('w-14 h-14 relative', !active && 'opacity-40')}>
                       <Image src={item.icon!} alt={item.label} fill className="object-contain" />
                     </div>
                   )}
