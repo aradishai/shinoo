@@ -10,17 +10,17 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#1E90FF',
-          50: '#EBF5FF',
-          100: '#CCE5FF',
-          200: '#99CBFF',
-          300: '#66B2FF',
-          400: '#3398FF',
-          500: '#1E90FF',
-          600: '#0070E0',
-          700: '#0055B8',
-          800: '#003A8F',
-          900: '#002066',
+          DEFAULT: '#FFFFFF',
+          50: '#FFFFFF',
+          100: '#FFFFFF',
+          200: '#E5E5E5',
+          300: '#CCCCCC',
+          400: '#B3B3B3',
+          500: '#FFFFFF',
+          600: '#E5E5E5',
+          700: '#CCCCCC',
+          800: '#999999',
+          900: '#666666',
         },
         secondary: {
           DEFAULT: '#FFD600',
@@ -72,11 +72,11 @@ const config: Config = {
         'card-gradient':
           'linear-gradient(180deg, #1E1E1E 0%, #181818 100%)',
         'green-glow':
-          'radial-gradient(circle at center, rgba(30, 144, 255, 0.15) 0%, transparent 70%)',
+          'radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0%, transparent 70%)',
       },
       boxShadow: {
-        'green': '0 0 20px rgba(30, 144, 255, 0.3)',
-        'green-sm': '0 0 10px rgba(30, 144, 255, 0.2)',
+        'green': '0 0 20px rgba(255, 255, 255, 0.15)',
+        'green-sm': '0 0 10px rgba(255, 255, 255, 0.08)',
         'card': '0 4px 24px rgba(0, 0, 0, 0.4)',
         'card-hover': '0 8px 32px rgba(0, 0, 0, 0.6)',
       },
