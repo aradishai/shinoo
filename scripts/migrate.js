@@ -34,7 +34,7 @@ async function main() {
       )
     `)
     await pool.query(`CREATE INDEX IF NOT EXISTS "PowerupUsage_userId_leagueId_matchday_type_idx" ON "PowerupUsage"("userId", "leagueId", "matchday", "type")`)
-    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "coins" INTEGER NOT NULL DEFAULT 5`)
+    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "coins" INTEGER NOT NULL DEFAULT 8`)
     await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "x2Stock" INTEGER NOT NULL DEFAULT 0`)
     await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "shinooStock" INTEGER NOT NULL DEFAULT 0`)
     await pool.query(`

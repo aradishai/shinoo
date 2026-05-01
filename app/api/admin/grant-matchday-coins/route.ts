@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
 const SECRET = process.env.ADMIN_SECRET || 'shinoo-admin-2026'
-const COINS_PER_MATCHDAY = 5
+const COINS_PER_MATCHDAY = 10
 
 // Called manually or via cron at the start of each matchday
 // POST { "secret": "...", "matchday": 35 } — grants coins to all users who haven't received them yet this matchday
