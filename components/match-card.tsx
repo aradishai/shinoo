@@ -116,15 +116,16 @@ function useLiveMinute(kickoffAt: Date | string, status: string, tournamentType?
 
       if (elapsed < 1) { setMinute(null); return }
 
-      if (elapsed <= firstHalfEnd) {
-        setMinute(`${Math.min(Math.floor(elapsed), firstHalfEnd)}'`)
-      } else if (secondHalfStart.current) {
-        // Accurate: track from when we saw PAUSED→LIVE transition
+      if (secondHalfStart.current) {
+        // Accurate second half: track from when we saw PAUSED→LIVE transition
         const sh = Math.floor((Date.now() - secondHalfStart.current) / 60000)
         setMinute(`${Math.min(45 + sh, 90 + extra)}'`)
+      } else if (elapsed <= firstHalfEnd + 10) {
+        // First half (inc. extra time up to +10) — show real elapsed
+        setMinute(`${Math.floor(elapsed)}'`)
       } else {
-        // Still LIVE but haven't seen halftime yet — hold at firstHalfEnd
-        setMinute(`${firstHalfEnd}'`)
+        // Long elapsed, no halftime seen yet — hold at cap
+        setMinute(`${firstHalfEnd + 10}'`)
       }
     }
 
