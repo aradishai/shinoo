@@ -62,7 +62,7 @@ export function BottomNav() {
                 </span>
 
                 {/* Active dot */}
-                <span className={clsx('w-1 h-1 rounded-full', active ? 'bg-primary' : 'bg-transparent')} />
+                {active && <span className="w-1 h-1 rounded-full bg-primary" />}
               </Link>
             )
           })}
