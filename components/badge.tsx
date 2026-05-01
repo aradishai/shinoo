@@ -11,8 +11,8 @@ interface BadgeProps {
 
 const VARIANT_CONFIG: Record<BadgeVariant, { label: string; classes: string }> = {
   open: {
-    label: 'פתוח לניחוש',
-    classes: 'bg-primary/20 text-primary border border-primary/40',
+    label: 'פתוח לניחוש ›',
+    classes: 'bg-white text-black font-black shadow-sm',
   },
   locked: {
     label: 'נעול',
