@@ -22,10 +22,10 @@ export function BottomNav() {
   }
 
   const navItems = [
-    { href: '/matches', label: 'ניחושים', icon: '/icons/money.png', emoji: null },
-    { href: '/', label: 'בית', icon: '/icons/home.png', emoji: null },
-    { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png', emoji: null },
     { href: '/shop', label: 'מרקט', icon: '/icons/market.png', emoji: null },
+    { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png', emoji: null },
+    { href: '/', label: 'בית', icon: '/icons/home.png', emoji: null },
+    { href: '/matches', label: 'ניחושים', icon: '/icons/money.png', emoji: null },
   ]
 
   return (
