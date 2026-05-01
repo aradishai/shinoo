@@ -104,9 +104,11 @@ function useLiveMinute(kickoffAt: Date | string, status: string) {
         setMinute(`${Math.floor(elapsed)}'`)
       } else if (elapsed <= 64) {
         setMinute('HT')
-      } else {
-        const sh = Math.min(Math.floor(45 + (elapsed - 64)), 93)
+      } else if (elapsed <= 109) {
+        const sh = Math.floor(45 + (elapsed - 64))
         setMinute(`${sh}'`)
+      } else {
+        setMinute('90+')
       }
     }
 
@@ -167,7 +169,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
                 </span>
               </div>
               {(isLive || status === 'PAUSED') && liveMinute && (
-                <span className={`text-xs font-bold ${status === 'PAUSED' ? 'text-yellow-400' : 'text-primary animate-pulse'}`}>
+                <span className={`text-xs font-bold ${
+                  status === 'PAUSED' ? 'text-yellow-400' :
+                  liveMinute === '90+' ? 'text-red-400 animate-pulse' :
+                  'text-primary animate-pulse'
+                }`}>
                   {liveMinute}
                 </span>
               )}
