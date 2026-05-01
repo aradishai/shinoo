@@ -233,12 +233,12 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       {isOpen && (
         <div className="mt-3">
           {!prediction ? (
-            <div className="bg-black border border-white/30 text-white text-center py-2 rounded-xl text-sm font-bold">
-              נחש עכשיו
+            <div className="bg-white text-black text-center py-2.5 rounded-xl text-sm font-black tracking-wide shadow-md active:scale-95 transition-transform">
+              נחש עכשיו ›
             </div>
           ) : (
-            <div className="bg-black border border-white/20 text-white text-center py-2 rounded-xl text-sm font-medium">
-              ערוך ניחוש
+            <div className="bg-dark-muted border border-white/20 text-white text-center py-2.5 rounded-xl text-sm font-bold active:scale-95 transition-transform">
+              ערוך ניחוש ›
             </div>
           )}
         </div>
