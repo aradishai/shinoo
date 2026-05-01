@@ -74,7 +74,7 @@ export default function ShopPage() {
 
               {/* LEFT col — buy */}
               <div className="flex-1 flex flex-col items-center gap-3">
-                <img src={item.img} alt={item.name} style={{ mixBlendMode: 'lighten', maxWidth: '140px' }} />
+                <img src={item.img} alt={item.name} style={{ maxWidth: '150px', display: 'block' }} />
                 <p className="text-gray-400 text-xs text-center leading-relaxed">{item.description}</p>
                 <div className="flex items-center gap-2">
                   <button
@@ -92,7 +92,7 @@ export default function ShopPage() {
 
               {/* RIGHT col — owned */}
               <div className="flex-1 flex flex-col items-center gap-1">
-                <img src={item.img} alt={item.name} style={{ mixBlendMode: 'lighten', maxWidth: '140px', opacity: owned === 0 ? 0.2 : 1 }} />
+                <img src={item.img} alt={item.name} style={{ maxWidth: '150px', display: 'block', opacity: owned === 0 ? 0.2 : 1 }} />
                 <span className={`font-black text-2xl ${owned > 0 ? 'text-white' : 'text-gray-600'}`}>×{owned}</span>
               </div>
 
