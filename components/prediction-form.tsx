@@ -45,10 +45,10 @@ export function PredictionForm({
   onSuccess,
 }: PredictionFormProps) {
   const [homeScore, setHomeScore] = useState<string>(
-    existingPrediction?.predictedHomeScore?.toString() ?? ''
+    existingPrediction?.predictedHomeScore?.toString() ?? '0'
   )
   const [awayScore, setAwayScore] = useState<string>(
-    existingPrediction?.predictedAwayScore?.toString() ?? ''
+    existingPrediction?.predictedAwayScore?.toString() ?? '0'
   )
   const [topScorerId, setTopScorerId] = useState<string>(
     existingPrediction?.predictedTopScorerPlayerId ?? ''
@@ -69,13 +69,8 @@ export function PredictionForm({
     async (e: React.FormEvent) => {
       e.preventDefault()
 
-      if (homeScore === '' || awayScore === '') {
-        toast.error('יש להזין תוצאה מנוחשת לשתי הקבוצות')
-        return
-      }
-
-      const home = parseInt(homeScore, 10)
-      const away = parseInt(awayScore, 10)
+      const home = parseInt(homeScore || '0', 10)
+      const away = parseInt(awayScore || '0', 10)
 
       if (isNaN(home) || isNaN(away) || home < 0 || away < 0) {
         toast.error('תוצאה לא תקינה')
@@ -161,33 +156,31 @@ export function PredictionForm({
   return (
     <form onSubmit={handleSubmit} className="bg-dark-card border border-dark-border rounded-2xl p-5">
       {/* Score Inputs */}
-      <div className="flex items-center justify-center gap-4 mb-6">
+      <div className="flex items-center justify-center gap-3 mb-6">
+        {/* Home */}
         <div className="flex flex-col items-center gap-2">
           <span className="text-gray-400 text-sm font-medium">{homeTeam.nameHe}</span>
-          <input
-            type="number"
-            min={0}
-            max={20}
-            value={homeScore}
-            onChange={(e) => setHomeScore(e.target.value)}
-            placeholder="0"
-            className="w-20 h-16 text-center text-3xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none transition-colors"
-            disabled={loading}
-          />
+          <div className="flex items-center gap-2">
+            <button type="button" disabled={loading} onClick={() => setHomeScore(s => String(Math.max(0, parseInt(s||'0') - 1)))}
+              className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all disabled:opacity-40">−</button>
+            <span className="w-10 text-center text-3xl font-black text-white">{homeScore === '' ? '0' : homeScore}</span>
+            <button type="button" disabled={loading} onClick={() => setHomeScore(s => String(Math.min(20, parseInt(s||'0') + 1)))}
+              className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all disabled:opacity-40">+</button>
+          </div>
         </div>
-        <span className="text-gray-500 text-2xl font-bold mt-6">-</span>
+
+        <span className="text-gray-600 text-2xl font-bold mt-6">:</span>
+
+        {/* Away */}
         <div className="flex flex-col items-center gap-2">
           <span className="text-gray-400 text-sm font-medium">{awayTeam.nameHe}</span>
-          <input
-            type="number"
-            min={0}
-            max={20}
-            value={awayScore}
-            onChange={(e) => setAwayScore(e.target.value)}
-            placeholder="0"
-            className="w-20 h-16 text-center text-3xl font-black bg-dark-50 border-2 border-dark-border rounded-xl text-white focus:border-primary focus:outline-none transition-colors"
-            disabled={loading}
-          />
+          <div className="flex items-center gap-2">
+            <button type="button" disabled={loading} onClick={() => setAwayScore(s => String(Math.max(0, parseInt(s||'0') - 1)))}
+              className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all disabled:opacity-40">−</button>
+            <span className="w-10 text-center text-3xl font-black text-white">{awayScore === '' ? '0' : awayScore}</span>
+            <button type="button" disabled={loading} onClick={() => setAwayScore(s => String(Math.min(20, parseInt(s||'0') + 1)))}
+              className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all disabled:opacity-40">+</button>
+          </div>
         </div>
       </div>
 
@@ -229,7 +222,7 @@ export function PredictionForm({
 
       <button
         type="submit"
-        disabled={loading || homeScore === '' || awayScore === ''}
+        disabled={loading}
         className="w-full bg-primary text-black font-black text-2xl py-4 rounded-xl active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? '...' : '✓'}
