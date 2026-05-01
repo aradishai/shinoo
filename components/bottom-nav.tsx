@@ -14,9 +14,10 @@ export function BottomNav() {
   }
 
   const navItems = [
+    { href: '/shop', label: 'חנות', icon: '/icons/money.png' },
     { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png' },
-    { href: '/matches', label: 'ניחושים', icon: '/icons/money.png' },
     { href: '/', label: 'בית', icon: '/icons/home.png' },
+    { href: '/matches', label: 'ניחושים', icon: '/icons/money.png' },
   ]
 
   return (

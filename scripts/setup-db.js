@@ -127,6 +127,18 @@ CREATE TABLE IF NOT EXISTS "PowerupUsage" (
 
 CREATE INDEX IF NOT EXISTS "PowerupUsage_userId_leagueId_matchday_type" ON "PowerupUsage"("userId", "leagueId", "matchday", "type");
 
+CREATE TABLE IF NOT EXISTS "CoinBet" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "userId" TEXT NOT NULL,
+  "predictionId" TEXT NOT NULL UNIQUE,
+  "betAmount" INTEGER NOT NULL,
+  "coinsEarned" INTEGER,
+  "resolvedAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("userId") REFERENCES "User"("id"),
+  FOREIGN KEY ("predictionId") REFERENCES "Prediction"("id")
+);
+
 CREATE TABLE IF NOT EXISTS "PushSubscription" (
   "id" TEXT NOT NULL PRIMARY KEY,
   "userId" TEXT NOT NULL,
@@ -154,6 +166,7 @@ const alterStatements = [
   `ALTER TABLE "Prediction" ADD COLUMN "x2Applied" INTEGER NOT NULL DEFAULT 0`,
   `ALTER TABLE "Prediction" ADD COLUMN "shinooApplied" INTEGER NOT NULL DEFAULT 0`,
   `ALTER TABLE "Match" ADD COLUMN "minute" INTEGER`,
+  `ALTER TABLE "User" ADD COLUMN "coins" INTEGER NOT NULL DEFAULT 5`,
 ]
 for (const sql of alterStatements) {
   try { db.exec(sql) } catch (_) { /* column already exists */ }

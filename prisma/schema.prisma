@@ -12,10 +12,12 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
+  coins             Int                @default(5)
   leagueMembers     LeagueMember[]
   predictions       Prediction[]
   createdLeagues    League[]
   pushSubscriptions PushSubscription[]
+  coinBets          CoinBet[]
 }
 
 model Tournament {
@@ -131,6 +133,7 @@ model Prediction {
   match              Match             @relation(fields: [matchId], references: [id])
   predictedTopScorer Player?           @relation(fields: [predictedTopScorerPlayerId], references: [id])
   points             PredictionPoints?
+  coinBet            CoinBet?
 
   @@unique([userId, leagueId, matchId])
 }
@@ -144,6 +147,19 @@ model PowerupUsage {
   createdAt  DateTime @default(now())
 
   @@index([userId, leagueId, matchday, type])
+}
+
+model CoinBet {
+  id           String    @id @default(cuid())
+  userId       String
+  predictionId String    @unique
+  betAmount    Int
+  coinsEarned  Int?
+  resolvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  user       User       @relation(fields: [userId], references: [id])
+  prediction Prediction @relation(fields: [predictionId], references: [id])
 }
 
 model PushSubscription {

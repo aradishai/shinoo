@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { calculatePoints } from '@/lib/scoring-engine'
+import { resolveCoinBetsForMatch } from '@/lib/resolve-coins'
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -56,6 +57,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
         },
       })
     }
+
+    await resolveCoinBetsForMatch(params.id)
 
     return NextResponse.json({ message: 'תוצאה עודכנה ונקודות חושבו מחדש', data: match })
   } catch (e) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import toast from 'react-hot-toast'
 
 interface Player {
@@ -27,6 +27,7 @@ interface PredictionFormProps {
     predictedAwayScore: number
     predictedTopScorerPlayerId?: string | null
   }
+  existingCoinBet?: number | null
   isLocked: boolean
   onSuccess?: (prediction: { predictedHomeScore: number; predictedAwayScore: number }) => void
 }
@@ -39,6 +40,7 @@ export function PredictionForm({
   homePlayers,
   awayPlayers,
   existingPrediction,
+  existingCoinBet,
   isLocked,
   onSuccess,
 }: PredictionFormProps) {
@@ -52,6 +54,14 @@ export function PredictionForm({
     existingPrediction?.predictedTopScorerPlayerId ?? ''
   )
   const [loading, setLoading] = useState(false)
+  const [userCoins, setUserCoins] = useState<number>(0)
+  const [coinBet, setCoinBet] = useState<number>(0)
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(d => setUserCoins(d.data?.coins ?? 0))
+  }, [])
 
   const allPlayers = [...homePlayers, ...awayPlayers]
 
@@ -85,6 +95,7 @@ export function PredictionForm({
           predictedHomeScore: home,
           predictedAwayScore: away,
           predictedTopScorerPlayerId: topScorerId || null,
+          coinBet,
         }
 
         if (!existingPrediction) {
@@ -105,15 +116,16 @@ export function PredictionForm({
           return
         }
 
-        toast.success(data.message || 'הניחוש נשמר!')
+        if (data.coins !== undefined) setUserCoins(data.coins)
+        toast.success(coinBet > 0 ? `הניחוש נשמר! הימרת 🪙${coinBet}` : 'הניחוש נשמר!')
         onSuccess?.({ predictedHomeScore: home, predictedAwayScore: away })
-      } catch (err) {
+      } catch {
         toast.error('שגיאת חיבור')
       } finally {
         setLoading(false)
       }
     },
-    [homeScore, awayScore, topScorerId, matchId, leagueId, existingPrediction, onSuccess]
+    [homeScore, awayScore, topScorerId, coinBet, matchId, leagueId, existingPrediction, onSuccess]
   )
 
   if (isLocked) {
@@ -121,16 +133,21 @@ export function PredictionForm({
       <div className="bg-dark-card border border-dark-border rounded-2xl p-5">
         <h3 className="text-white font-bold text-lg mb-4 text-center">הניחוש שלי</h3>
         {existingPrediction ? (
-          <div className="flex items-center justify-center gap-4">
-            <div className="text-center">
-              <div className="text-gray-400 text-xs mb-1">{homeTeam.nameHe}</div>
-              <div className="text-4xl font-black text-white">{existingPrediction.predictedHomeScore}</div>
+          <div>
+            <div className="flex items-center justify-center gap-4">
+              <div className="text-center">
+                <div className="text-gray-400 text-xs mb-1">{homeTeam.nameHe}</div>
+                <div className="text-4xl font-black text-white">{existingPrediction.predictedHomeScore}</div>
+              </div>
+              <div className="text-gray-500 text-2xl font-bold">-</div>
+              <div className="text-center">
+                <div className="text-gray-400 text-xs mb-1">{awayTeam.nameHe}</div>
+                <div className="text-4xl font-black text-white">{existingPrediction.predictedAwayScore}</div>
+              </div>
             </div>
-            <div className="text-gray-500 text-2xl font-bold">-</div>
-            <div className="text-center">
-              <div className="text-gray-400 text-xs mb-1">{awayTeam.nameHe}</div>
-              <div className="text-4xl font-black text-white">{existingPrediction.predictedAwayScore}</div>
-            </div>
+            {existingCoinBet != null && existingCoinBet > 0 && (
+              <p className="text-center text-yellow-400 text-sm mt-3">🪙 הימרת {existingCoinBet} מטבעות</p>
+            )}
           </div>
         ) : (
           <p className="text-gray-500 text-center">לא הגשת ניחוש למשחק זה</p>
@@ -139,11 +156,12 @@ export function PredictionForm({
     )
   }
 
+  const alreadyBet = existingPrediction && (existingCoinBet ?? 0) > 0
+
   return (
     <form onSubmit={handleSubmit} className="bg-dark-card border border-dark-border rounded-2xl p-5">
       {/* Score Inputs */}
       <div className="flex items-center justify-center gap-4 mb-6">
-        {/* Home Team */}
         <div className="flex flex-col items-center gap-2">
           <span className="text-gray-400 text-sm font-medium">{homeTeam.nameHe}</span>
           <input
@@ -157,10 +175,7 @@ export function PredictionForm({
             disabled={loading}
           />
         </div>
-
         <span className="text-gray-500 text-2xl font-bold mt-6">-</span>
-
-        {/* Away Team */}
         <div className="flex flex-col items-center gap-2">
           <span className="text-gray-400 text-sm font-medium">{awayTeam.nameHe}</span>
           <input
@@ -175,6 +190,42 @@ export function PredictionForm({
           />
         </div>
       </div>
+
+      {/* Coin Bet */}
+      {!alreadyBet && userCoins > 0 && (
+        <div className="mb-5 bg-dark-50 border border-dark-border rounded-xl p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-500 text-xs">יתרה: 🪙 {userCoins}</span>
+            <span className="text-yellow-400 text-sm font-bold">הימור מטבעות</span>
+          </div>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => setCoinBet(c => Math.max(0, c - 1))}
+              className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all"
+            >
+              −
+            </button>
+            <span className="text-white font-black text-2xl w-12 text-center">🪙{coinBet}</span>
+            <button
+              type="button"
+              onClick={() => setCoinBet(c => Math.min(userCoins, c + 1))}
+              className="w-9 h-9 rounded-full bg-dark-card border border-dark-border text-white font-bold text-lg active:scale-95 transition-all"
+            >
+              +
+            </button>
+          </div>
+          {coinBet > 0 && (
+            <p className="text-center text-gray-500 text-xs mt-2">
+              ניצחון → עד 🪙{5 * coinBet} | הפסד → מאבד 🪙{coinBet}
+            </p>
+          )}
+        </div>
+      )}
+
+      {alreadyBet && (
+        <p className="text-center text-yellow-400 text-sm mb-4">🪙 הימרת {existingCoinBet} מטבעות</p>
+      )}
 
       <button
         type="submit"
