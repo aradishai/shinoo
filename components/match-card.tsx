@@ -280,21 +280,8 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const powerupArea = (() => {
     if (!powerup || isFinished) return null
 
-    // If any powerup already applied, show only that one with glow ring
-    if (anyApplied && appliedImg) {
-      return (
-        <div className="flex justify-center px-4 pb-4 pt-2 border-t border-dark-border/40">
-          <div className="relative">
-            <img
-              src={appliedImg}
-              className="h-10 w-auto rounded-xl ring-2 ring-green-400 ring-offset-2 ring-offset-dark-card animate-pulse"
-              style={{ mixBlendMode: 'lighten' }}
-            />
-            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center text-white text-[8px] font-black">✓</span>
-          </div>
-        </div>
-      )
-    }
+    // If any powerup already applied — tag in header is enough, nothing here
+    if (anyApplied) return null
 
     // Pre-match buttons (X3, GOALS+, SPLIT) — only when match is open
     if (isOpen) {
@@ -323,32 +310,36 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       )
     }
 
-    // Live halftime buttons (X2, SHINOO, 90')
+    // Live buttons: X2/SHINOO only during halftime window, 90' up to minute ~90
     if (isLive || match.status === 'PAUSED') {
       const now = Date.now()
       const kickoffMs = new Date(match.kickoffAt).getTime()
+      const elapsedMin = (now - kickoffMs) / 60000
       const extra = match.tournament?.type === 'world_cup' ? 5 : 3
       const windowOpenMin = 45 + extra
       const windowCloseMin = windowOpenMin + 15
-      const inWindow = now >= kickoffMs + windowOpenMin * 60 * 1000 && now <= kickoffMs + windowCloseMin * 60 * 1000
-      const showX2 = powerup.x2Stock > 0
-      const showShinoo = powerup.shinooStock > 0
-      const showM90 = powerup.minute90Stock > 0
+      const inHalftimeWindow = elapsedMin >= windowOpenMin && elapsedMin <= windowCloseMin
+      const before90 = elapsedMin < 95
+
+      const showX2 = powerup.x2Stock > 0 && inHalftimeWindow
+      const showShinoo = powerup.shinooStock > 0 && inHalftimeWindow
+      const showM90 = powerup.minute90Stock > 0 && before90
+
       if (!showX2 && !showShinoo && !showM90) return null
       return (
         <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
           {showX2 && (
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow) powerup.onX2() }} className={`transition-all active:scale-95 ${!inWindow ? 'grayscale opacity-30 cursor-default' : ''}`}>
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX2() }} className="transition-all active:scale-95">
               <img src="/btn-x2.png" alt="X2" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
             </button>
           )}
           {showShinoo && (
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow) powerup.onShinoo() }} className={`transition-all active:scale-95 ${!inWindow ? 'grayscale opacity-30 cursor-default' : ''}`}>
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onShinoo() }} className="transition-all active:scale-95">
               <img src="/btn-shinoo.png" alt="SHINOO" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
             </button>
           )}
           {showM90 && (
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow) powerup.onMinute90() }} className={`transition-all active:scale-95 ${!inWindow ? 'grayscale opacity-30 cursor-default' : ''}`}>
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
               <img src="/btn-90.jpg" alt="90'" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
             </button>
           )}

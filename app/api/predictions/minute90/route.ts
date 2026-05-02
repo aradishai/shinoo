@@ -29,13 +29,9 @@ export async function POST(request: Request) {
 
   const kickoff = prediction.match.kickoffAt
   const now = new Date()
-  const extra = (prediction.match as any).tournament?.type === 'world_cup' ? 5 : 3
-  const windowOpenMin = 45 + extra
-  const windowCloseMin = 45 + extra + 15
-  const windowStart = new Date(kickoff.getTime() + windowOpenMin * 60 * 1000)
-  const windowEnd = new Date(kickoff.getTime() + windowCloseMin * 60 * 1000)
-  if (now < windowStart || now > windowEnd)
-    return NextResponse.json({ error: `דקה 90 זמין רק בחלון ההפסקה (דקה ${windowOpenMin}-${windowCloseMin})` }, { status: 400 })
+  const elapsedMin = (now.getTime() - kickoff.getTime()) / 60000
+  if (elapsedMin >= 95)
+    return NextResponse.json({ error: 'דקה 90 זמין רק עד דקה 90' }, { status: 400 })
 
   if ((prediction as any).minute90Applied)
     return NextResponse.json({ error: 'דקה 90 כבר הופעל על משחק זה' }, { status: 400 })
