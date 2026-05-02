@@ -28,8 +28,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'דקה 90 זמין רק במהלך משחק' }, { status: 400 })
 
   // TESTING MODE — all restrictions removed
-  const newHome = Math.floor(Math.random() * 5)
-  const newAway = Math.floor(Math.random() * 5)
+  const newHome = Math.floor(Math.random() * 6)
+  const newAway = Math.floor(Math.random() * 6)
 
   await db.prediction.update({
     where: { id: predictionId },
