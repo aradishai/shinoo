@@ -140,7 +140,7 @@ export default function ShopPage() {
                       >
                         {isLoading ? '…' : 'קנה'}
                       </button>
-                      <span className="text-yellow-400 font-bold text-[11px]">{item.cost} 🪙</span>
+                      <span className="text-yellow-400 font-bold text-sm">{item.cost} 🪙</span>
                     </>
                   )}
                 </div>
