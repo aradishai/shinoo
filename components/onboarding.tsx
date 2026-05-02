@@ -55,8 +55,8 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               {[
                 { pts: '0 נקודות', color: 'text-gray-500', label: 'לא צדקת במנצחת', sub: 'תיקו / ניצחון ריאל מדריד' },
                 { pts: 'נקודה אחת', color: 'text-gray-300', label: 'צדקת במנצחת בלבד', sub: '1:0 לברצלונה / 3:2 לברצלונה' },
-                { pts: '3 נקודות', color: 'text-yellow-400', label: 'מנצחת + קבוצה אחת', sub: '4:0 (פגעת בברצלונה) / 2:1 (פגעת בריאל)' },
-                { pts: '5 נקודות 🎯', color: 'text-primary', label: 'תוצאה מדויקת', sub: 'בדיוק 4:1 לברצלונה', highlight: true },
+                { pts: '3 נקודות', color: 'text-gray-300', label: 'מנצחת + קבוצה אחת', sub: '4:0 (פגעת בברצלונה) / 2:1 (פגעת בריאל)' },
+                { pts: '5 נקודות 🎯', color: 'text-yellow-400', label: 'תוצאה מדויקת', sub: 'בדיוק 4:1 לברצלונה', highlight: true },
               ].map(({ pts, color, label, sub, highlight }) => (
                 <div key={pts} className={`bg-dark-card border ${highlight ? 'border-primary/40' : 'border-dark-border'} rounded-xl px-4 py-2.5`}>
                   <div className="flex items-center justify-between mb-1">
@@ -84,7 +84,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               {[
                 { img: '/btn-x3.jpg', desc: 'שלש את הניקוד', cost: 4 },
                 { img: '/btn-goals.jpg', desc: 'כל גול שווה נקודה', cost: 3 },
-                { img: '/btn-split.jpg', desc: 'נחש 2 תוצאות, המערכת בוחרת הטובה', cost: 2 },
+                { img: '/btn-split.jpg', desc: 'נחש 2 תוצאות, וקבל ניקוד על הטובה מבניהן', cost: 2 },
               ].map(({ img, desc, cost }) => (
                 <div key={img} className="bg-dark-card border border-dark-border rounded-xl px-3 py-2 flex items-center gap-3">
                   <img src={img} className="h-8 w-20 object-contain object-right rounded-lg shrink-0" style={{ mixBlendMode: 'lighten' }} />
