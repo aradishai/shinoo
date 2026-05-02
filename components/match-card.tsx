@@ -169,9 +169,9 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         <Badge variant={badgeVariant} />
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           {anyApplied && appliedImg && (
-            <div className="flex items-center gap-1 bg-green-500/10 border border-green-500/30 rounded-full px-2 py-0.5">
-              <img src={appliedImg} className="h-6 w-auto" style={{ mixBlendMode: 'lighten' }} />
-              <span className="text-green-400 font-black text-xs">✓</span>
+            <div className="flex items-center gap-1">
+              <img src={appliedImg} className="h-8 w-auto" style={{ mixBlendMode: 'lighten' }} />
+              <span className="text-green-400 font-black text-sm">✓</span>
             </div>
           )}
           {match.round && <span>{match.round}</span>}
