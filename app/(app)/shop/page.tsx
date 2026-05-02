@@ -9,10 +9,10 @@ const POWERUP_COST = 2
 const SHOP_ITEMS = [
   { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false },
   { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const, comingSoon: false },
-  { id: 'x3', name: 'כפול 3', description: 'בקרוב', img: '/btn-x3.jpg', stockKey: null, comingSoon: true },
-  { id: 'goals', name: 'גולס+', description: 'בקרוב', img: '/btn-goals.jpg', stockKey: null, comingSoon: true },
-  { id: '90', name: 'דקה 90', description: 'בקרוב', img: '/btn-90.jpg', stockKey: null, comingSoon: true },
-  { id: 'split', name: 'ספליט', description: 'בקרוב', img: '/btn-split.jpg', stockKey: null, comingSoon: true },
+  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.jpg', stockKey: null, comingSoon: true },
+  { id: 'goals', name: 'גולס+', description: 'לשימוש לפני המשחק – כל גול שווה נקודה', img: '/btn-goals.jpg', stockKey: null, comingSoon: true },
+  { id: '90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.jpg', stockKey: null, comingSoon: true },
+  { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.jpg', stockKey: null, comingSoon: true },
 ]
 
 export default function ShopPage() {
