@@ -72,106 +72,88 @@ interface Minute90RevealData {
   awayTeam: string
   newHome: number
   newAway: number
-  phase: 'loading' | 'spinning' | 'reveal'
 }
 
 function Minute90RevealModal({ data, onClose }: { data: Minute90RevealData; onClose: () => void }) {
-  const [displayHome, setDisplayHome] = useState(0)
-  const [displayAway, setDisplayAway] = useState(0)
-  const [phase, setPhase] = useState(data.phase)
-  const phaseRef = useRef(data.phase)
+  const [displayHome, setDisplayHome] = useState(Math.floor(Math.random() * 5))
+  const [displayAway, setDisplayAway] = useState(Math.floor(Math.random() * 5))
+  const [revealed, setRevealed] = useState(false)
 
   useEffect(() => {
-    if (data.phase === 'spinning' && phaseRef.current !== 'spinning') {
-      phaseRef.current = 'spinning'
-      setPhase('spinning')
+    let frame = 0
+    const intervalRef = { current: 0 as unknown as ReturnType<typeof setInterval> }
 
-      let frame = 0
-      const intervalRef = { current: 0 as unknown as ReturnType<typeof setInterval> }
-
-      const tick = () => {
-        frame++
-        if (frame < 18) {
-          setDisplayHome(Math.floor(Math.random() * 5))
-          setDisplayAway(Math.floor(Math.random() * 5))
-        } else {
-          // Slow phase — flicker between random and actual
-          setDisplayHome(frame % 2 === 0 ? data.newHome : Math.floor(Math.random() * 5))
-          setDisplayAway(frame % 2 === 0 ? data.newAway : Math.floor(Math.random() * 5))
-        }
-        if (frame === 17) {
-          clearInterval(intervalRef.current)
-          intervalRef.current = setInterval(tick, 200)
-        }
-        if (frame >= 23) {
-          clearInterval(intervalRef.current)
-          setDisplayHome(data.newHome)
-          setDisplayAway(data.newAway)
-          setTimeout(() => setPhase('reveal'), 250)
-        }
+    const tick = () => {
+      frame++
+      if (frame < 18) {
+        setDisplayHome(Math.floor(Math.random() * 5))
+        setDisplayAway(Math.floor(Math.random() * 5))
+      } else {
+        setDisplayHome(frame % 2 === 0 ? data.newHome : Math.floor(Math.random() * 5))
+        setDisplayAway(frame % 2 === 0 ? data.newAway : Math.floor(Math.random() * 5))
       }
-
-      intervalRef.current = setInterval(tick, 80)
-      return () => clearInterval(intervalRef.current)
+      if (frame === 17) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = setInterval(tick, 200)
+      }
+      if (frame >= 23) {
+        clearInterval(intervalRef.current)
+        setDisplayHome(data.newHome)
+        setDisplayAway(data.newAway)
+        setTimeout(() => setRevealed(true), 250)
+      }
     }
-  }, [data.phase, data.newHome, data.newAway])
+
+    intervalRef.current = setInterval(tick, 80)
+    return () => clearInterval(intervalRef.current)
+  }, [data.newHome, data.newAway])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-6" dir="rtl">
       <div className="bg-dark-card border border-dark-border rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
 
-        {phase === 'loading' && (
-          <div className="py-4">
-            <div className="text-5xl mb-4 animate-bounce">🎰</div>
-            <p className="text-white font-black text-xl">מגריל ניחוש חדש...</p>
-            <p className="text-gray-500 text-sm mt-2">מחשב תוצאה אקראית</p>
+        <>
+          <div className="mb-4">
+            {!revealed ? (
+              <div className="text-4xl animate-pulse">🎰</div>
+            ) : (
+              <div className="text-4xl">🎉</div>
+            )}
           </div>
-        )}
 
-        {(phase === 'spinning' || phase === 'reveal') && (
-          <>
-            <div className="mb-4">
-              {phase === 'spinning' ? (
-                <div className="text-4xl animate-pulse">🎰</div>
-              ) : (
-                <div className="text-4xl">🎉</div>
-              )}
+          <p className={`font-black text-base mb-1 ${revealed ? 'text-white' : 'text-gray-400'}`}>
+            {!revealed ? 'מגריל...' : 'הניחוש החדש שלך!'}
+          </p>
+
+          {revealed && (
+            <p className="text-gray-500 text-xs mb-5">הניחוש הוחלף בהצלחה</p>
+          )}
+
+          <div className="flex items-center justify-center gap-3 my-6">
+            <span className="text-gray-300 text-sm font-bold flex-1 text-right leading-tight">{data.homeTeam}</span>
+            <div className={`text-6xl font-black tabular-nums transition-all duration-150 ${
+              !revealed ? 'text-yellow-400 scale-110' : 'text-primary scale-100'
+            }`}>
+              {displayHome}
             </div>
-
-            <p className={`font-black text-base mb-1 ${phase === 'reveal' ? 'text-white' : 'text-gray-400'}`}>
-              {phase === 'spinning' ? 'מגריל...' : 'הניחוש החדש שלך!'}
-            </p>
-
-            {phase === 'reveal' && (
-              <p className="text-gray-500 text-xs mb-5">הניחוש הוחלף בהצלחה</p>
-            )}
-
-            <div className={`flex items-center justify-center gap-3 my-6 ${phase === 'spinning' ? 'mb-8' : ''}`}>
-              <span className="text-gray-300 text-sm font-bold flex-1 text-right leading-tight">{data.homeTeam}</span>
-              <div className={`text-6xl font-black tabular-nums transition-all duration-150 ${
-                phase === 'spinning' ? 'text-yellow-400 scale-110' : 'text-primary scale-100'
-              }`}>
-                {displayHome}
-              </div>
-              <span className="text-gray-600 text-3xl font-light">-</span>
-              <div className={`text-6xl font-black tabular-nums transition-all duration-150 ${
-                phase === 'spinning' ? 'text-yellow-400 scale-110' : 'text-primary scale-100'
-              }`}>
-                {displayAway}
-              </div>
-              <span className="text-gray-300 text-sm font-bold flex-1 text-left leading-tight">{data.awayTeam}</span>
+            <span className="text-gray-600 text-3xl font-light">-</span>
+            <div className={`text-6xl font-black tabular-nums transition-all duration-150 ${
+              !revealed ? 'text-yellow-400 scale-110' : 'text-primary scale-100'
+            }`}>
+              {displayAway}
             </div>
+            <span className="text-gray-300 text-sm font-bold flex-1 text-left leading-tight">{data.awayTeam}</span>
+          </div>
 
-            {phase === 'reveal' && (
-              <button
-                onClick={onClose}
-                className="w-full bg-primary text-black font-black text-lg py-3.5 rounded-2xl active:scale-95 transition-all shadow-green"
-              >
-                יאללה!
-              </button>
-            )}
-          </>
-        )}
+          {revealed && (
+            <button
+              onClick={onClose}
+              className="w-full bg-primary text-black font-black text-lg py-3.5 rounded-2xl active:scale-95 transition-all shadow-green"
+            >
+              יאללה!
+            </button>
+          )}
+        </>
       </div>
     </div>
   )
@@ -366,21 +348,21 @@ export default function HomePage() {
 
   const applyMinute90 = async (match: Match) => {
     if (!match.userPrediction) return
-    setMinute90Reveal({
-      homeTeam: match.homeTeam.nameHe,
-      awayTeam: match.awayTeam.nameHe,
-      newHome: 0,
-      newAway: 0,
-      phase: 'loading',
-    })
+    setPowerupLoading(`90-${match.id}`)
     const res = await fetch('/api/predictions/minute90', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ predictionId: match.userPrediction.id }),
     })
+    setPowerupLoading(null)
     const data = await res.json()
     if (res.ok) {
-      setMinute90Reveal(prev => prev ? { ...prev, newHome: data.newHome, newAway: data.newAway, phase: 'spinning' } : null)
+      setMinute90Reveal({
+        homeTeam: match.homeTeam.nameHe,
+        awayTeam: match.awayTeam.nameHe,
+        newHome: data.newHome,
+        newAway: data.newAway,
+      })
       if (primaryLeague) fetchPrimaryLeague(primaryLeague.id)
     } else {
       setMinute90Reveal(null)
