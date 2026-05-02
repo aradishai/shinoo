@@ -5,7 +5,7 @@ const SECRET = 'shinoo-admin-2026'
 
 export async function POST(request: Request) {
   try {
-    const { secret, userId, username } = await request.json()
+    const { secret, userId, username, includeLive } = await request.json()
     if (secret !== SECRET)
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
@@ -17,9 +17,9 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: 'user not found' }, { status: 404 })
     const resolvedUserId = user.id
 
-    // Fetch all predictions on open matches for this user
+    const matchStatuses = includeLive ? ['SCHEDULED', 'LIVE', 'PAUSED', 'LOCKED'] : ['SCHEDULED']
     const predictions = await (db.prediction as any).findMany({
-      where: { userId: resolvedUserId, match: { status: 'SCHEDULED' } },
+      where: { userId: resolvedUserId, match: { status: { in: matchStatuses } } },
     })
 
     const refund = { x2: 0, shinoo: 0, x3: 0, goals: 0, minute90: 0, split: 0 }
