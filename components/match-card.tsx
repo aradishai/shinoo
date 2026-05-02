@@ -362,7 +362,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           )}
           {showM90 && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
-              <img src="/btn-90.jpg" alt="90'" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+              <img src="/btn-90.jpg" alt="90'" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} />
             </button>
           )}
         </div>

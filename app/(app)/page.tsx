@@ -74,86 +74,87 @@ interface Minute90RevealData {
   newAway: number
 }
 
-function Minute90RevealModal({ data, onClose }: { data: Minute90RevealData; onClose: () => void }) {
-  const [displayHome, setDisplayHome] = useState(Math.floor(Math.random() * 5))
-  const [displayAway, setDisplayAway] = useState(Math.floor(Math.random() * 5))
-  const [revealed, setRevealed] = useState(false)
+const SLOT_ITEM_H = 80
+const SLOT_SEQUENCE = [0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5]
+
+function SlotDigit({ target, onDone, delay = 0 }: { target: number; onDone?: () => void; delay?: number }) {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const sequence = [...SLOT_SEQUENCE, target]
 
   useEffect(() => {
-    let frame = 0
-    const intervalRef = { current: 0 as unknown as ReturnType<typeof setInterval> }
+    const el = trackRef.current
+    if (!el) return
+    el.style.transition = 'none'
+    el.style.transform = 'translateY(0px)'
+    el.getBoundingClientRect() // force reflow
 
-    const tick = () => {
-      frame++
-      if (frame < 18) {
-        setDisplayHome(Math.floor(Math.random() * 5))
-        setDisplayAway(Math.floor(Math.random() * 5))
-      } else {
-        setDisplayHome(frame % 2 === 0 ? data.newHome : Math.floor(Math.random() * 5))
-        setDisplayAway(frame % 2 === 0 ? data.newAway : Math.floor(Math.random() * 5))
-      }
-      if (frame === 17) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = setInterval(tick, 200)
-      }
-      if (frame >= 23) {
-        clearInterval(intervalRef.current)
-        setDisplayHome(data.newHome)
-        setDisplayAway(data.newAway)
-        setTimeout(() => setRevealed(true), 250)
-      }
-    }
+    const start = setTimeout(() => {
+      el.style.transition = `transform 5s cubic-bezier(0.12, 0.8, 0.2, 1)`
+      el.style.transform = `translateY(-${(sequence.length - 1) * SLOT_ITEM_H}px)`
+    }, delay)
 
-    intervalRef.current = setInterval(tick, 80)
-    return () => clearInterval(intervalRef.current)
-  }, [data.newHome, data.newAway])
+    const done = setTimeout(() => onDone?.(), delay + 5100)
+    return () => { clearTimeout(start); clearTimeout(done) }
+  }, [])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-6" dir="rtl">
-      <div className="bg-dark-card border border-dark-border rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
-
-        <>
-          <div className="mb-4">
-            {!revealed ? (
-              <div className="text-4xl animate-pulse">🎰</div>
-            ) : (
-              <div className="text-4xl">🎉</div>
-            )}
+    <div style={{ height: SLOT_ITEM_H, overflow: 'hidden', width: 64 }}>
+      <div ref={trackRef}>
+        {sequence.map((n, i) => (
+          <div key={i} style={{ height: SLOT_ITEM_H }} className="flex items-center justify-center">
+            <span className="text-7xl font-black tabular-nums text-white leading-none">{n}</span>
           </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
-          <p className={`font-black text-base mb-1 ${revealed ? 'text-white' : 'text-gray-400'}`}>
-            {!revealed ? 'מגריל...' : 'הניחוש החדש שלך!'}
-          </p>
+function Minute90RevealModal({ data, onClose }: { data: Minute90RevealData; onClose: () => void }) {
+  const [revealed, setRevealed] = useState(false)
+  const doneCount = useRef(0)
 
-          {revealed && (
-            <p className="text-gray-500 text-xs mb-5">הניחוש הוחלף בהצלחה</p>
-          )}
+  const handleSlotDone = () => {
+    doneCount.current++
+    if (doneCount.current >= 2) setRevealed(true)
+  }
 
-          <div className="flex items-center justify-center gap-3 my-6">
-            <span className="text-gray-300 text-sm font-bold flex-1 text-right leading-tight">{data.homeTeam}</span>
-            <div className={`text-6xl font-black tabular-nums transition-all duration-150 ${
-              !revealed ? 'text-yellow-400 scale-110' : 'text-primary scale-100'
-            }`}>
-              {displayHome}
-            </div>
-            <span className="text-gray-600 text-3xl font-light">-</span>
-            <div className={`text-6xl font-black tabular-nums transition-all duration-150 ${
-              !revealed ? 'text-yellow-400 scale-110' : 'text-primary scale-100'
-            }`}>
-              {displayAway}
-            </div>
-            <span className="text-gray-300 text-sm font-bold flex-1 text-left leading-tight">{data.awayTeam}</span>
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 px-6" dir="rtl">
+      <div className="bg-dark-card border border-dark-border rounded-3xl w-full max-w-sm text-center shadow-2xl overflow-hidden">
+
+        {/* Header */}
+        <div className="px-8 pt-8 pb-4">
+          <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">דקה 90′</p>
+          <p className="text-white font-black text-lg">הניחוש החדש שלך</p>
+        </div>
+
+        {/* Scoreboard */}
+        <div className="bg-black/40 mx-4 rounded-2xl px-4 py-5 mb-4 border border-white/5">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <span className="text-gray-300 text-sm font-bold text-right flex-1 leading-snug">{data.homeTeam}</span>
+            <span className="text-gray-300 text-sm font-bold text-left flex-1 leading-snug">{data.awayTeam}</span>
           </div>
+          <div className="flex items-center justify-center gap-4">
+            <SlotDigit target={data.newHome} onDone={handleSlotDone} delay={0} />
+            <span className="text-5xl font-black text-gray-500 leading-none mb-1">:</span>
+            <SlotDigit target={data.newAway} onDone={handleSlotDone} delay={150} />
+          </div>
+        </div>
 
-          {revealed && (
+        {/* CTA */}
+        <div className="px-8 pb-8">
+          {revealed ? (
             <button
               onClick={onClose}
-              className="w-full bg-primary text-black font-black text-lg py-3.5 rounded-2xl active:scale-95 transition-all shadow-green"
+              className="w-full bg-primary text-black font-black text-lg py-3.5 rounded-2xl active:scale-95 transition-all"
             >
-              יאללה!
+              יאללה! 🎯
             </button>
+          ) : (
+            <div className="py-3 text-gray-600 text-sm">מגריל...</div>
           )}
-        </>
+        </div>
       </div>
     </div>
   )
