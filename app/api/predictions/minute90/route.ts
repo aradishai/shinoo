@@ -33,19 +33,11 @@ export async function POST(request: Request) {
   if (elapsedMin >= 95)
     return NextResponse.json({ error: 'דקה 90 זמין רק עד דקה 90' }, { status: 400 })
 
-  if ((prediction as any).minute90Applied)
-    return NextResponse.json({ error: 'דקה 90 כבר הופעל על משחק זה' }, { status: 400 })
-
-  const user = await db.user.findUnique({ where: { id: userId }, select: { minute90Stock: true } })
-  if (!user || user.minute90Stock < 1)
-    return NextResponse.json({ error: 'אין לך דקה 90 — קנה בחנות' }, { status: 400 })
-
-  // Draw random scores (0-4 each)
+  // TESTING MODE — no restrictions
   const newHome = Math.floor(Math.random() * 5)
   const newAway = Math.floor(Math.random() * 5)
   const matchday = getRoundNumber(prediction.match.round)
 
-  await db.user.update({ where: { id: userId }, data: { minute90Stock: { decrement: 1 } } })
   await db.prediction.update({
     where: { id: predictionId },
     data: { predictedHomeScore: newHome, predictedAwayScore: newAway, minute90Applied: true } as any,
