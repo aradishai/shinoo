@@ -27,26 +27,14 @@ export async function POST(request: Request) {
   if (!['LIVE', 'PAUSED'].includes(prediction.match.status))
     return NextResponse.json({ error: 'דקה 90 זמין רק במהלך משחק' }, { status: 400 })
 
-  const kickoff = prediction.match.kickoffAt
-  const now = new Date()
-  const elapsedMin = (now.getTime() - kickoff.getTime()) / 60000
-  if (elapsedMin >= 95)
-    return NextResponse.json({ error: 'דקה 90 זמין רק עד דקה 90' }, { status: 400 })
-
-  // TESTING MODE — no restrictions, no applied flag, no stock decrement
+  // TESTING MODE — all restrictions removed
   const newHome = Math.floor(Math.random() * 5)
   const newAway = Math.floor(Math.random() * 5)
-  const matchday = getRoundNumber(prediction.match.round)
 
   await db.prediction.update({
     where: { id: predictionId },
     data: { predictedHomeScore: newHome, predictedAwayScore: newAway } as any,
   })
-  if (matchday > 0) {
-    await db.powerupUsage.create({
-      data: { id: `90-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'MINUTE90' },
-    })
-  }
 
   const updatedUser = await db.user.findUnique({
     where: { id: userId },
