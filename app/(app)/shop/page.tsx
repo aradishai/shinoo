@@ -119,16 +119,18 @@ export default function ShopPage() {
                     <div className="relative">
                       <button
                         type="button"
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation() }}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTooltip(showTooltip ? null : item.id) }}
-                        style={{ touchAction: 'none' }}
+                        onPointerDown={(e) => e.preventDefault()}
+                        onClick={(e) => { e.stopPropagation(); setTooltip(showTooltip ? null : item.id) }}
+                        onFocus={(e) => e.currentTarget.blur()}
+                        style={{ touchAction: 'manipulation' }}
                         className="w-6 h-6 rounded-full border border-gray-600 text-gray-400 text-xs font-bold flex items-center justify-center hover:border-gray-400 hover:text-white transition-colors"
                       >
                         ?
                       </button>
                       {showTooltip && (
-                        <div className="fixed z-50 bg-dark-100 border border-dark-border rounded-xl px-3 py-2 text-xs text-gray-300 w-44 leading-relaxed shadow-xl">
+                        <div className="absolute right-8 top-1/2 -translate-y-1/2 z-50 bg-dark-100 border border-dark-border rounded-xl px-3 py-2 text-xs text-gray-300 w-44 leading-relaxed shadow-xl">
                           {item.description}
+                          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-dark-100 border-r border-t border-dark-border rotate-45" />
                         </div>
                       )}
                     </div>
