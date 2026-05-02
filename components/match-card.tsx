@@ -143,6 +143,18 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const badgeVariant = matchStatusToBadgeVariant(status)
   const liveMinute = useLiveMinute(match.kickoffAt, status)
 
+  const anyApplied = !!powerup && (
+    powerup.x2Applied || powerup.shinooApplied || powerup.x3Applied ||
+    powerup.goalsApplied || powerup.minute90Applied || powerup.splitApplied
+  )
+  const appliedImg = !powerup ? null :
+    powerup.x2Applied ? '/btn-x2.png' :
+    powerup.shinooApplied ? '/btn-shinoo.png' :
+    powerup.x3Applied ? '/btn-x3.jpg' :
+    powerup.goalsApplied ? '/btn-goals.jpg' :
+    powerup.minute90Applied ? '/btn-90.jpg' :
+    powerup.splitApplied ? '/btn-split.jpg' : null
+
   const matchUrl = leagueId
     ? `/matches/${match.id}?leagueId=${leagueId}`
     : `/matches/${match.id}`
@@ -153,6 +165,12 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       <div className="flex items-center justify-between mb-3">
         <Badge variant={badgeVariant} />
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          {anyApplied && appliedImg && (
+            <div className="flex items-center gap-1 bg-green-500/10 border border-green-500/30 rounded-full px-1.5 py-0.5">
+              <img src={appliedImg} className="h-4 w-auto" style={{ mixBlendMode: 'lighten' }} />
+              <span className="text-green-400 font-black text-[9px]">הופעל ✓</span>
+            </div>
+          )}
           {match.round && <span>{match.round}</span>}
         </div>
       </div>
@@ -258,110 +276,87 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     </div>
   )
 
-  // Live halftime powerup row (X2, SHINOO, 90')
-  const powerupRow = (() => {
+  // Unified powerup area — one powerup per match only
+  const powerupArea = (() => {
     if (!powerup || isFinished) return null
-    const now = Date.now()
-    const kickoffMs = new Date(match.kickoffAt).getTime()
-    const tournamentExtra = match.tournament?.type === 'world_cup' ? 5 : 3
-    const windowOpenMin = 45 + tournamentExtra
-    const windowCloseMin = windowOpenMin + 15
-    const inWindow = (isLive || match.status === 'PAUSED') &&
-      now >= kickoffMs + windowOpenMin * 60 * 1000 &&
-      now <= kickoffMs + windowCloseMin * 60 * 1000
 
-    const x2Done = powerup.x2Applied
-    const shinooDone = powerup.shinooApplied
-    const m90Done = powerup.minute90Applied
-    const showX2 = x2Done || powerup.x2Stock > 0
-    const showShinoo = shinooDone || powerup.shinooStock > 0
-    const showM90 = m90Done || powerup.minute90Stock > 0
+    // If any powerup already applied, show only that one with glow ring
+    if (anyApplied && appliedImg) {
+      return (
+        <div className="flex justify-center px-4 pb-4 pt-2 border-t border-dark-border/40">
+          <div className="relative">
+            <img
+              src={appliedImg}
+              className="h-10 w-auto rounded-xl ring-2 ring-green-400 ring-offset-2 ring-offset-dark-card animate-pulse"
+              style={{ mixBlendMode: 'lighten' }}
+            />
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center text-white text-[8px] font-black">✓</span>
+          </div>
+        </div>
+      )
+    }
 
-    if (!showX2 && !showShinoo && !showM90) return null
-    if (x2Done && shinooDone && m90Done) return null
-    if (!isLive && match.status !== 'PAUSED') return null
+    // Pre-match buttons (X3, GOALS+, SPLIT) — only when match is open
+    if (isOpen) {
+      const showX3 = powerup.x3Stock > 0
+      const showGoals = powerup.goalsStock > 0
+      const showSplit = powerup.splitStock > 0
+      if (!showX3 && !showGoals && !showSplit) return null
+      return (
+        <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
+          {showX3 && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX3() }} className="transition-all active:scale-95">
+              <img src="/btn-x3.jpg" alt="X3" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+            </button>
+          )}
+          {showGoals && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onGoals() }} className="transition-all active:scale-95">
+              <img src="/btn-goals.jpg" alt="GOALS+" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+            </button>
+          )}
+          {showSplit && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onSplit() }} className="transition-all active:scale-95">
+              <img src="/btn-split.jpg" alt="SPLIT" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+            </button>
+          )}
+        </div>
+      )
+    }
 
-    return (
-      <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
-        {showX2 && (x2Done ? (
-          <img src="/btn-x2.png" alt="X2" className="h-10 w-auto rounded-xl" />
-        ) : (
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !shinooDone) powerup.onX2() }}
-            className={`transition-all active:scale-95 ${!inWindow || shinooDone ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
-          >
-            <img src="/btn-x2.png" alt="X2" className="h-10 w-auto rounded-xl" />
-          </button>
-        ))}
-        {showShinoo && (shinooDone ? (
-          <img src="/btn-shinoo.png" alt="SHINOO" className="h-10 w-auto rounded-xl" />
-        ) : (
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow && !x2Done) powerup.onShinoo() }}
-            className={`transition-all active:scale-95 ${!inWindow || x2Done ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
-          >
-            <img src="/btn-shinoo.png" alt="SHINOO" className="h-10 w-auto rounded-xl" />
-          </button>
-        ))}
-        {showM90 && (m90Done ? (
-          <img src="/btn-90.jpg" alt="90'" className="h-10 w-auto rounded-xl" />
-        ) : (
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow) powerup.onMinute90() }}
-            className={`transition-all active:scale-95 ${!inWindow ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
-          >
-            <img src="/btn-90.jpg" alt="90'" className="h-10 w-auto rounded-xl" />
-          </button>
-        ))}
-      </div>
-    )
-  })()
+    // Live halftime buttons (X2, SHINOO, 90')
+    if (isLive || match.status === 'PAUSED') {
+      const now = Date.now()
+      const kickoffMs = new Date(match.kickoffAt).getTime()
+      const extra = match.tournament?.type === 'world_cup' ? 5 : 3
+      const windowOpenMin = 45 + extra
+      const windowCloseMin = windowOpenMin + 15
+      const inWindow = now >= kickoffMs + windowOpenMin * 60 * 1000 && now <= kickoffMs + windowCloseMin * 60 * 1000
+      const showX2 = powerup.x2Stock > 0
+      const showShinoo = powerup.shinooStock > 0
+      const showM90 = powerup.minute90Stock > 0
+      if (!showX2 && !showShinoo && !showM90) return null
+      return (
+        <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
+          {showX2 && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow) powerup.onX2() }} className={`transition-all active:scale-95 ${!inWindow ? 'grayscale opacity-30 cursor-default' : ''}`}>
+              <img src="/btn-x2.png" alt="X2" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+            </button>
+          )}
+          {showShinoo && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow) powerup.onShinoo() }} className={`transition-all active:scale-95 ${!inWindow ? 'grayscale opacity-30 cursor-default' : ''}`}>
+              <img src="/btn-shinoo.png" alt="SHINOO" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+            </button>
+          )}
+          {showM90 && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow) powerup.onMinute90() }} className={`transition-all active:scale-95 ${!inWindow ? 'grayscale opacity-30 cursor-default' : ''}`}>
+              <img src="/btn-90.jpg" alt="90'" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+            </button>
+          )}
+        </div>
+      )
+    }
 
-  // Pre-match powerup row (X3, GOALS+, SPLIT)
-  const prePowerupRow = (() => {
-    if (!powerup || !isOpen) return null
-    const x3Done = powerup.x3Applied
-    const goalsDone = powerup.goalsApplied
-    const splitDone = powerup.splitApplied
-    const showX3 = x3Done || powerup.x3Stock > 0
-    const showGoals = goalsDone || powerup.goalsStock > 0
-    const showSplit = splitDone || powerup.splitStock > 0
-    if (!showX3 && !showGoals && !showSplit) return null
-
-    return (
-      <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
-        {showX3 && (x3Done ? (
-          <img src="/btn-x3.jpg" alt="X3" className="h-10 w-auto rounded-xl" />
-        ) : (
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX3() }}
-            className="transition-all active:scale-95 cursor-pointer"
-          >
-            <img src="/btn-x3.jpg" alt="X3" className="h-10 w-auto rounded-xl" />
-          </button>
-        ))}
-        {showGoals && (goalsDone ? (
-          <img src="/btn-goals.jpg" alt="GOALS+" className="h-10 w-auto rounded-xl" />
-        ) : (
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onGoals() }}
-            className="transition-all active:scale-95 cursor-pointer"
-          >
-            <img src="/btn-goals.jpg" alt="GOALS+" className="h-10 w-auto rounded-xl" />
-          </button>
-        ))}
-        {showSplit && (splitDone ? (
-          <img src="/btn-split.jpg" alt="SPLIT" className="h-10 w-auto rounded-xl" />
-        ) : (
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onSplit() }}
-            className="transition-all active:scale-95 cursor-pointer"
-          >
-            <img src="/btn-split.jpg" alt="SPLIT" className="h-10 w-auto rounded-xl" />
-          </button>
-        ))}
-      </div>
-    )
+    return null
   })()
 
   const outerClass = 'bg-dark-card border border-dark-border rounded-2xl hover:border-primary/30 transition-all duration-200 overflow-hidden'
@@ -372,8 +367,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         <button className="block w-full text-right active:scale-[0.98]" onClick={onPredictClick}>
           {cardContent}
         </button>
-        {prePowerupRow}
-        {powerupRow}
+        {powerupArea}
       </div>
     )
   }
@@ -383,8 +377,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       <Link href={matchUrl} className="block active:scale-[0.98]">
         {cardContent}
       </Link>
-      {prePowerupRow}
-      {powerupRow}
+      {powerupArea}
     </div>
   )
 }

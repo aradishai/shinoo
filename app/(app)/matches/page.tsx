@@ -36,7 +36,7 @@ interface Match {
   homeScore?: number | null
   awayScore?: number | null
   round?: string | null
-  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; predictedTopScorerPlayerId?: string | null; x2Applied?: boolean; shinooApplied?: boolean } | null
+  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; predictedTopScorerPlayerId?: string | null; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; splitApplied?: boolean } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; user: { id: string; username: string } }[]
   powerupUsage?: { x2Used: number; shinooUsed: number } | null
 }
@@ -56,12 +56,19 @@ export default function MatchesPage() {
   const [leagueId, setLeagueId] = useState<string | null>(null)
   const [scores, setScores] = useState<Record<string, { home: string; away: string; topScorerId: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
+  const [userStock, setUserStock] = useState({ x3Stock: 0, goalsStock: 0, splitStock: 0 })
+  const [splitModal, setSplitModal] = useState<Match | null>(null)
+  const [splitScores, setSplitScores] = useState({ home: '0', away: '0' })
+  const [powerupLoading, setPowerupLoading] = useState<string | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     fetch('/api/leagues').then(r => r.json()).then(d => {
       const leagues = d.data || []
       if (leagues.length > 0) setLeagueId(leagues[0].id)
+    })
+    fetch('/api/auth/me').then(r => r.json()).then(d => {
+      setUserStock({ x3Stock: d.data?.x3Stock ?? 0, goalsStock: d.data?.goalsStock ?? 0, splitStock: d.data?.splitStock ?? 0 })
     })
   }, [])
 
@@ -158,9 +165,63 @@ export default function MatchesPage() {
     }
   }
 
+  const powerupToast = (imgSrc: string) => {
+    toast.custom((t) => (
+      <div className={`flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 shadow-xl transition-opacity ${t.visible ? 'opacity-100' : 'opacity-0'}`}>
+        <img src={imgSrc} className="h-8 w-auto rounded-lg" style={{ mixBlendMode: 'lighten' }} />
+        <span className="text-white font-black text-sm">הופעל</span>
+        <span className="text-green-400 font-black text-base">✓</span>
+      </div>
+    ), { duration: 2000 })
+  }
+
+  const applyPreMatchPowerup = async (match: Match, type: 'x3' | 'goals' | 'split', splitH?: number, splitA?: number) => {
+    if (!match.userPrediction) return
+    setPowerupLoading(`${type}-${match.id}`)
+    const body: Record<string, unknown> = { predictionId: match.userPrediction.id }
+    if (type === 'split') { body.splitHomeScore2 = splitH; body.splitAwayScore2 = splitA }
+    const imgMap = { x3: '/btn-x3.jpg', goals: '/btn-goals.jpg', split: '/btn-split.jpg' }
+    const res = await fetch(`/api/predictions/${type}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    })
+    setPowerupLoading(null)
+    const data = await res.json()
+    if (res.ok) {
+      powerupToast(imgMap[type])
+      setUserStock(s => ({ ...s, [`${type}Stock`]: Math.max(0, (s as any)[`${type}Stock`] - 1) }))
+      setMatches(prev => prev.map(m => m.id !== match.id ? m : {
+        ...m, userPrediction: m.userPrediction ? { ...m.userPrediction, [`${type}Applied`]: true } : m.userPrediction
+      }))
+    } else toast.error(data.error || 'שגיאה')
+  }
+
   return (
     <div className="px-4 py-6 pb-24">
 
+
+      {splitModal && splitModal.userPrediction && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70" onClick={() => setSplitModal(null)}>
+          <div className="bg-dark-card border border-dark-border rounded-t-3xl p-6 w-full max-w-sm pb-10" onClick={e => e.stopPropagation()}>
+            <h3 className="text-white font-black text-lg text-center mb-1">ספליט</h3>
+            <p className="text-gray-500 text-xs text-center mb-5">תוצאה ראשונה: <span className="text-primary font-bold">{splitModal.userPrediction.predictedHomeScore}-{splitModal.userPrediction.predictedAwayScore}</span> — בחר שנייה</p>
+            <div className="flex items-center justify-center gap-6 mb-6">
+              <div className="flex items-center gap-2">
+                <button onClick={() => setSplitScores(s => ({ ...s, home: String(Math.max(0, parseInt(s.home) - 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">−</button>
+                <span className="w-8 text-center text-2xl font-black text-white">{splitScores.home}</span>
+                <button onClick={() => setSplitScores(s => ({ ...s, home: String(Math.min(20, parseInt(s.home) + 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">+</button>
+              </div>
+              <span className="text-gray-500 font-bold">-</span>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setSplitScores(s => ({ ...s, away: String(Math.max(0, parseInt(s.away) - 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">−</button>
+                <span className="w-8 text-center text-2xl font-black text-white">{splitScores.away}</span>
+                <button onClick={() => setSplitScores(s => ({ ...s, away: String(Math.min(20, parseInt(s.away) + 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">+</button>
+              </div>
+            </div>
+            <button onClick={() => { applyPreMatchPowerup(splitModal, 'split', parseInt(splitScores.home), parseInt(splitScores.away)); setSplitModal(null) }} className="w-full py-3 rounded-2xl bg-yellow-500 text-black font-black text-sm mb-2 active:scale-95 transition-all">אשר ספליט</button>
+            <button onClick={() => setSplitModal(null)} className="w-full py-3 rounded-2xl bg-dark-50 border border-dark-border text-gray-500 font-medium text-sm">ביטול</button>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-between mb-6">
         <Link href="/" className="text-sm font-medium text-gray-300 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl hover:border-primary/40 hover:text-white transition-all">בית</Link>
@@ -273,6 +334,34 @@ export default function MatchesPage() {
                   </div>
                 )}
 
+
+                {/* Pre-match powerup buttons */}
+                {(() => {
+                  if (!isOpen || !hasPrediction) return null
+                  const anyApplied = match.userPrediction?.x3Applied || match.userPrediction?.goalsApplied || match.userPrediction?.splitApplied
+                  if (anyApplied) {
+                    const img = match.userPrediction?.x3Applied ? '/btn-x3.jpg' : match.userPrediction?.goalsApplied ? '/btn-goals.jpg' : '/btn-split.jpg'
+                    return (
+                      <div className="flex justify-center px-4 pb-3 pt-1 border-t border-dark-border/40">
+                        <div className="relative">
+                          <img src={img} className="h-10 w-auto rounded-xl ring-2 ring-green-400 ring-offset-2 ring-offset-dark-card animate-pulse" style={{ mixBlendMode: 'lighten' }} />
+                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center text-white text-[8px] font-black">✓</span>
+                        </div>
+                      </div>
+                    )
+                  }
+                  const showX3 = userStock.x3Stock > 0
+                  const showGoals = userStock.goalsStock > 0
+                  const showSplit = userStock.splitStock > 0
+                  if (!showX3 && !showGoals && !showSplit) return null
+                  return (
+                    <div className="flex gap-3 justify-center px-4 pb-3 pt-1 border-t border-dark-border/40" dir="ltr">
+                      {showX3 && <button onClick={() => applyPreMatchPowerup(match, 'x3')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-x3.jpg" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} /></button>}
+                      {showGoals && <button onClick={() => applyPreMatchPowerup(match, 'goals')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-goals.jpg" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} /></button>}
+                      {showSplit && <button onClick={() => { setSplitModal(match); setSplitScores({ home: '0', away: '0' }) }} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-split.jpg" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} /></button>}
+                    </div>
+                  )
+                })()}
 
                 {/* Member predictions for finished/live/locked matches */}
                 {(isFinished || isLive || isPaused || match.status === 'LOCKED') && match.memberPredictions && match.memberPredictions.length > 0 && (

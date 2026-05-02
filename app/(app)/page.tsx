@@ -187,6 +187,16 @@ export default function HomePage() {
     }
   }
 
+  const powerupToast = (imgSrc: string) => {
+    toast.custom((t) => (
+      <div className={`flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 shadow-xl transition-opacity ${t.visible ? 'opacity-100' : 'opacity-0'}`}>
+        <img src={imgSrc} className="h-8 w-auto rounded-lg" style={{ mixBlendMode: 'lighten' }} />
+        <span className="text-white font-black text-sm">הופעל</span>
+        <span className="text-green-400 font-black text-base">✓</span>
+      </div>
+    ), { duration: 2000 })
+  }
+
   const applyX2 = async (match: Match) => {
     if (!match.userPrediction) return
     setPowerupLoading(`x2-${match.id}`)
@@ -197,12 +207,8 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) {
-      toast.success(`X2 הופעל!`)
-      if (primaryLeague) fetchPrimaryLeague(primaryLeague.id)
-    } else {
-      toast.error(data.error || 'שגיאה')
-    }
+    if (res.ok) { powerupToast('/btn-x2.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    else toast.error(data.error || 'שגיאה')
   }
 
   const applyShinoo = async (match: Match, team: 'home' | 'away', delta: 1 | -1) => {
@@ -215,12 +221,8 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) {
-      toast.success(`שינוי הופעל!`)
-      if (primaryLeague) fetchPrimaryLeague(primaryLeague.id)
-    } else {
-      toast.error(data.error || 'שגיאה')
-    }
+    if (res.ok) { powerupToast('/btn-shinoo.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    else toast.error(data.error || 'שגיאה')
   }
 
   const applyX3 = async (match: Match) => {
@@ -233,7 +235,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { toast.success('X3 הופעל!'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-x3.jpg'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
     else toast.error(data.error || 'שגיאה')
   }
 
@@ -247,7 +249,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { toast.success('גולס+ הופעל!'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-goals.jpg'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
     else toast.error(data.error || 'שגיאה')
   }
 
@@ -261,7 +263,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { toast.success(`דקה 90! ${data.newHome}-${data.newAway}`); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-90.jpg'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
     else toast.error(data.error || 'שגיאה')
   }
 
@@ -275,7 +277,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { toast.success('ספליט הופעל!'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-split.jpg'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
     else toast.error(data.error || 'שגיאה')
   }
 
