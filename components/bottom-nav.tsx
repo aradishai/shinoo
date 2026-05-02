@@ -22,9 +22,9 @@ export function BottomNav() {
   }
 
   const navItems = [
-    { href: '/matches', label: 'ניחושים', icon: '/icons/money.png' },
-    { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png' },
     { href: '/shop', label: 'מרקט', icon: '/icons/market.png' },
+    { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png' },
+    { href: '/matches', label: 'ניחושים', icon: '/icons/money.png' },
     { href: '/', label: 'בית', icon: '/icons/home.png' },
   ]
 
