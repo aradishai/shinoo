@@ -278,12 +278,13 @@ export async function updateMatchStatuses(): Promise<void> {
         })
       }
     } else {
-      // Update live score
+      // Update live score + sync real elapsed minute from provider
       await db.match.update({
         where: { id: match.id },
         data: {
           homeScore: result.homeScore,
           awayScore: result.awayScore,
+          ...(result.elapsed != null ? { minute: result.elapsed } : {}),
         },
       })
     }

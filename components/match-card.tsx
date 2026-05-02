@@ -105,14 +105,29 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
-function useLiveMinute(kickoffAt: Date | string, status: string) {
+function useLiveMinute(kickoffAt: Date | string, status: string, apiMinute?: number | null) {
   const [minute, setMinute] = useState<string | null>(null)
 
   useEffect(() => {
     if (status !== 'LIVE' && status !== 'PAUSED') { setMinute(null); return }
 
+    // Use API-synced minute as base (corrects for late kickoffs)
+    // Then add local elapsed time since this hook ran to keep it ticking
+    const baseMinute = apiMinute ?? null
+    const hookStartTime = Date.now()
+
     const calc = () => {
-      const elapsed = (Date.now() - new Date(kickoffAt).getTime()) / 60000
+      let elapsed: number
+
+      if (baseMinute != null) {
+        // Dead-reckoning from last API sync
+        const localElapsed = (Date.now() - hookStartTime) / 60000
+        elapsed = baseMinute + localElapsed
+      } else {
+        // Fallback: calculate from kickoffAt
+        elapsed = (Date.now() - new Date(kickoffAt).getTime()) / 60000
+      }
+
       if (elapsed < 1) { setMinute(null); return }
 
       if (elapsed <= 48) {
@@ -120,8 +135,7 @@ function useLiveMinute(kickoffAt: Date | string, status: string) {
       } else if (elapsed <= 64) {
         setMinute('HT')
       } else if (elapsed <= 109) {
-        const sh = Math.floor(45 + (elapsed - 64))
-        setMinute(`${sh}'`)
+        setMinute(`${Math.min(90, Math.floor(45 + (elapsed - 64)))}'`)
       } else {
         setMinute('90+')
       }
@@ -130,7 +144,7 @@ function useLiveMinute(kickoffAt: Date | string, status: string) {
     calc()
     const interval = setInterval(calc, 15000)
     return () => clearInterval(interval)
-  }, [kickoffAt, status])
+  }, [kickoffAt, status, apiMinute])
 
   return minute
 }
@@ -144,7 +158,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const isLocked = status === 'LOCKED' || status === 'LIVE' || status === 'PAUSED'
   const isOpen = status === 'SCHEDULED' && new Date() < lockAt
   const badgeVariant = matchStatusToBadgeVariant(status)
-  const liveMinute = useLiveMinute(match.kickoffAt, status)
+  const liveMinute = useLiveMinute(match.kickoffAt, status, match.minute)
 
   const anyApplied = !!powerup && (
     powerup.x2Applied || powerup.shinooApplied || powerup.x3Applied ||

@@ -86,6 +86,7 @@ export class ApiFootballProvider implements FootballProvider {
         homeScore: fixture.goals.home ?? 0,
         awayScore: fixture.goals.away ?? 0,
         status: this.mapStatus(fixture.fixture.status.short),
+        elapsed: fixture.fixture.status.elapsed ?? null,
       }
     } catch (error) {
       console.error(`Failed to fetch match result for ${providerMatchId}:`, error)

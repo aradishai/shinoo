@@ -22,6 +22,7 @@ export interface ProviderResult {
   homeScore: number
   awayScore: number
   status: string
+  elapsed?: number | null
 }
 
 export interface ProviderScorer {
