@@ -35,8 +35,7 @@ export function calculatePoints(
     const isDraw = actualOutcome === 'draw'
     if (homeExact || awayExact) {
       resultPoints = 3
-      const teamName = homeExact ? 'הקבוצה הביתית' : 'הקבוצה האורחת'
-      explanationParts.push(`מגמה נכונה + ${teamName} מדויקת: 3 נקודות`)
+      explanationParts.push('מגמה נכונה + אחת מכמות השערים נכונה: 3 נקודות')
     } else if (isDraw) {
       resultPoints = 2
       explanationParts.push('תיקו נכון: 2 נקודות')
