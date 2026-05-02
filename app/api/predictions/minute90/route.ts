@@ -27,14 +27,35 @@ export async function POST(request: Request) {
   if (!['LIVE', 'PAUSED'].includes(prediction.match.status))
     return NextResponse.json({ error: 'דקה 90 זמין רק במהלך משחק' }, { status: 400 })
 
-  // TESTING MODE — all restrictions removed
+  const kickoff = prediction.match.kickoffAt
+  const now = new Date()
+  const elapsedMin = (now.getTime() - kickoff.getTime()) / 60000
+  if (elapsedMin >= 95)
+    return NextResponse.json({ error: 'דקה 90 זמין רק עד דקה 90' }, { status: 400 })
+
+  if ((prediction as any).minute90Applied)
+    return NextResponse.json({ error: 'דקה 90 כבר הופעל על משחק זה' }, { status: 400 })
+
+  const user = await db.user.findUnique({ where: { id: userId }, select: { minute90Stock: true } })
+  if (!user || user.minute90Stock < 1)
+    return NextResponse.json({ error: 'אין לך דקה 90 — קנה בחנות' }, { status: 400 })
+
   const newHome = Math.floor(Math.random() * 6)
   const newAway = Math.floor(Math.random() * 6)
+  const matchday = getRoundNumber(prediction.match.round)
 
+  await db.user.update({ where: { id: userId }, data: { minute90Stock: { decrement: 1 } } })
   await db.prediction.update({
     where: { id: predictionId },
-    data: { predictedHomeScore: newHome, predictedAwayScore: newAway } as any,
+    data: { predictedHomeScore: newHome, predictedAwayScore: newAway, minute90Applied: true } as any,
   })
+  if (matchday > 0) {
+    await db.powerupUsage.upsert({
+      where: { id: `90-${predictionId}` },
+      update: {},
+      create: { id: `90-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'MINUTE90' },
+    })
+  }
 
   const updatedUser = await db.user.findUnique({
     where: { id: userId },

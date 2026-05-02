@@ -343,9 +343,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       const windowOpenMin = 45 + extra
       const windowCloseMin = windowOpenMin + 15
       const inHalftimeWindow = elapsedMin >= windowOpenMin && elapsedMin <= windowCloseMin
+      const before90 = elapsedMin < 95
+
       const showX2 = powerup.x2Stock > 0 && inHalftimeWindow
       const showShinoo = powerup.shinooStock > 0 && inHalftimeWindow
-      const showM90 = powerup.minute90Stock > 0 // TESTING: no time limit
+      const showM90 = powerup.minute90Stock > 0 && before90
 
       if (!showX2 && !showShinoo && !showM90) return null
       return (
