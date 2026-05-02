@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Badge, matchStatusToBadgeVariant } from './badge'
 import { Countdown } from './countdown'
@@ -107,26 +107,25 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
 
 function useLiveMinute(kickoffAt: Date | string, status: string, apiMinute?: number | null) {
   const [minute, setMinute] = useState<string | null>(null)
+  const maxElapsedRef = useRef(0)
 
   useEffect(() => {
-    if (status !== 'LIVE' && status !== 'PAUSED') { setMinute(null); return }
+    if (status !== 'LIVE' && status !== 'PAUSED') { setMinute(null); maxElapsedRef.current = 0; return }
 
-    // Use API-synced minute as base (corrects for late kickoffs)
-    // Then add local elapsed time since this hook ran to keep it ticking
-    const baseMinute = apiMinute ?? null
     const hookStartTime = Date.now()
 
     const calc = () => {
-      let elapsed: number
-
-      if (baseMinute != null) {
-        // Dead-reckoning from last API sync
-        const localElapsed = (Date.now() - hookStartTime) / 60000
-        elapsed = baseMinute + localElapsed
+      // Dead-reckoning from last API sync, or fallback to kickoffAt
+      let rawElapsed: number
+      if (apiMinute != null) {
+        rawElapsed = apiMinute + (Date.now() - hookStartTime) / 60000
       } else {
-        // Fallback: calculate from kickoffAt
-        elapsed = (Date.now() - new Date(kickoffAt).getTime()) / 60000
+        rawElapsed = (Date.now() - new Date(kickoffAt).getTime()) / 60000
       }
+
+      // Never go backward — clock only moves forward
+      const elapsed = Math.max(rawElapsed, maxElapsedRef.current)
+      maxElapsedRef.current = elapsed
 
       if (elapsed < 1) { setMinute(null); return }
 
