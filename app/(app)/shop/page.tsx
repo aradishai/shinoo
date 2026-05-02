@@ -9,15 +9,15 @@ const POWERUP_COST = 2
 const SHOP_ITEMS = [
   { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false },
   { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const, comingSoon: false },
-  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.jpg', stockKey: null, comingSoon: true },
-  { id: 'goals', name: 'גולס+', description: 'לשימוש לפני המשחק – כל גול שווה נקודה', img: '/btn-goals.jpg', stockKey: null, comingSoon: true },
-  { id: '90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.jpg', stockKey: null, comingSoon: true },
-  { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.jpg', stockKey: null, comingSoon: true },
+  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.jpg', stockKey: 'x3Stock' as const, comingSoon: false },
+  { id: 'goals', name: 'גולס+', description: 'לשימוש לפני המשחק – כל גול שווה נקודה', img: '/btn-goals.jpg', stockKey: 'goalsStock' as const, comingSoon: false },
+  { id: 'minute90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.jpg', stockKey: 'minute90Stock' as const, comingSoon: false },
+  { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.jpg', stockKey: 'splitStock' as const, comingSoon: false },
 ]
 
 export default function ShopPage() {
   const [coins, setCoins] = useState<number | null>(null)
-  const [stock, setStock] = useState({ x2Stock: 0, shinooStock: 0 })
+  const [stock, setStock] = useState({ x2Stock: 0, shinooStock: 0, x3Stock: 0, goalsStock: 0, minute90Stock: 0, splitStock: 0 })
   const [loading, setLoading] = useState<string | null>(null)
   const [tooltip, setTooltip] = useState<string | null>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
@@ -27,7 +27,14 @@ export default function ShopPage() {
       .then(r => r.json())
       .then(d => {
         setCoins(d.data?.coins ?? 0)
-        setStock({ x2Stock: d.data?.x2Stock ?? 0, shinooStock: d.data?.shinooStock ?? 0 })
+        setStock({
+          x2Stock: d.data?.x2Stock ?? 0,
+          shinooStock: d.data?.shinooStock ?? 0,
+          x3Stock: d.data?.x3Stock ?? 0,
+          goalsStock: d.data?.goalsStock ?? 0,
+          minute90Stock: d.data?.minute90Stock ?? 0,
+          splitStock: d.data?.splitStock ?? 0,
+        })
       })
   }, [])
 
@@ -52,7 +59,14 @@ export default function ShopPage() {
       const data = await res.json()
       if (!res.ok) { toast.error(data.error || 'שגיאה'); return }
       setCoins(data.coins)
-      setStock({ x2Stock: data.x2Stock, shinooStock: data.shinooStock })
+      setStock({
+        x2Stock: data.x2Stock ?? 0,
+        shinooStock: data.shinooStock ?? 0,
+        x3Stock: data.x3Stock ?? 0,
+        goalsStock: data.goalsStock ?? 0,
+        minute90Stock: data.minute90Stock ?? 0,
+        splitStock: data.splitStock ?? 0,
+      })
       toast.success('נקנה!')
     } catch {
       toast.error('שגיאת חיבור')

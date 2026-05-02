@@ -16,6 +16,10 @@ export async function GET(request: Request) {
         coins: true,
         x2Stock: true,
         shinooStock: true,
+        x3Stock: true,
+        goalsStock: true,
+        minute90Stock: true,
+        splitStock: true,
         createdAt: true,
         _count: {
           select: {

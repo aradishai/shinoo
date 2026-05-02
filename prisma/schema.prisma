@@ -15,6 +15,10 @@ model User {
   coins             Int                @default(8)
   x2Stock           Int                @default(0)
   shinooStock       Int                @default(0)
+  x3Stock           Int                @default(0)
+  goalsStock        Int                @default(0)
+  minute90Stock     Int                @default(0)
+  splitStock        Int                @default(0)
   leagueMembers     LeagueMember[]
   predictions       Prediction[]
   createdLeagues    League[]
@@ -126,6 +130,12 @@ model Prediction {
   predictedTopScorerPlayerId String?
   x2Applied                  Boolean  @default(false)
   shinooApplied              Boolean  @default(false)
+  x3Applied                  Boolean  @default(false)
+  goalsApplied               Boolean  @default(false)
+  minute90Applied            Boolean  @default(false)
+  splitApplied               Boolean  @default(false)
+  splitHomeScore2            Int?
+  splitAwayScore2            Int?
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
   lockedSnapshot             String?

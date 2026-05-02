@@ -166,8 +166,35 @@ export async function recalculatePoints(matchId: string): Promise<void> {
       match.awayScore,
     )
 
-    const totalPoints = prediction.x2Applied ? result.resultPoints * 2 : result.totalPoints
-    const explanation = prediction.x2Applied ? `${result.explanation} | X2: ${totalPoints} נקודות` : result.explanation
+    let basePoints = result.resultPoints
+
+    // SPLIT: take the better of two predictions
+    if ((prediction as any).splitApplied && (prediction as any).splitHomeScore2 !== null && (prediction as any).splitAwayScore2 !== null) {
+      const result2 = calculatePoints(
+        (prediction as any).splitHomeScore2,
+        (prediction as any).splitAwayScore2,
+        match.homeScore,
+        match.awayScore,
+      )
+      basePoints = Math.max(basePoints, result2.resultPoints)
+    }
+
+    // GOALS+: each goal scored adds 1 point
+    const goalsBonus = (prediction as any).goalsApplied ? (match.homeScore + match.awayScore) : 0
+
+    // Multiplier (X3 > X2, can't both be applied)
+    let multipliedPoints = basePoints
+    if ((prediction as any).x3Applied) multipliedPoints = basePoints * 3
+    else if (prediction.x2Applied) multipliedPoints = basePoints * 2
+
+    const totalPoints = multipliedPoints + goalsBonus + result.topScorerPoints
+
+    const parts: string[] = [result.explanation]
+    if ((prediction as any).splitApplied) parts.push('ספליט')
+    if ((prediction as any).x3Applied) parts.push(`X3: ${multipliedPoints}`)
+    else if (prediction.x2Applied) parts.push(`X2: ${multipliedPoints}`)
+    if (goalsBonus > 0) parts.push(`גולס+: +${goalsBonus}`)
+    const explanation = parts.join(' | ')
 
     await db.predictionPoints.upsert({
       where: { predictionId: prediction.id },

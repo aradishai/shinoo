@@ -31,11 +31,23 @@ interface PowerupProps {
   predictionId: string
   x2Applied: boolean
   shinooApplied: boolean
+  x3Applied: boolean
+  goalsApplied: boolean
+  minute90Applied: boolean
+  splitApplied: boolean
   x2Stock: number
   shinooStock: number
+  x3Stock: number
+  goalsStock: number
+  minute90Stock: number
+  splitStock: number
   usage: { x2Used: number; shinooUsed: number } | null
   onX2: () => void
   onShinoo: () => void
+  onX3: () => void
+  onGoals: () => void
+  onMinute90: () => void
+  onSplit: () => void
   loading?: string | null
 }
 
@@ -246,24 +258,29 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     </div>
   )
 
-  // Powerup buttons — inside the card but outside the Link click area
+  // Live halftime powerup row (X2, SHINOO, 90')
   const powerupRow = (() => {
     if (!powerup || isFinished) return null
     const now = Date.now()
     const kickoffMs = new Date(match.kickoffAt).getTime()
     const tournamentExtra = match.tournament?.type === 'world_cup' ? 5 : 3
-    const firstHalfEndMin = 45 + tournamentExtra        // 48 or 50
-    const windowOpenMin = firstHalfEndMin               // open at halftime
-    const windowCloseMin = firstHalfEndMin + 15         // 63 or 65
+    const windowOpenMin = 45 + tournamentExtra
+    const windowCloseMin = windowOpenMin + 15
     const inWindow = (isLive || match.status === 'PAUSED') &&
       now >= kickoffMs + windowOpenMin * 60 * 1000 &&
       now <= kickoffMs + windowCloseMin * 60 * 1000
+
     const x2Done = powerup.x2Applied
     const shinooDone = powerup.shinooApplied
+    const m90Done = powerup.minute90Applied
     const showX2 = x2Done || powerup.x2Stock > 0
     const showShinoo = shinooDone || powerup.shinooStock > 0
-    if (!showX2 && !showShinoo) return null
-    if (x2Done && shinooDone) return null
+    const showM90 = m90Done || powerup.minute90Stock > 0
+
+    if (!showX2 && !showShinoo && !showM90) return null
+    if (x2Done && shinooDone && m90Done) return null
+    if (!isLive && match.status !== 'PAUSED') return null
+
     return (
       <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
         {showX2 && (x2Done ? (
@@ -286,6 +303,63 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
             <img src="/btn-shinoo.png" alt="SHINOO" className="h-10 w-auto rounded-xl" />
           </button>
         ))}
+        {showM90 && (m90Done ? (
+          <img src="/btn-90.jpg" alt="90'" className="h-10 w-auto rounded-xl" />
+        ) : (
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (inWindow) powerup.onMinute90() }}
+            className={`transition-all active:scale-95 ${!inWindow ? 'grayscale opacity-30 cursor-default' : 'cursor-pointer'}`}
+          >
+            <img src="/btn-90.jpg" alt="90'" className="h-10 w-auto rounded-xl" />
+          </button>
+        ))}
+      </div>
+    )
+  })()
+
+  // Pre-match powerup row (X3, GOALS+, SPLIT)
+  const prePowerupRow = (() => {
+    if (!powerup || !isOpen) return null
+    const x3Done = powerup.x3Applied
+    const goalsDone = powerup.goalsApplied
+    const splitDone = powerup.splitApplied
+    const showX3 = x3Done || powerup.x3Stock > 0
+    const showGoals = goalsDone || powerup.goalsStock > 0
+    const showSplit = splitDone || powerup.splitStock > 0
+    if (!showX3 && !showGoals && !showSplit) return null
+
+    return (
+      <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
+        {showX3 && (x3Done ? (
+          <img src="/btn-x3.jpg" alt="X3" className="h-10 w-auto rounded-xl" />
+        ) : (
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX3() }}
+            className="transition-all active:scale-95 cursor-pointer"
+          >
+            <img src="/btn-x3.jpg" alt="X3" className="h-10 w-auto rounded-xl" />
+          </button>
+        ))}
+        {showGoals && (goalsDone ? (
+          <img src="/btn-goals.jpg" alt="GOALS+" className="h-10 w-auto rounded-xl" />
+        ) : (
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onGoals() }}
+            className="transition-all active:scale-95 cursor-pointer"
+          >
+            <img src="/btn-goals.jpg" alt="GOALS+" className="h-10 w-auto rounded-xl" />
+          </button>
+        ))}
+        {showSplit && (splitDone ? (
+          <img src="/btn-split.jpg" alt="SPLIT" className="h-10 w-auto rounded-xl" />
+        ) : (
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onSplit() }}
+            className="transition-all active:scale-95 cursor-pointer"
+          >
+            <img src="/btn-split.jpg" alt="SPLIT" className="h-10 w-auto rounded-xl" />
+          </button>
+        ))}
       </div>
     )
   })()
@@ -298,6 +372,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         <button className="block w-full text-right active:scale-[0.98]" onClick={onPredictClick}>
           {cardContent}
         </button>
+        {prePowerupRow}
         {powerupRow}
       </div>
     )
@@ -308,6 +383,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       <Link href={matchUrl} className="block active:scale-[0.98]">
         {cardContent}
       </Link>
+      {prePowerupRow}
       {powerupRow}
     </div>
   )
