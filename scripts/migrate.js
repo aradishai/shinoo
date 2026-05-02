@@ -37,6 +37,16 @@ async function main() {
     await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "coins" INTEGER NOT NULL DEFAULT 8`)
     await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "x2Stock" INTEGER NOT NULL DEFAULT 0`)
     await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "shinooStock" INTEGER NOT NULL DEFAULT 0`)
+    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "x3Stock" INTEGER NOT NULL DEFAULT 0`)
+    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "goalsStock" INTEGER NOT NULL DEFAULT 0`)
+    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "minute90Stock" INTEGER NOT NULL DEFAULT 0`)
+    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "splitStock" INTEGER NOT NULL DEFAULT 0`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "x3Applied" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "goalsApplied" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "minute90Applied" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "splitApplied" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "splitHomeScore2" INTEGER`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "splitAwayScore2" INTEGER`)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS "CoinBet" (
         "id" TEXT NOT NULL,
