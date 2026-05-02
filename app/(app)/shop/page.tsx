@@ -104,8 +104,13 @@ export default function ShopPage() {
 
                 {/* Logo + ? */}
                 <div className="flex-1 flex items-center justify-start gap-2 pl-2">
-                  <div className="relative w-36 flex justify-start">
-                    <img src={item.img} alt={item.name} className={`${item.imgClass} rounded-xl shrink-0 max-w-full`} style={{ mixBlendMode: 'lighten' }} />
+                  <div className="relative">
+                    <img
+                      src={item.img}
+                      alt={item.name}
+                      className={`${item.imgClass.includes('h-12') ? 'w-36 h-12' : 'w-36 h-20'} object-contain object-right rounded-xl`}
+                      style={{ mixBlendMode: 'lighten' }}
+                    />
                     {item.comingSoon && (
                       <span className="absolute -top-1.5 -right-1.5 bg-gray-700 text-gray-300 text-[9px] font-black rounded-full px-1.5 leading-5">בקרוב</span>
                     )}
@@ -113,16 +118,17 @@ export default function ShopPage() {
                   {!item.comingSoon && (
                     <div className="relative">
                       <button
+                        type="button"
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation() }}
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTooltip(showTooltip ? null : item.id) }}
-                        style={{ touchAction: 'manipulation' }}
+                        style={{ touchAction: 'none' }}
                         className="w-6 h-6 rounded-full border border-gray-600 text-gray-400 text-xs font-bold flex items-center justify-center hover:border-gray-400 hover:text-white transition-colors"
                       >
                         ?
                       </button>
                       {showTooltip && (
-                        <div className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-dark-100 border border-dark-border rounded-xl px-3 py-2 text-xs text-gray-300 w-44 leading-relaxed shadow-xl">
+                        <div className="fixed z-50 bg-dark-100 border border-dark-border rounded-xl px-3 py-2 text-xs text-gray-300 w-44 leading-relaxed shadow-xl">
                           {item.description}
-                          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-dark-100 border-r border-t border-dark-border rotate-45" />
                         </div>
                       )}
                     </div>
