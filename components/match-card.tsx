@@ -18,6 +18,9 @@ interface Team {
 interface Prediction {
   predictedHomeScore: number
   predictedAwayScore: number
+  splitApplied?: boolean
+  splitHomeScore2?: number | null
+  splitAwayScore2?: number | null
 }
 
 interface MemberPrediction {
@@ -166,9 +169,9 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         <Badge variant={badgeVariant} />
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           {anyApplied && appliedImg && (
-            <div className="flex items-center gap-1 bg-green-500/10 border border-green-500/30 rounded-full px-1.5 py-0.5">
-              <img src={appliedImg} className="h-4 w-auto" style={{ mixBlendMode: 'lighten' }} />
-              <span className="text-green-400 font-black text-[9px]">הופעל ✓</span>
+            <div className="flex items-center gap-1 bg-green-500/10 border border-green-500/30 rounded-full px-2 py-0.5">
+              <img src={appliedImg} className="h-6 w-auto" style={{ mixBlendMode: 'lighten' }} />
+              <span className="text-green-400 font-black text-xs">✓</span>
             </div>
           )}
           {match.round && <span>{match.round}</span>}
@@ -245,10 +248,18 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       {(prediction || memberPredictions.length > 0) && (
         <div className="mt-3 pt-3 border-t border-dark-border space-y-1.5">
           {prediction && (
-            <div className="flex items-center justify-between">
-              <span className="text-primary font-bold text-sm">{prediction.predictedHomeScore} - {prediction.predictedAwayScore}</span>
-              <span className="text-xs text-gray-500">אני</span>
-            </div>
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-primary font-bold text-sm">{prediction.predictedHomeScore} - {prediction.predictedAwayScore}</span>
+                <span className="text-xs text-gray-500">{prediction.splitApplied ? 'ניחוש 1' : 'אני'}</span>
+              </div>
+              {prediction.splitApplied && prediction.splitHomeScore2 != null && prediction.splitAwayScore2 != null && (
+                <div className="flex items-center justify-between">
+                  <span className="text-primary font-bold text-sm">{prediction.splitHomeScore2} - {prediction.splitAwayScore2}</span>
+                  <span className="text-xs text-gray-500">ניחוש 2</span>
+                </div>
+              )}
+            </>
           )}
           {memberPredictions.map((mp) => (
             <div key={mp.id} className="flex items-center justify-between">

@@ -31,7 +31,7 @@ interface Match {
   minute?: number | null
   round?: string | null
   tournament?: { type: string } | null
-  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean } | null
+  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; splitHomeScore2?: number | null; splitAwayScore2?: number | null } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; user: { id: string; username: string } }[]
   powerupUsage?: { x2Used: number; shinooUsed: number } | null
 }
@@ -306,17 +306,23 @@ export default function HomePage() {
             <h3 className="text-white font-black text-lg text-center mb-1">ספליט</h3>
             <p className="text-gray-500 text-xs text-center mb-1">הניחוש הראשון שלך: <span className="text-primary font-bold">{splitModal.userPrediction.predictedHomeScore}-{splitModal.userPrediction.predictedAwayScore}</span></p>
             <p className="text-gray-500 text-xs text-center mb-5">בחר תוצאה שנייה — המערכת תבחר את הטובה</p>
-            <div className="flex items-center justify-center gap-6 mb-6">
-              <div className="flex items-center gap-2">
-                <button onClick={() => setSplitScores(s => ({ ...s, home: String(Math.max(0, parseInt(s.home) - 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">−</button>
-                <span className="w-8 text-center text-2xl font-black text-white">{splitScores.home}</span>
-                <button onClick={() => setSplitScores(s => ({ ...s, home: String(Math.min(20, parseInt(s.home) + 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">+</button>
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-white text-sm font-bold">{splitModal.homeTeam.nameHe}</span>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setSplitScores(s => ({ ...s, home: String(Math.max(0, parseInt(s.home) - 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">−</button>
+                  <span className="w-8 text-center text-2xl font-black text-white">{splitScores.home}</span>
+                  <button onClick={() => setSplitScores(s => ({ ...s, home: String(Math.min(20, parseInt(s.home) + 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">+</button>
+                </div>
               </div>
-              <span className="text-gray-500 font-bold">-</span>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setSplitScores(s => ({ ...s, away: String(Math.max(0, parseInt(s.away) - 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">−</button>
-                <span className="w-8 text-center text-2xl font-black text-white">{splitScores.away}</span>
-                <button onClick={() => setSplitScores(s => ({ ...s, away: String(Math.min(20, parseInt(s.away) + 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">+</button>
+              <span className="text-gray-500 font-bold mt-6">-</span>
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-white text-sm font-bold">{splitModal.awayTeam.nameHe}</span>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setSplitScores(s => ({ ...s, away: String(Math.max(0, parseInt(s.away) - 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">−</button>
+                  <span className="w-8 text-center text-2xl font-black text-white">{splitScores.away}</span>
+                  <button onClick={() => setSplitScores(s => ({ ...s, away: String(Math.min(20, parseInt(s.away) + 1)) }))} className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg">+</button>
+                </div>
               </div>
             </div>
             <button

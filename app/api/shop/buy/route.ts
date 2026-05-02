@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
 const PRICES: Record<string, number> = {
-  x2: 2,
+  x2: 3,
   shinoo: 2,
-  x3: 3,
+  x3: 4,
   goals: 3,
   minute90: 2,
-  split: 3,
+  split: 2,
 }
 
 const STOCK_FIELDS: Record<string, string> = {

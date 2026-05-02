@@ -32,6 +32,11 @@ export async function POST(request: Request) {
       data: { leagueId: league.id, userId, role: 'MEMBER' },
     })
 
+    await db.user.update({
+      where: { id: userId },
+      data: { coins: { increment: 4 } },
+    })
+
     return NextResponse.json(
       { data: { leagueId: league.id, leagueName: league.name }, message: 'הצטרפת לליגה בהצלחה!' },
       { status: 200 }

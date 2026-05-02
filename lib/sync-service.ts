@@ -264,6 +264,19 @@ export async function updateMatchStatuses(): Promise<void> {
 
       await syncMatchScorers(match.id)
       await recalculatePoints(match.id)
+
+      // Grant 1 coin to each user who predicted this match
+      const predictors = await db.prediction.findMany({
+        where: { matchId: match.id },
+        select: { userId: true },
+        distinct: ['userId'],
+      })
+      for (const { userId: predictorId } of predictors) {
+        await db.user.update({
+          where: { id: predictorId },
+          data: { coins: { increment: 1 } },
+        })
+      }
     } else {
       // Update live score
       await db.match.update({

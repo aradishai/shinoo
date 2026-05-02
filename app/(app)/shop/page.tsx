@@ -5,12 +5,12 @@ import Image from 'next/image'
 import toast from 'react-hot-toast'
 
 const SHOP_ITEMS = [
-  { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false, imgClass: 'h-12 w-auto', cost: 2 },
+  { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false, imgClass: 'h-12 w-auto', cost: 3 },
   { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const, comingSoon: false, imgClass: 'h-12 w-auto', cost: 2 },
-  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.jpg', stockKey: 'x3Stock' as const, comingSoon: false, imgClass: 'h-20 w-auto', cost: 3 },
+  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.jpg', stockKey: 'x3Stock' as const, comingSoon: false, imgClass: 'h-20 w-auto', cost: 4 },
   { id: 'goals', name: 'גולס+', description: 'לשימוש לפני המשחק – כל גול שווה נקודה', img: '/btn-goals.jpg', stockKey: 'goalsStock' as const, comingSoon: false, imgClass: 'h-20 w-auto', cost: 3 },
   { id: 'minute90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.jpg', stockKey: 'minute90Stock' as const, comingSoon: false, imgClass: 'h-20 w-auto', cost: 2 },
-  { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.jpg', stockKey: 'splitStock' as const, comingSoon: false, imgClass: 'h-20 w-auto', cost: 3 },
+  { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.jpg', stockKey: 'splitStock' as const, comingSoon: false, imgClass: 'h-20 w-auto', cost: 2 },
 ]
 
 export default function ShopPage() {
@@ -102,10 +102,30 @@ export default function ShopPage() {
             <div key={item.id}>
               <div className={`flex items-center ${item.comingSoon ? 'opacity-40' : ''}`}>
 
-                {/* Owned count */}
-                <div className="w-12 flex items-center justify-center">
+                {/* Logo + ? */}
+                <div className="flex-1 flex items-center justify-start gap-2 pl-2">
+                  <div className="relative">
+                    <img src={item.img} alt={item.name} className={`${item.imgClass} rounded-xl shrink-0`} style={{ mixBlendMode: 'lighten' }} />
+                    {item.comingSoon && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-gray-700 text-gray-300 text-[9px] font-black rounded-full px-1.5 leading-5">בקרוב</span>
+                    )}
+                  </div>
                   {!item.comingSoon && (
-                    <span className={`font-black text-2xl ${owned > 0 ? 'text-white' : 'text-gray-600'}`}>×{owned}</span>
+                    <div className="relative">
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTooltip(showTooltip ? null : item.id) }}
+                        style={{ touchAction: 'manipulation' }}
+                        className="w-6 h-6 rounded-full border border-gray-600 text-gray-400 text-xs font-bold flex items-center justify-center hover:border-gray-400 hover:text-white transition-colors"
+                      >
+                        ?
+                      </button>
+                      {showTooltip && (
+                        <div className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-dark-100 border border-dark-border rounded-xl px-3 py-2 text-xs text-gray-300 w-44 leading-relaxed shadow-xl">
+                          {item.description}
+                          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-dark-100 border-r border-t border-dark-border rotate-45" />
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -125,30 +145,11 @@ export default function ShopPage() {
                   )}
                 </div>
 
-                {/* Logo + ? */}
-                <div className="flex-1 flex items-center justify-end gap-2 pr-2">
+                {/* Owned count */}
+                <div className="w-12 flex items-center justify-center">
                   {!item.comingSoon && (
-                    <div className="relative">
-                      <button
-                        onClick={() => setTooltip(showTooltip ? null : item.id)}
-                        className="w-6 h-6 rounded-full border border-gray-600 text-gray-400 text-xs font-bold flex items-center justify-center hover:border-gray-400 hover:text-white transition-colors"
-                      >
-                        ?
-                      </button>
-                      {showTooltip && (
-                        <div className="absolute left-8 top-1/2 -translate-y-1/2 z-10 bg-dark-100 border border-dark-border rounded-xl px-3 py-2 text-xs text-gray-300 w-44 leading-relaxed shadow-xl">
-                          {item.description}
-                          <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-dark-100 border-l border-b border-dark-border rotate-45" />
-                        </div>
-                      )}
-                    </div>
+                    <span className={`font-black text-2xl ${owned > 0 ? 'text-white' : 'text-gray-600'}`}>×{owned}</span>
                   )}
-                  <div className="relative">
-                    <img src={item.img} alt={item.name} className={`${item.imgClass} rounded-xl shrink-0`} style={{ mixBlendMode: 'lighten' }} />
-                    {item.comingSoon && (
-                      <span className="absolute -top-1.5 -right-1.5 bg-gray-700 text-gray-300 text-[9px] font-black rounded-full px-1.5 leading-5">בקרוב</span>
-                    )}
-                  </div>
                 </div>
 
               </div>
