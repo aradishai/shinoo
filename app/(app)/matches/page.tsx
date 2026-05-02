@@ -342,11 +342,9 @@ export default function MatchesPage() {
                   if (anyApplied) {
                     const img = match.userPrediction?.x3Applied ? '/btn-x3.jpg' : match.userPrediction?.goalsApplied ? '/btn-goals.jpg' : '/btn-split.jpg'
                     return (
-                      <div className="flex justify-center px-4 pb-3 pt-1 border-t border-dark-border/40">
-                        <div className="relative">
-                          <img src={img} className="h-10 w-auto rounded-xl ring-2 ring-green-400 ring-offset-2 ring-offset-dark-card animate-pulse" style={{ mixBlendMode: 'lighten' }} />
-                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center text-white text-[8px] font-black">✓</span>
-                        </div>
+                      <div className="flex items-center justify-center gap-1.5 px-4 pb-2 pt-1 border-t border-dark-border/40">
+                        <img src={img} className="h-5 w-auto rounded" style={{ mixBlendMode: 'lighten' }} />
+                        <span className="text-green-400 font-black text-xs">הופעל ✓</span>
                       </div>
                     )
                   }
