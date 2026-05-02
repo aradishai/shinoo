@@ -100,53 +100,54 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         {(slide as any).powerupsDemo && (
           <div className="w-full space-y-3 text-right">
             <h2 className="text-white font-black text-xl text-center">לחצנים מיוחדים</h2>
-            <p className="text-gray-500 text-xs text-center">לווינרים אמיתיים</p>
 
-            {/* X2 */}
-            <div className="bg-dark-card border border-dark-border rounded-xl p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <img src="/btn-x2.png" alt="X2" className="h-8 w-20 object-cover rounded-lg" style={{ mixBlendMode: 'lighten' }} />
-                <span className="text-white font-black text-sm">X2 – הכפלת ניקוד</span>
-              </div>
-              <p className="text-gray-400 text-xs mb-2">מכפיל את הנקודות שתקבל בסיום המשחק:</p>
-              <div className="flex gap-2 justify-end" dir="ltr">
-                {[['1→2','text-gray-400'],['2→4','text-yellow-400'],['3→6','text-blue-400'],['5→10','text-green-400']].map(([val, cls]) => (
-                  <span key={val} className={`text-xs font-black ${cls} bg-dark-50 border border-dark-border rounded-lg px-2 py-1`}>{val}</span>
-                ))}
+            {/* Coins earn */}
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-3 py-2.5">
+              <p className="text-yellow-400 font-black text-xs mb-1">🪙 איך מרוויחים מטבעות?</p>
+              <div className="space-y-0.5">
+                <p className="text-gray-300 text-xs">• הצטרפות לליגה — <span className="text-yellow-400 font-bold">4 מטבעות</span></p>
+                <p className="text-gray-300 text-xs">• כל משחק שניחשת — <span className="text-yellow-400 font-bold">מטבע 1</span> בסיומו</p>
               </div>
             </div>
 
-            {/* SHINOO */}
-            <div className="bg-dark-card border border-dark-border rounded-xl p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <img src="/btn-shinoo.png" alt="SHINOO" className="h-8 w-20 object-cover rounded-lg" style={{ mixBlendMode: 'lighten' }} />
-                <span className="text-white font-black text-sm">SHINOO! – תיקון ניחוש</span>
-              </div>
-              <p className="text-gray-400 text-xs mb-2">שנה את הניחוש ב־שער אחד לאחת הקבוצות.</p>
-              <div className="bg-dark-50 rounded-lg px-3 py-2 text-xs space-y-1">
-                <p className="text-gray-500">הימרת: <span className="text-white font-bold">4:1 לברצלונה</span> &nbsp;|&nbsp; תוצאת המחצית לדוגמה: <span className="text-white font-bold">3:0</span></p>
-                <p className="text-gray-600">אפשרויות: 4:0 · 5:1 · 3:1 · 4:2</p>
-              </div>
-            </div>
-
-            {/* Rules */}
-            <div className="bg-dark-card border border-dark-border rounded-xl p-3 space-y-1.5">
-              <p className="text-gray-500 text-xs font-bold mb-1">חוקים חשובים ⏱️</p>
+            {/* Pre-match */}
+            <p className="text-gray-500 text-[11px] font-bold">לפני המשחק</p>
+            <div className="space-y-2">
               {[
-                'ניתן להשתמש רק בזמן המחצית',
-                'לחצן אחד בלבד לכל משחק',
-                'עד פעמיים לכל לחצן במחזור',
-              ].map(r => (
-                <div key={r} className="flex items-start gap-2">
-                  <span className="text-primary text-xs mt-0.5">•</span>
-                  <span className="text-gray-400 text-xs">{r}</span>
+                { img: '/btn-x3.jpg', desc: 'שלש את הניקוד', cost: 4 },
+                { img: '/btn-goals.jpg', desc: 'כל גול שווה נקודה', cost: 3 },
+                { img: '/btn-split.jpg', desc: 'נחש 2 תוצאות, המערכת בוחרת הטובה', cost: 2 },
+              ].map(({ img, desc, cost }) => (
+                <div key={img} className="bg-dark-card border border-dark-border rounded-xl px-3 py-2 flex items-center gap-3">
+                  <img src={img} className="h-8 w-20 object-contain object-right rounded-lg shrink-0" style={{ mixBlendMode: 'lighten' }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-300 text-xs leading-snug">{desc}</p>
+                  </div>
+                  <span className="text-yellow-400 font-black text-xs shrink-0">{cost}🪙</span>
                 </div>
               ))}
             </div>
 
-            {/* Tip */}
+            {/* In-match */}
+            <p className="text-gray-500 text-[11px] font-bold">במהלך המשחק</p>
+            <div className="space-y-2">
+              {[
+                { img: '/btn-x2.png', desc: 'הכפל ניקוד — בזמן המחצית', cost: 3 },
+                { img: '/btn-shinoo.png', desc: 'שנה גול אחד — בזמן המחצית', cost: 2 },
+                { img: '/btn-90.jpg', desc: 'הגרל ניחוש חדש — עד דקה 90', cost: 2 },
+              ].map(({ img, desc, cost }) => (
+                <div key={img} className="bg-dark-card border border-dark-border rounded-xl px-3 py-2 flex items-center gap-3">
+                  <img src={img} className="h-8 w-20 object-contain object-right rounded-lg shrink-0" style={{ mixBlendMode: 'lighten' }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-300 text-xs leading-snug">{desc}</p>
+                  </div>
+                  <span className="text-yellow-400 font-black text-xs shrink-0">{cost}🪙</span>
+                </div>
+              ))}
+            </div>
+
             <div className="bg-primary/5 border border-primary/20 rounded-xl px-3 py-2">
-              <p className="text-xs text-gray-400"><span className="text-primary font-bold">X2</span> – כשאתה בטוח בניחוש &nbsp;|&nbsp; <span className="text-primary font-bold">SHINOO!</span> – כשאתה רוצה להגיב למה שקורה במגרש!</p>
+              <p className="text-gray-300 text-xs">לחצן אחד בלבד לכל משחק &nbsp;·&nbsp; כל הלחצנים נרכשים <span className="text-primary font-bold">במרקט</span> עם המטבעות שצברת</p>
             </div>
           </div>
         )}
