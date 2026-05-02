@@ -33,14 +33,14 @@ export async function POST(request: Request) {
   if (elapsedMin >= 95)
     return NextResponse.json({ error: 'דקה 90 זמין רק עד דקה 90' }, { status: 400 })
 
-  // TESTING MODE — no restrictions
+  // TESTING MODE — no restrictions, no applied flag, no stock decrement
   const newHome = Math.floor(Math.random() * 5)
   const newAway = Math.floor(Math.random() * 5)
   const matchday = getRoundNumber(prediction.match.round)
 
   await db.prediction.update({
     where: { id: predictionId },
-    data: { predictedHomeScore: newHome, predictedAwayScore: newAway, minute90Applied: true } as any,
+    data: { predictedHomeScore: newHome, predictedAwayScore: newAway } as any,
   })
   if (matchday > 0) {
     await db.powerupUsage.create({
