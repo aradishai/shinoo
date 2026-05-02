@@ -290,6 +290,56 @@ export async function updateMatchStatuses(): Promise<void> {
     }
   }
 
+  // Proactive end-of-match check:
+  // Any LIVE or LOCKED match whose kickoffAt was 115+ minutes ago must be checked,
+  // even if we missed the transition to LIVE (e.g. due to sync gaps or late start).
+  const cutoff115 = new Date(now.getTime() - 115 * 60 * 1000)
+  const overdueMatches = await db.match.findMany({
+    where: {
+      status: { in: ['LIVE', 'LOCKED'] },
+      kickoffAt: { lte: cutoff115 },
+      providerMatchId: { not: null },
+    },
+  })
+
+  for (const match of overdueMatches) {
+    if (!match.providerMatchId) continue
+    console.log(`[sync] Proactive end-of-match check for match ${match.id} (${Math.floor((now.getTime() - match.kickoffAt.getTime()) / 60000)}min elapsed)`)
+
+    const result = await provider.getMatchResult(match.providerMatchId)
+    if (!result) continue
+
+    if (result.status === 'FINISHED') {
+      await db.match.update({
+        where: { id: match.id },
+        data: { status: 'FINISHED', homeScore: result.homeScore, awayScore: result.awayScore },
+      })
+      await syncMatchScorers(match.id)
+      await recalculatePoints(match.id)
+      const predictors = await db.prediction.findMany({
+        where: { matchId: match.id },
+        select: { userId: true },
+        distinct: ['userId'],
+      })
+      for (const { userId: predictorId } of predictors) {
+        await db.user.update({ where: { id: predictorId }, data: { coins: { increment: 1 } } })
+      }
+      console.log(`[sync] Proactive close: match ${match.id} marked FINISHED`)
+    } else if (match.status === 'LOCKED') {
+      // Match should be live but wasn't marked — fix the status
+      await db.match.update({
+        where: { id: match.id },
+        data: {
+          status: 'LIVE',
+          homeScore: result.homeScore,
+          awayScore: result.awayScore,
+          ...(result.elapsed != null ? { minute: result.elapsed } : {}),
+        },
+      })
+      console.log(`[sync] Proactive fix: match ${match.id} LOCKED→LIVE`)
+    }
+  }
+
   console.log('[sync] Status update complete')
 }
 
