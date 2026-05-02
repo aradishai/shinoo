@@ -5,7 +5,7 @@ const PRICES: Record<string, number> = {
   x2: 2,
   shinoo: 2,
   x3: 3,
-  goals: 2,
+  goals: 3,
   minute90: 2,
   split: 3,
 }
