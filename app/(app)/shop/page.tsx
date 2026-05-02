@@ -7,12 +7,12 @@ import toast from 'react-hot-toast'
 const POWERUP_COST = 2
 
 const SHOP_ITEMS = [
-  { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false },
-  { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const, comingSoon: false },
-  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.jpg', stockKey: 'x3Stock' as const, comingSoon: false },
-  { id: 'goals', name: 'גולס+', description: 'לשימוש לפני המשחק – כל גול שווה נקודה', img: '/btn-goals.jpg', stockKey: 'goalsStock' as const, comingSoon: false },
-  { id: 'minute90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.jpg', stockKey: 'minute90Stock' as const, comingSoon: false },
-  { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.jpg', stockKey: 'splitStock' as const, comingSoon: false },
+  { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false, imgClass: 'h-12 w-auto' },
+  { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const, comingSoon: false, imgClass: 'h-12 w-auto' },
+  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.jpg', stockKey: 'x3Stock' as const, comingSoon: false, imgClass: 'h-16 w-auto' },
+  { id: 'goals', name: 'גולס+', description: 'לשימוש לפני המשחק – כל גול שווה נקודה', img: '/btn-goals.jpg', stockKey: 'goalsStock' as const, comingSoon: false, imgClass: 'h-16 w-auto' },
+  { id: 'minute90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.jpg', stockKey: 'minute90Stock' as const, comingSoon: false, imgClass: 'h-16 w-auto' },
+  { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.jpg', stockKey: 'splitStock' as const, comingSoon: false, imgClass: 'h-16 w-auto' },
 ]
 
 export default function ShopPage() {
@@ -107,7 +107,7 @@ export default function ShopPage() {
                 {/* Logo + ? */}
                 <div className="flex-1 flex items-center justify-start gap-2 pl-2">
                   <div className="relative">
-                    <img src={item.img} alt={item.name} className="h-12 w-auto rounded-xl shrink-0" style={{ mixBlendMode: 'lighten' }} />
+                    <img src={item.img} alt={item.name} className={`${item.imgClass} rounded-xl shrink-0`} style={{ mixBlendMode: 'lighten' }} />
                     {item.comingSoon && (
                       <span className="absolute -top-1.5 -right-1.5 bg-gray-700 text-gray-300 text-[9px] font-black rounded-full px-1.5 leading-5">בקרוב</span>
                     )}
