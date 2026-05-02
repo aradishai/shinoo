@@ -9,12 +9,13 @@ export async function POST(request: Request) {
     if (secret !== SECRET)
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-    let resolvedUserId = userId
-    if (!resolvedUserId && username) {
-      const user = await db.user.findFirst({ where: { username }, select: { id: true } })
-      if (!user) return NextResponse.json({ error: 'user not found' }, { status: 404 })
-      resolvedUserId = user.id
-    }
+    if (!userId && !username)
+      return NextResponse.json({ error: 'userId or username required' }, { status: 400 })
+
+    const userWhere = userId ? { id: userId } : { username }
+    const user = await db.user.findFirst({ where: userWhere, select: { id: true } })
+    if (!user) return NextResponse.json({ error: 'user not found' }, { status: 404 })
+    const resolvedUserId = user.id
 
     // Fetch all predictions on open matches for this user
     const predictions = await (db.prediction as any).findMany({
