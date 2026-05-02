@@ -5,13 +5,20 @@ const SECRET = 'shinoo-admin-2026'
 
 export async function POST(request: Request) {
   try {
-    const { secret, userId } = await request.json()
+    const { secret, userId, username } = await request.json()
     if (secret !== SECRET)
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
+    let resolvedUserId = userId
+    if (!resolvedUserId && username) {
+      const user = await db.user.findFirst({ where: { username }, select: { id: true } })
+      if (!user) return NextResponse.json({ error: 'user not found' }, { status: 404 })
+      resolvedUserId = user.id
+    }
+
     // Fetch all predictions on open matches for this user
     const predictions = await (db.prediction as any).findMany({
-      where: { userId, match: { status: 'SCHEDULED' } },
+      where: { userId: resolvedUserId, match: { status: 'SCHEDULED' } },
     })
 
     const refund = { x2: 0, shinoo: 0, x3: 0, goals: 0, minute90: 0, split: 0 }
@@ -42,7 +49,7 @@ export async function POST(request: Request) {
     }
 
     await (db.user as any).update({
-      where: { id: userId },
+      where: { id: resolvedUserId },
       data: {
         x2Stock: { increment: refund.x2 },
         shinooStock: { increment: refund.shinoo },
