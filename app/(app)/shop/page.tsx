@@ -104,8 +104,8 @@ export default function ShopPage() {
 
                 {/* Logo + ? */}
                 <div className="flex-1 flex items-center justify-start gap-2 pl-2">
-                  <div className="relative">
-                    <img src={item.img} alt={item.name} className={`${item.imgClass} rounded-xl shrink-0`} style={{ mixBlendMode: 'lighten' }} />
+                  <div className="relative w-36 flex justify-end">
+                    <img src={item.img} alt={item.name} className={`${item.imgClass} rounded-xl shrink-0 max-w-full`} style={{ mixBlendMode: 'lighten' }} />
                     {item.comingSoon && (
                       <span className="absolute -top-1.5 -right-1.5 bg-gray-700 text-gray-300 text-[9px] font-black rounded-full px-1.5 leading-5">בקרוב</span>
                     )}
