@@ -7,8 +7,12 @@ import toast from 'react-hot-toast'
 const POWERUP_COST = 2
 
 const SHOP_ITEMS = [
-  { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const },
-  { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const },
+  { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false },
+  { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const, comingSoon: false },
+  { id: 'x3', name: 'כפול 3', description: 'בקרוב', img: '/btn-x3.jpg', stockKey: null, comingSoon: true },
+  { id: 'goals', name: 'גולס+', description: 'בקרוב', img: '/btn-goals.jpg', stockKey: null, comingSoon: true },
+  { id: '90', name: 'דקה 90', description: 'בקרוב', img: '/btn-90.jpg', stockKey: null, comingSoon: true },
+  { id: 'split', name: 'ספליט', description: 'בקרוב', img: '/btn-split.jpg', stockKey: null, comingSoon: true },
 ]
 
 export default function ShopPage() {
@@ -78,48 +82,61 @@ export default function ShopPage() {
       {/* Items */}
       <div ref={tooltipRef} className="space-y-5">
         {SHOP_ITEMS.map((item, i) => {
-          const owned = stock[item.stockKey]
-          const canBuy = (coins ?? 0) >= POWERUP_COST
+          const owned = item.stockKey ? stock[item.stockKey] : 0
+          const canBuy = !item.comingSoon && (coins ?? 0) >= POWERUP_COST
           const isLoading = loading === item.id
           const showTooltip = tooltip === item.id
           return (
             <div key={item.id}>
-              <div className="flex items-center">
+              <div className={`flex items-center ${item.comingSoon ? 'opacity-40' : ''}`}>
 
                 {/* Logo + ? */}
                 <div className="flex-1 flex items-center justify-start gap-2 pl-2">
-                  <img src={item.img} alt={item.name} className="h-12 w-auto rounded-xl shrink-0" />
                   <div className="relative">
-                    <button
-                      onClick={() => setTooltip(showTooltip ? null : item.id)}
-                      className="w-6 h-6 rounded-full border border-gray-600 text-gray-400 text-xs font-bold flex items-center justify-center hover:border-gray-400 hover:text-white transition-colors"
-                    >
-                      ?
-                    </button>
-                    {showTooltip && (
-                      <div className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-dark-100 border border-dark-border rounded-xl px-3 py-2 text-xs text-gray-300 w-44 leading-relaxed shadow-xl">
-                        {item.description}
-                        <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-dark-100 border-r border-t border-dark-border rotate-45" />
-                      </div>
+                    <img src={item.img} alt={item.name} className="h-12 w-auto rounded-xl shrink-0" style={{ mixBlendMode: 'lighten' }} />
+                    {item.comingSoon && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-gray-700 text-gray-300 text-[9px] font-black rounded-full px-1.5 leading-5">בקרוב</span>
                     )}
                   </div>
+                  {!item.comingSoon && (
+                    <div className="relative">
+                      <button
+                        onClick={() => setTooltip(showTooltip ? null : item.id)}
+                        className="w-6 h-6 rounded-full border border-gray-600 text-gray-400 text-xs font-bold flex items-center justify-center hover:border-gray-400 hover:text-white transition-colors"
+                      >
+                        ?
+                      </button>
+                      {showTooltip && (
+                        <div className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-dark-100 border border-dark-border rounded-xl px-3 py-2 text-xs text-gray-300 w-44 leading-relaxed shadow-xl">
+                          {item.description}
+                          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-dark-100 border-r border-t border-dark-border rotate-45" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Buy button */}
                 <div className="w-20 flex flex-col items-center gap-1">
-                  <button
-                    onClick={() => buy(item.id)}
-                    disabled={!canBuy || isLoading}
-                    className="w-14 h-10 rounded-xl font-black text-xs bg-yellow-500 text-black active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
-                  >
-                    {isLoading ? '…' : 'קנה'}
-                  </button>
-                  <span className="text-yellow-400 font-bold text-[11px]">{POWERUP_COST} 🪙</span>
+                  {!item.comingSoon && (
+                    <>
+                      <button
+                        onClick={() => buy(item.id)}
+                        disabled={!canBuy || isLoading}
+                        className="w-14 h-10 rounded-xl font-black text-xs bg-yellow-500 text-black active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        {isLoading ? '…' : 'קנה'}
+                      </button>
+                      <span className="text-yellow-400 font-bold text-[11px]">{POWERUP_COST} 🪙</span>
+                    </>
+                  )}
                 </div>
 
                 {/* Owned count */}
                 <div className="w-12 flex items-center justify-center">
-                  <span className={`font-black text-2xl ${owned > 0 ? 'text-white' : 'text-gray-600'}`}>×{owned}</span>
+                  {!item.comingSoon && (
+                    <span className={`font-black text-2xl ${owned > 0 ? 'text-white' : 'text-gray-600'}`}>×{owned}</span>
+                  )}
                 </div>
 
               </div>
