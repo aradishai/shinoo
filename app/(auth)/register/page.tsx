@@ -55,7 +55,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-dark field-bg flex flex-col items-center justify-center px-5 py-10">
       {/* Logo */}
       <div className="text-center mb-10">
-        <img src="/shinoo-title.png" alt="SHINOO" className="h-36 w-auto mx-auto" style={{ mixBlendMode: 'lighten' }} />
+        <img src="/shinoo-logo.png" alt="SHINOO" className="h-36 w-auto mx-auto" style={{ mixBlendMode: 'lighten' }} />
         <p className="text-gray-500 mt-1 text-xs tracking-wide">כדורגל | הימורים | חברים</p>
         <p className="text-gray-400 mt-1 text-sm">- ליגת ניחושי משחקים עם חברים -</p>
       </div>
