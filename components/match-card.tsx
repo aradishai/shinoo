@@ -336,14 +336,12 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
 
     // Live buttons: X2/SHINOO only during halftime window, 90' up to minute ~90
     if (isLive || match.status === 'PAUSED') {
-      const now = Date.now()
-      const kickoffMs = new Date(match.kickoffAt).getTime()
-      const elapsedMin = (now - kickoffMs) / 60000
+      const gameMin = Number(liveMinute ?? 0)
       const extra = match.tournament?.type === 'world_cup' ? 5 : 3
       const windowOpenMin = 45 + extra
       const windowCloseMin = windowOpenMin + 15
-      const inHalftimeWindow = elapsedMin >= windowOpenMin && elapsedMin <= windowCloseMin
-      const before90 = elapsedMin < 95
+      const inHalftimeWindow = gameMin >= windowOpenMin && gameMin <= windowCloseMin
+      const before90 = gameMin < 95
 
       const showX2 = powerup.x2Stock > 0 && inHalftimeWindow
       const showShinoo = powerup.shinooStock > 0 && inHalftimeWindow
