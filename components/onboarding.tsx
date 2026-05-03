@@ -80,11 +80,18 @@ function MarketIntroSlide({ onNext }: { onNext: () => void }) {
 export function Onboarding({ onDone }: { onDone: () => void }) {
   const [current, setCurrent] = useState(0)
   const [notifStatus, setNotifStatus] = useState<'idle' | 'subscribed' | 'denied'>('idle')
+  const [tournaments, setTournaments] = useState<{ id: string; nameHe: string }[]>([])
+  const [selectedTournaments, setSelectedTournaments] = useState<string[]>([])
   const slide = slides[current]
   const isLast = current === slides.length - 1
 
   useEffect(() => {
     if ((slide as any).notificationsSlide) {
+      fetch('/api/tournaments').then(r => r.json()).then(d => {
+        const list = d.data || []
+        setTournaments(list)
+        setSelectedTournaments(list.map((t: any) => t.id))
+      })
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         setNotifStatus('denied')
       } else if (Notification.permission === 'denied') {
@@ -99,6 +106,12 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     }
   }, [current])
 
+  const toggleTournament = (id: string) => {
+    setSelectedTournaments(prev =>
+      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
+    )
+  }
+
   const enableNotifications = async () => {
     try {
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) { setNotifStatus('denied'); return }
@@ -109,11 +122,18 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
       })
-      await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sub.toJSON()),
-      })
+      await Promise.all([
+        fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sub.toJSON()),
+        }),
+        fetch('/api/user/notify-prefs', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tournamentIds: selectedTournaments }),
+        }),
+      ])
       setNotifStatus('subscribed')
     } catch {
       setNotifStatus('denied')
@@ -248,6 +268,29 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               <p className="text-gray-400 text-sm leading-relaxed">
                 נשלח לך תזכורת לפני משחקים שעוד לא ניחשת עליהם — כדי שלא תפספס
               </p>
+              {tournaments.length > 0 && notifStatus === 'idle' && (
+                <div className="w-full text-right space-y-2">
+                  <p className="text-gray-500 text-xs font-bold">על אילו תחרויות?</p>
+                  {tournaments.map(t => (
+                    <button
+                      key={t.id}
+                      onClick={() => toggleTournament(t.id)}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                        selectedTournaments.includes(t.id)
+                          ? 'border-primary/50 bg-primary/10'
+                          : 'border-dark-border bg-dark-card'
+                      }`}
+                    >
+                      <span className={`font-bold text-sm ${selectedTournaments.includes(t.id) ? 'text-primary' : 'text-gray-400'}`}>
+                        {t.nameHe}
+                      </span>
+                      <span className={`text-lg ${selectedTournaments.includes(t.id) ? 'text-primary' : 'text-gray-600'}`}>
+                        {selectedTournaments.includes(t.id) ? '✓' : '○'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
               {notifStatus === 'idle' && (
                 <button
                   onClick={enableNotifications}

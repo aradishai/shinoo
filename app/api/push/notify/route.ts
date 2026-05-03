@@ -20,8 +20,8 @@ export async function POST(request: Request) {
   )
 
   const now = new Date()
-  const windowStart = new Date(now.getTime() + 30 * 60 * 1000)
-  const windowEnd = new Date(now.getTime() + 90 * 60 * 1000)
+  const windowStart = new Date(now.getTime() + 60 * 60 * 1000)
+  const windowEnd = new Date(now.getTime() + 120 * 60 * 1000)
 
   const upcomingMatches = await db.match.findMany({
     where: { status: 'SCHEDULED', kickoffAt: { gte: windowStart, lte: windowEnd } },
@@ -49,8 +49,18 @@ export async function POST(request: Request) {
 
     if (notifyUserIds.length === 0) continue
 
+    const users = await db.user.findMany({
+      where: { id: { in: notifyUserIds } },
+      select: { id: true, notifyTournamentIds: true },
+    })
+    const eligibleUserIds = users
+      .filter(u => u.notifyTournamentIds.length === 0 || u.notifyTournamentIds.includes(match.tournamentId))
+      .map(u => u.id)
+
+    if (eligibleUserIds.length === 0) continue
+
     const subscriptions = await db.pushSubscription.findMany({
-      where: { userId: { in: notifyUserIds } },
+      where: { userId: { in: eligibleUserIds } },
     })
 
     const payload = JSON.stringify({
