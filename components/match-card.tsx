@@ -166,10 +166,10 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const appliedImg = !powerup ? null :
     powerup.x2Applied ? '/btn-x2.png' :
     powerup.shinooApplied ? '/btn-shinoo.png' :
-    powerup.x3Applied ? '/btn-x3.jpg' :
-    powerup.goalsApplied ? '/btn-goals.jpg' :
-    powerup.minute90Applied ? '/btn-90.jpg' :
-    powerup.splitApplied ? '/btn-split.jpg' : null
+    powerup.x3Applied ? '/btn-x3.png' :
+    powerup.goalsApplied ? '/btn-goals.png' :
+    powerup.minute90Applied ? '/btn-90.png' :
+    powerup.splitApplied ? '/btn-split.png' : null
 
   const matchUrl = leagueId
     ? `/matches/${match.id}?leagueId=${leagueId}`
@@ -317,17 +317,17 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
           {showX3 && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX3() }} className="transition-all active:scale-95">
-              <img src="/btn-x3.jpg" alt="X3" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              <img src="/btn-x3.png" alt="X3" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
           {showGoals && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onGoals() }} className="transition-all active:scale-95">
-              <img src="/btn-goals.jpg" alt="GOALS+" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              <img src="/btn-goals.png" alt="GOALS+" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
           {showSplit && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onSplit() }} className="transition-all active:scale-95">
-              <img src="/btn-split.jpg" alt="SPLIT" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              <img src="/btn-split.png" alt="SPLIT" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
         </div>
@@ -362,7 +362,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           )}
           {showM90 && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
-              <img src="/btn-90.jpg" alt="90'" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              <img src="/btn-90.png" alt="90'" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
         </div>

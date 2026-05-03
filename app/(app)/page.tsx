@@ -364,7 +364,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { powerupToast('/btn-x3.jpg'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-x3.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
     else toast.error(data.error || 'שגיאה')
   }
 
@@ -378,7 +378,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { powerupToast('/btn-goals.jpg'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-goals.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
     else toast.error(data.error || 'שגיאה')
   }
 
@@ -416,7 +416,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { powerupToast('/btn-split.jpg'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-split.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
     else toast.error(data.error || 'שגיאה')
   }
 

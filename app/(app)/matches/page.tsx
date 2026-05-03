@@ -180,7 +180,7 @@ export default function MatchesPage() {
     setPowerupLoading(`${type}-${match.id}`)
     const body: Record<string, unknown> = { predictionId: match.userPrediction.id }
     if (type === 'split') { body.splitHomeScore2 = splitH; body.splitAwayScore2 = splitA }
-    const imgMap = { x3: '/btn-x3.jpg', goals: '/btn-goals.jpg', split: '/btn-split.jpg' }
+    const imgMap = { x3: '/btn-x3.png', goals: '/btn-goals.png', split: '/btn-split.png' }
     const res = await fetch(`/api/predictions/${type}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
     })
@@ -340,7 +340,7 @@ export default function MatchesPage() {
                   if (!isOpen || !hasPrediction) return null
                   const anyApplied = match.userPrediction?.x3Applied || match.userPrediction?.goalsApplied || match.userPrediction?.splitApplied
                   if (anyApplied) {
-                    const img = match.userPrediction?.x3Applied ? '/btn-x3.jpg' : match.userPrediction?.goalsApplied ? '/btn-goals.jpg' : '/btn-split.jpg'
+                    const img = match.userPrediction?.x3Applied ? '/btn-x3.png' : match.userPrediction?.goalsApplied ? '/btn-goals.png' : '/btn-split.png'
                     return (
                       <div className="flex items-center justify-center gap-1.5 px-4 pb-2 pt-1 border-t border-dark-border/40">
                         <img src={img} className="h-5 w-auto rounded" style={{ mixBlendMode: 'lighten' }} />
@@ -354,9 +354,9 @@ export default function MatchesPage() {
                   if (!showX3 && !showGoals && !showSplit) return null
                   return (
                     <div className="flex gap-3 justify-center px-4 pb-3 pt-1 border-t border-dark-border/40" dir="ltr">
-                      {showX3 && <button onClick={() => applyPreMatchPowerup(match, 'x3')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-x3.jpg" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} /></button>}
-                      {showGoals && <button onClick={() => applyPreMatchPowerup(match, 'goals')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-goals.jpg" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} /></button>}
-                      {showSplit && <button onClick={() => { setSplitModal(match); setSplitScores({ home: '0', away: '0' }) }} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-split.jpg" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} /></button>}
+                      {showX3 && <button onClick={() => applyPreMatchPowerup(match, 'x3')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-x3.png" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} /></button>}
+                      {showGoals && <button onClick={() => applyPreMatchPowerup(match, 'goals')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-goals.png" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} /></button>}
+                      {showSplit && <button onClick={() => { setSplitModal(match); setSplitScores({ home: '0', away: '0' }) }} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-split.png" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} /></button>}
                     </div>
                   )
                 })()}
