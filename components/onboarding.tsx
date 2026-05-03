@@ -213,7 +213,6 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
           {(slide as any).notificationsSlide && (
             <div className="w-full flex flex-col items-center gap-5 text-center">
-              <div className="text-6xl">🔔</div>
               <h2 className="text-white font-black text-2xl">קבל התראות</h2>
               <p className="text-gray-400 text-sm leading-relaxed">
                 נשלח לך תזכורת לפני משחקים שעוד לא ניחשת עליהם — כדי שלא תפספס
