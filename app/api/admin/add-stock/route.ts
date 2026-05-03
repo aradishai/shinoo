@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   const user = await db.user.findFirst({ where: { username }, select: { id: true } })
   if (!user) return NextResponse.json({ error: 'user not found' }, { status: 404 })
 
-  const field = `${item}Stock`
+  const field = item === 'coins' ? 'coins' : `${item}Stock`
   await (db.user as any).update({
     where: { id: user.id },
     data: { [field]: { increment: amount ?? 5 } },
