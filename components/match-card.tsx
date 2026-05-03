@@ -183,7 +183,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           {anyApplied && appliedImg && (
             <div className="flex items-center gap-1">
-              <img src={appliedImg} className="h-8 w-auto" style={{ mixBlendMode: 'lighten' }} />
+              <img src={appliedImg} className="h-8 w-auto" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
               <span className="text-green-400 font-black text-sm">✓</span>
             </div>
           )}
@@ -317,17 +317,17 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
           {showX3 && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX3() }} className="transition-all active:scale-95">
-              <img src="/btn-x3.jpg" alt="X3" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+              <img src="/btn-x3.jpg" alt="X3" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
           {showGoals && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onGoals() }} className="transition-all active:scale-95">
-              <img src="/btn-goals.jpg" alt="GOALS+" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+              <img src="/btn-goals.jpg" alt="GOALS+" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
           {showSplit && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onSplit() }} className="transition-all active:scale-95">
-              <img src="/btn-split.jpg" alt="SPLIT" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+              <img src="/btn-split.jpg" alt="SPLIT" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
         </div>
@@ -352,17 +352,17 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         <div className="flex gap-3 justify-center px-4 pb-4 pt-2 border-t border-dark-border/40" dir="ltr">
           {showX2 && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX2() }} className="transition-all active:scale-95">
-              <img src="/btn-x2.png" alt="X2" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+              <img src="/btn-x2.png" alt="X2" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
           {showShinoo && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onShinoo() }} className="transition-all active:scale-95">
-              <img src="/btn-shinoo.png" alt="SHINOO" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+              <img src="/btn-shinoo.png" alt="SHINOO" className="h-10 w-auto rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
           {showM90 && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
-              <img src="/btn-90.jpg" alt="90'" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} />
+              <img src="/btn-90.jpg" alt="90'" className="h-10 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
         </div>

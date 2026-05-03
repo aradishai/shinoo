@@ -18,10 +18,10 @@ const FIFA_TO_ISO: Record<string, string> = {
 }
 
 function Flag({ code, flagUrl }: { code: string; flagUrl?: string | null }) {
-  if (flagUrl) return <img src={flagUrl} alt={code} className="w-8 h-8 object-contain rounded-sm inline-block" />
+  if (flagUrl) return <img src={flagUrl} alt={code} className="w-8 h-8 object-contain rounded-sm inline-block" loading="lazy" />
   const iso = FIFA_TO_ISO[code]
   if (!iso) return <span className="text-xs text-gray-500">{code}</span>
-  return <img src={`https://flagcdn.com/w40/${iso}.png`} alt={code} className="w-8 h-5 object-cover rounded-sm inline-block" />
+  return <img src={`https://flagcdn.com/w40/${iso}.png`} alt={code} className="w-8 h-5 object-cover rounded-sm inline-block" loading="lazy" />
 }
 
 interface Player { id: string; nameHe: string }
@@ -168,7 +168,7 @@ export default function MatchesPage() {
   const powerupToast = (imgSrc: string) => {
     toast.custom((t) => (
       <div className={`flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 shadow-xl transition-opacity ${t.visible ? 'opacity-100' : 'opacity-0'}`}>
-        <img src={imgSrc} className="h-8 w-auto rounded-lg" style={{ mixBlendMode: 'lighten' }} />
+        <img src={imgSrc} className="h-8 w-auto rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
         <span className="text-white font-black text-sm">הופעל</span>
         <span className="text-green-400 font-black text-base">✓</span>
       </div>
