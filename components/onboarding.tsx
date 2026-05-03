@@ -47,7 +47,7 @@ function MarketIntroSlide({ onNext }: { onNext: () => void }) {
 
   useEffect(() => {
     const start = Date.now()
-    const duration = 5000
+    const duration = 7000
     const frame = () => {
       const elapsed = Date.now() - start
       const pct = Math.min(elapsed / duration, 1)
