@@ -149,7 +149,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="text-xl mt-0.5">🪙</span>
-                  <p className="text-gray-300 text-sm leading-snug">מרוויחים מטבעות: 4 בהצטרפות לליגה, 1 בסיום כל משחק שניחשת</p>
+                  <p className="text-gray-300 text-sm leading-snug">מרוויחים מטבעות: 4 בהרשמה, 1 בסיום כל משחק שניחשת</p>
                 </div>
               </div>
             </div>
@@ -193,7 +193,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
               <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-3 py-2.5">
                 <p className="text-yellow-400 font-black text-xs mb-1">🪙 איך מרוויחים מטבעות?</p>
-                <p className="text-gray-300 text-xs">• הצטרפות לליגה — <span className="text-yellow-400 font-bold">4 מטבעות</span></p>
+                <p className="text-gray-300 text-xs">• הרשמה לאפליקציה — <span className="text-yellow-400 font-bold">4 מטבעות</span></p>
                 <p className="text-gray-300 text-xs">• כל משחק שניחשת — <span className="text-yellow-400 font-bold">מטבע 1</span> בסיומו</p>
               </div>
             </div>

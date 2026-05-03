@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     const passwordHash = await hashPassword(password)
     const user = await db.user.create({
-      data: { username, passwordHash },
+      data: { username, passwordHash, coins: 4 },
     })
 
     const token = createToken(user.id)

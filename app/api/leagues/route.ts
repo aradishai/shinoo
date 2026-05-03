@@ -106,9 +106,6 @@ export async function POST(request: Request) {
       },
     })
 
-    // Grant 4 coins to creator
-    await db.user.update({ where: { id: userId }, data: { coins: { increment: 4 } } })
-
     // Add initial members if provided
     if (memberUsernames && Array.isArray(memberUsernames)) {
       for (const username of memberUsernames) {
