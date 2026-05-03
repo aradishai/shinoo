@@ -70,15 +70,48 @@ export default function LeaguesPage() {
         <h1 className="text-white font-black text-2xl">הליגות שלי</h1>
       </div>
 
+      {/* My Leagues */}
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-dark-card border border-dark-border rounded-2xl h-32 animate-pulse" />
+          ))}
+        </div>
+      ) : leagues.length === 0 ? (
+        <div className="text-center py-16">
+          <h2 className="text-white font-bold text-xl mb-2">אין לך ליגות עדיין</h2>
+          <p className="text-gray-500 mb-8">צור ליגה ראשונה והזמן חברים</p>
+          <Link
+            href="/leagues/create"
+            className="bg-primary text-black font-black px-8 py-4 rounded-xl hover:bg-primary-400 active:scale-95 transition-all shadow-green inline-block"
+          >
+            צור ליגה ראשונה
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {leagues.map((league) => (
+            <LeagueCard key={league.id} league={league} />
+          ))}
+
+          {/* Create more */}
+          <Link
+            href="/leagues/create"
+            className="block border-2 border-dashed border-dark-border rounded-2xl p-6 text-center text-gray-500 hover:border-primary/30 hover:text-primary transition-all"
+          >
+            + צור ליגה נוספת
+          </Link>
+        </div>
+      )}
+
       {/* Global World Cup Leaderboard */}
       {tournamentName && globalStandings.length > 0 && (
-        <div className="mb-8">
+        <div className="mt-8">
           <div className="flex items-center justify-end gap-2 mb-3">
             <h2 className="text-white font-black text-lg">🌍 דירוג {tournamentName}</h2>
           </div>
 
           <div className="bg-dark-card border border-dark-border rounded-2xl overflow-hidden">
-            {/* Column headers */}
             <div className="grid grid-cols-[2rem_1fr_auto_auto] items-center px-4 py-2 border-b border-dark-border text-gray-500 text-xs">
               <span className="text-center">#</span>
               <span className="text-right">שחקן</span>
@@ -113,7 +146,6 @@ export default function LeaguesPage() {
               )
             })}
 
-            {/* My rank if outside visible range */}
             {myRankOutside && myEntry && (
               <>
                 <div className="px-4 py-1 text-center text-gray-600 text-xs">•••</div>
@@ -129,7 +161,6 @@ export default function LeaguesPage() {
               </>
             )}
 
-            {/* Show more / less */}
             {globalStandings.length > VISIBLE_COUNT && (
               <button
                 onClick={() => setShowAllGlobal(!showAllGlobal)}
@@ -139,40 +170,6 @@ export default function LeaguesPage() {
               </button>
             )}
           </div>
-        </div>
-      )}
-
-      {/* My Leagues */}
-      {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-dark-card border border-dark-border rounded-2xl h-32 animate-pulse" />
-          ))}
-        </div>
-      ) : leagues.length === 0 ? (
-        <div className="text-center py-16">
-          <h2 className="text-white font-bold text-xl mb-2">אין לך ליגות עדיין</h2>
-          <p className="text-gray-500 mb-8">צור ליגה ראשונה והזמן חברים</p>
-          <Link
-            href="/leagues/create"
-            className="bg-primary text-black font-black px-8 py-4 rounded-xl hover:bg-primary-400 active:scale-95 transition-all shadow-green inline-block"
-          >
-            צור ליגה ראשונה
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {leagues.map((league) => (
-            <LeagueCard key={league.id} league={league} />
-          ))}
-
-          {/* Create more */}
-          <Link
-            href="/leagues/create"
-            className="block border-2 border-dashed border-dark-border rounded-2xl p-6 text-center text-gray-500 hover:border-primary/30 hover:text-primary transition-all"
-          >
-            + צור ליגה נוספת
-          </Link>
         </div>
       )}
     </div>
