@@ -20,9 +20,34 @@ export async function GET() {
   if (!admin) return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
 
   const users = await db.user.findMany({
-    select: { id: true, username: true, coins: true, createdAt: true },
+    select: {
+      id: true,
+      username: true,
+      coins: true,
+      createdAt: true,
+      leagueMembers: {
+        include: {
+          league: {
+            include: {
+              _count: { select: { members: true } },
+            },
+          },
+        },
+      },
+    },
     orderBy: { createdAt: 'desc' },
   })
 
-  return NextResponse.json({ users })
+  const result = users.map(u => ({
+    id: u.id,
+    username: u.username,
+    coins: u.coins,
+    createdAt: u.createdAt,
+    managedLeagues: u.leagueMembers
+      .filter(m => m.role === 'ADMIN')
+      .map(m => ({ id: m.league.id, name: m.league.name, memberCount: m.league._count.members })),
+    joinedLeaguesCount: u.leagueMembers.length,
+  }))
+
+  return NextResponse.json({ users: result })
 }

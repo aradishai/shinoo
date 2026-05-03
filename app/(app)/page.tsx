@@ -176,7 +176,12 @@ export default function HomePage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [minute90Reveal, setMinute90Reveal] = useState<Minute90RevealData | null>(null)
   const [showAdminPanel, setShowAdminPanel] = useState(false)
-  const [adminUsers, setAdminUsers] = useState<{ id: string; username: string; coins: number; createdAt: string }[]>([])
+  const [adminUsers, setAdminUsers] = useState<{
+    id: string; username: string; coins: number; createdAt: string
+    managedLeagues: { id: string; name: string; memberCount: number }[]
+    joinedLeaguesCount: number
+  }[]>([])
+  const [adminFilter, setAdminFilter] = useState<'all' | 'managers'>('all')
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const isAdmin = user?.username === 'ערד'
@@ -501,25 +506,48 @@ export default function HomePage() {
       )}
       {/* Admin panel */}
       {showAdminPanel && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center pt-16 px-4" onClick={() => setShowAdminPanel(false)}>
-          <div className="bg-dark-card border border-dark-border rounded-2xl w-full max-w-sm max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()} dir="rtl">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center pt-10 px-4" onClick={() => setShowAdminPanel(false)}>
+          <div className="bg-dark-card border border-dark-border rounded-2xl w-full max-w-sm max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()} dir="rtl">
             <div className="flex items-center justify-between px-4 py-3 border-b border-dark-border">
               <h2 className="text-white font-black text-base">משתמשים ({adminUsers.length})</h2>
               <button onClick={() => setShowAdminPanel(false)} className="text-gray-500 text-xl">✕</button>
             </div>
+            {/* Filter */}
+            <div className="flex gap-2 px-4 py-2.5 border-b border-dark-border/50">
+              <button
+                onClick={() => setAdminFilter('all')}
+                className={`text-xs font-bold px-3 py-1 rounded-lg transition-all ${adminFilter === 'all' ? 'bg-primary text-black' : 'bg-dark-50 text-gray-400 border border-dark-border'}`}
+              >כולם</button>
+              <button
+                onClick={() => setAdminFilter('managers')}
+                className={`text-xs font-bold px-3 py-1 rounded-lg transition-all ${adminFilter === 'managers' ? 'bg-primary text-black' : 'bg-dark-50 text-gray-400 border border-dark-border'}`}
+              >מנהלי ליגה</button>
+            </div>
             <div className="overflow-y-auto flex-1">
-              {adminUsers.map(u => (
-                <div key={u.id} className="flex items-center justify-between px-4 py-3 border-b border-dark-border/50">
-                  <div>
-                    <p className="text-white font-bold text-sm">{u.username}</p>
-                    <p className="text-gray-500 text-xs">{u.coins} מטבעות</p>
+              {adminUsers
+                .filter(u => adminFilter === 'all' || u.managedLeagues.length > 0)
+                .map(u => (
+                <div key={u.id} className={`px-4 py-3 border-b border-dark-border/50 ${u.managedLeagues.length > 0 ? 'bg-primary/5' : ''}`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-white font-bold text-sm">{u.username}</p>
+                      {u.managedLeagues.length > 0 && (
+                        <span className="text-[10px] font-black text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-md">מנהל</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => deleteUser(u.id)}
+                      className="text-red-400 text-xs font-bold border border-red-400/30 px-2.5 py-1 rounded-lg active:scale-95 transition-all"
+                    >מחק</button>
                   </div>
-                  <button
-                    onClick={() => deleteUser(u.id)}
-                    className="text-red-400 text-xs font-bold border border-red-400/30 px-2.5 py-1 rounded-lg active:scale-95 transition-all"
-                  >
-                    מחק
-                  </button>
+                  <p className="text-gray-500 text-xs mb-1">{u.coins} מטבעות · {u.joinedLeaguesCount} ליגות</p>
+                  {u.managedLeagues.map(l => (
+                    <div key={l.id} className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-primary text-[10px]">▸</span>
+                      <span className="text-gray-300 text-xs">{l.name}</span>
+                      <span className="text-gray-600 text-[10px]">({l.memberCount} חברים)</span>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
