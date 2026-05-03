@@ -12,7 +12,7 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  coins             Int                @default(8)
+  coins             Int                @default(0)
   x2Stock           Int                @default(0)
   shinooStock       Int                @default(0)
   x3Stock           Int                @default(0)
