@@ -48,6 +48,22 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   const slide = slides[current]
   const isLast = current === slides.length - 1
 
+  useEffect(() => {
+    if ((slide as any).notificationsSlide) {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setNotifStatus('denied')
+      } else if (Notification.permission === 'denied') {
+        setNotifStatus('denied')
+      } else if (Notification.permission === 'granted') {
+        navigator.serviceWorker.ready.then(reg =>
+          reg.pushManager.getSubscription().then(sub => {
+            if (sub) setNotifStatus('subscribed')
+          })
+        )
+      }
+    }
+  }, [current])
+
   const enableNotifications = async () => {
     try {
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) { setNotifStatus('denied'); return }
@@ -231,8 +247,9 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 </div>
               )}
               {notifStatus === 'denied' && (
-                <div className="bg-dark-card border border-dark-border rounded-2xl px-6 py-4 w-full">
-                  <p className="text-gray-400 text-sm">ניתן להפעיל מאוחר יותר דרך הגדרות הדפדפן</p>
+                <div className="bg-dark-card border border-dark-border rounded-2xl px-6 py-4 w-full text-center">
+                  <p className="text-gray-300 text-sm font-bold mb-1">התראות חסומות בדפדפן</p>
+                  <p className="text-gray-500 text-xs">כדי להפעיל — עבור להגדרות הדפדפן ואפשר התראות לאתר</p>
                 </div>
               )}
               <button onClick={onDone} className="text-gray-600 text-sm">
