@@ -30,6 +30,10 @@ const slides = [
   },
   {
     emoji: null,
+    marketIntro: true,
+  },
+  {
+    emoji: null,
     powerupsDemo: true,
   },
   {
@@ -106,6 +110,30 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 <div className="text-right">
                   <p className="text-gray-300 text-xs font-bold">ניחוש תיקו</p>
                   <p className="text-gray-500 text-xs">תיקו לא מדויק = 2 נקודות · תיקו מדויק = 5</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(slide as any).marketIntro && (
+            <div className="w-full flex flex-col items-center text-center gap-5">
+              <img src="/shinoo-logo.png" alt="SHINOO" className="h-20 w-auto" style={{ mixBlendMode: 'lighten' }} />
+              <h2 className="text-white font-black text-2xl">המרקט</h2>
+              <p className="text-gray-300 text-sm leading-relaxed">
+                במרקט תוכל לקנות <span className="text-white font-bold">לחצנים מיוחדים</span> שמשנים את חוקי המשחק לטובתך — בעזרת מטבעות שאתה צובר.
+              </p>
+              <div className="w-full bg-dark-card border border-dark-border rounded-2xl px-5 py-4 text-right space-y-3">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl mt-0.5">⚡</span>
+                  <p className="text-gray-300 text-sm leading-snug">כל לחצן נותן לך יתרון אחר — הכפלת ניקוד, שינוי ניחוש, ועוד</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-xl mt-0.5">🔒</span>
+                  <p className="text-gray-300 text-sm leading-snug">לחצן אחד בלבד לכל משחק</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-xl mt-0.5">🪙</span>
+                  <p className="text-gray-300 text-sm leading-snug">מרוויחים מטבעות: 4 בהצטרפות לליגה, 1 בסיום כל משחק שניחשת</p>
                 </div>
               </div>
             </div>
