@@ -158,7 +158,15 @@ export async function recalculatePoints(matchId: string): Promise<void> {
     where: { matchId },
   })
 
+  const isFinished = match.status === 'FINISHED'
+
   for (const prediction of predictions) {
+    const existingPoints = await db.predictionPoints.findUnique({
+      where: { predictionId: prediction.id },
+      select: { id: true },
+    })
+    const isFirstCalc = !existingPoints
+
     const result = calculatePoints(
       prediction.predictedHomeScore,
       prediction.predictedAwayScore,
@@ -212,6 +220,13 @@ export async function recalculatePoints(matchId: string): Promise<void> {
         explanation,
       },
     })
+
+    if (isFirstCalc && isFinished) {
+      await db.user.update({
+        where: { id: prediction.userId },
+        data: { coins: { increment: 1 } },
+      })
+    }
   }
 
   console.log(`[sync] Recalculated points for ${predictions.length} predictions`)
