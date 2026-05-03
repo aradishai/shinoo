@@ -6,7 +6,6 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { LeagueTable } from '@/components/league-table'
 import { MatchCard } from '@/components/match-card'
-import { PushButton } from '@/components/push-button'
 
 interface StandingEntry {
   rank: number
@@ -378,10 +377,6 @@ export default function LeagueDetailPage() {
             ))}
           </div>
 
-          {/* Push notifications */}
-          <div className="flex justify-center mb-4">
-            <PushButton />
-          </div>
 
           {/* Add Member (admin only) */}
           {isAdmin && (

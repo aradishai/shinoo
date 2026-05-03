@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 import { MatchCard } from '@/components/match-card'
 import { LeagueTable } from '@/components/league-table'
 import { Onboarding } from '@/components/onboarding'
+import { NotificationPrompt } from '@/components/notification-prompt'
 
 interface User {
   id: string
@@ -430,6 +431,7 @@ export default function HomePage() {
     <div className="px-4 py-6">
 
       {showOnboarding && <Onboarding onDone={() => setShowOnboarding(false)} />}
+      <NotificationPrompt />
 
       {/* Minute 90 reveal modal */}
       {minute90Reveal && (
