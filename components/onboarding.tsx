@@ -2,6 +2,15 @@
 
 import { useState, useEffect } from 'react'
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  const output = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; i++) output[i] = rawData.charCodeAt(i)
+  return output
+}
+
 const slides = [
   {
     emoji: null,
@@ -23,12 +32,38 @@ const slides = [
     emoji: null,
     powerupsDemo: true,
   },
+  {
+    emoji: null,
+    notificationsSlide: true,
+  },
 ]
 
 export function Onboarding({ onDone }: { onDone: () => void }) {
   const [current, setCurrent] = useState(0)
+  const [notifStatus, setNotifStatus] = useState<'idle' | 'subscribed' | 'denied'>('idle')
   const slide = slides[current]
   const isLast = current === slides.length - 1
+
+  const enableNotifications = async () => {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) { setNotifStatus('denied'); return }
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') { setNotifStatus('denied'); return }
+      const reg = await navigator.serviceWorker.ready
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
+      })
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sub.toJSON()),
+      })
+      setNotifStatus('subscribed')
+    } catch {
+      setNotifStatus('denied')
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-[100] bg-dark flex flex-col px-6 pt-10 pb-6" dir="rtl">
@@ -148,6 +183,37 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             </div>
           )}
 
+          {(slide as any).notificationsSlide && (
+            <div className="w-full flex flex-col items-center gap-5 text-center">
+              <div className="text-6xl">🔔</div>
+              <h2 className="text-white font-black text-2xl">קבל התראות</h2>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                נשלח לך תזכורת לפני משחקים שעוד לא ניחשת עליהם — כדי שלא תפספס
+              </p>
+              {notifStatus === 'idle' && (
+                <button
+                  onClick={enableNotifications}
+                  className="w-full bg-primary text-black font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-green"
+                >
+                  הפעל התראות
+                </button>
+              )}
+              {notifStatus === 'subscribed' && (
+                <div className="bg-primary/10 border border-primary/30 rounded-2xl px-6 py-4 w-full">
+                  <p className="text-primary font-black text-base">✓ ההתראות פעילות!</p>
+                </div>
+              )}
+              {notifStatus === 'denied' && (
+                <div className="bg-dark-card border border-dark-border rounded-2xl px-6 py-4 w-full">
+                  <p className="text-gray-400 text-sm">ניתן להפעיל מאוחר יותר דרך הגדרות הדפדפן</p>
+                </div>
+              )}
+              <button onClick={onDone} className="text-gray-600 text-sm">
+                {notifStatus === 'idle' ? 'דלג' : 'בואו נתחיל!'}
+              </button>
+            </div>
+          )}
+
           {slide.title && (
             <h2 className="text-white font-black text-2xl mt-2">{slide.title}</h2>
           )}
@@ -158,32 +224,34 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       </div>
 
       {/* Dots + buttons — always visible at bottom */}
-      <div className="flex flex-col items-center gap-3 w-full max-w-xs mx-auto shrink-0 pt-3">
-        <div className="flex gap-2">
-          {slides.map((_, i) => (
-            <div
-              key={i}
-              className={`rounded-full transition-all duration-300 ${i === current ? 'w-6 h-2 bg-primary' : 'w-2 h-2 bg-dark-border'}`}
-            />
-          ))}
-        </div>
-        <div className="flex gap-3 w-full">
-          {current > 0 && (
+      {!(slide as any).notificationsSlide && (
+        <div className="flex flex-col items-center gap-3 w-full max-w-xs mx-auto shrink-0 pt-3">
+          <div className="flex gap-2">
+            {slides.map((_, i) => (
+              <div
+                key={i}
+                className={`rounded-full transition-all duration-300 ${i === current ? 'w-6 h-2 bg-primary' : 'w-2 h-2 bg-dark-border'}`}
+              />
+            ))}
+          </div>
+          <div className="flex gap-3 w-full">
+            {current > 0 && (
+              <button
+                onClick={() => setCurrent(c => c - 1)}
+                className="bg-dark-card border border-dark-border text-gray-300 font-bold text-lg py-4 px-6 rounded-2xl active:scale-95 transition-all"
+              >
+                הקודם
+              </button>
+            )}
             <button
-              onClick={() => setCurrent(c => c - 1)}
-              className="bg-dark-card border border-dark-border text-gray-300 font-bold text-lg py-4 px-6 rounded-2xl active:scale-95 transition-all"
+              onClick={() => isLast ? onDone() : setCurrent(c => c + 1)}
+              className="flex-1 bg-primary text-black font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-green"
             >
-              הקודם
+              {isLast ? 'בואו נתחיל!' : 'הבא'}
             </button>
-          )}
-          <button
-            onClick={() => isLast ? onDone() : setCurrent(c => c + 1)}
-            className="flex-1 bg-primary text-black font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-green"
-          >
-            {isLast ? 'בואו נתחיל!' : 'הבא'}
-          </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
