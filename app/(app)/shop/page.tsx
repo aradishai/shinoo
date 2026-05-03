@@ -108,7 +108,7 @@ export default function ShopPage() {
                     <img
                       src={item.img}
                       alt={item.name}
-                      className="w-36 h-16 object-contain object-right rounded-xl"
+                      className="w-32 h-10 object-contain rounded-xl"
                       style={{ mixBlendMode: 'lighten' }}
                     />
                     {item.comingSoon && (
