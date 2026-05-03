@@ -5,12 +5,12 @@ import Image from 'next/image'
 import toast from 'react-hot-toast'
 
 const SHOP_ITEMS = [
-  { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false, imgClass: 'h-12 w-auto', cost: 3 },
-  { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const, comingSoon: false, imgClass: 'h-12 w-auto', cost: 2 },
-  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.jpg', stockKey: 'x3Stock' as const, comingSoon: false, imgClass: 'h-20 w-auto', cost: 4 },
-  { id: 'goals', name: 'גולס+', description: 'לשימוש לפני המשחק – כל גול שווה נקודה', img: '/btn-goals.jpg', stockKey: 'goalsStock' as const, comingSoon: false, imgClass: 'h-20 w-auto', cost: 3 },
-  { id: 'minute90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.jpg', stockKey: 'minute90Stock' as const, comingSoon: false, imgClass: 'h-20 w-auto', cost: 1 },
-  { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.jpg', stockKey: 'splitStock' as const, comingSoon: false, imgClass: 'h-20 w-auto', cost: 2 },
+  { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false, cost: 3 },
+  { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo.png', stockKey: 'shinooStock' as const, comingSoon: false, cost: 2 },
+  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.jpg', stockKey: 'x3Stock' as const, comingSoon: false, cost: 4 },
+  { id: 'goals', name: 'גולס+', description: 'לשימוש לפני המשחק – כל גול שווה נקודה', img: '/btn-goals.jpg', stockKey: 'goalsStock' as const, comingSoon: false, cost: 3 },
+  { id: 'minute90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.jpg', stockKey: 'minute90Stock' as const, comingSoon: false, cost: 1 },
+  { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.jpg', stockKey: 'splitStock' as const, comingSoon: false, cost: 2 },
 ]
 
 export default function ShopPage() {
@@ -108,7 +108,7 @@ export default function ShopPage() {
                     <img
                       src={item.img}
                       alt={item.name}
-                      className={`${item.imgClass.includes('h-12') ? 'w-36 h-12' : 'w-36 h-20'} object-contain object-right rounded-xl`}
+                      className="w-36 h-16 object-contain object-right rounded-xl"
                       style={{ mixBlendMode: 'lighten' }}
                     />
                     {item.comingSoon && (
