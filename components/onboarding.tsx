@@ -323,6 +323,18 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                   <p className="text-gray-500 text-xs">כדי להפעיל — עבור להגדרות הדפדפן ואפשר התראות לאתר</p>
                 </div>
               )}
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl px-4 py-3 w-full text-right">
+                <p className="text-yellow-400 font-black text-xs mb-1">💡 טיפ — התקן כאפליקציה</p>
+                <p className="text-gray-400 text-xs leading-relaxed">
+                  להתראות אמינות יותר, התקן את שינו כאפליקציה על המסך הבית:
+                </p>
+                <p className="text-gray-500 text-xs mt-1.5">
+                  <span className="text-gray-300 font-bold">iPhone:</span> לחץ על כפתור השיתוף ← "הוסף למסך הבית"
+                </p>
+                <p className="text-gray-500 text-xs mt-0.5">
+                  <span className="text-gray-300 font-bold">Android:</span> לחץ על תפריט הדפדפן ← "הוסף למסך הבית"
+                </p>
+              </div>
               <button onClick={onDone} className="text-gray-600 text-sm">
                 {notifStatus === 'idle' ? 'דלג' : 'בואו נתחיל!'}
               </button>

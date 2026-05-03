@@ -176,6 +176,8 @@ export default function HomePage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [minute90Reveal, setMinute90Reveal] = useState<Minute90RevealData | null>(null)
   const [showAdminPanel, setShowAdminPanel] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const [menuPage, setMenuPage] = useState<'rules' | 'privacy' | 'terms' | 'contact' | null>(null)
   const [adminUsers, setAdminUsers] = useState<{
     id: string; username: string; coins: number; createdAt: string
     managedLeagues: { id: string; name: string; memberCount: number }[]
@@ -555,6 +557,134 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* Menu */}
+      {showMenu && !menuPage && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-end justify-center" onClick={() => setShowMenu(false)}>
+          <div className="bg-dark-card border border-dark-border rounded-t-3xl w-full max-w-sm pb-8 pt-4" onClick={e => e.stopPropagation()} dir="rtl">
+            <div className="w-10 h-1 bg-dark-border rounded-full mx-auto mb-4" />
+            {[
+              { key: 'rules', label: 'חוקים והוראות', icon: '📋' },
+              { key: 'privacy', label: 'מדיניות פרטיות', icon: '🔒' },
+              { key: 'terms', label: 'תנאי שימוש', icon: '📄' },
+              { key: 'contact', label: 'צרו קשר', icon: '✉️' },
+            ].map(item => (
+              <button key={item.key} onClick={() => setMenuPage(item.key as any)}
+                className="w-full flex items-center gap-3 px-6 py-4 text-right hover:bg-dark-50 transition-all border-b border-dark-border/40 last:border-0">
+                <span className="text-lg">{item.icon}</span>
+                <span className="text-white font-bold text-sm">{item.label}</span>
+                <span className="mr-auto text-gray-600">›</span>
+              </button>
+            ))}
+            {isAdmin && (
+              <button onClick={() => { setShowMenu(false); openAdminPanel() }}
+                className="w-full flex items-center gap-3 px-6 py-4 text-right hover:bg-dark-50 transition-all border-t border-dark-border mt-2">
+                <span className="text-lg">⚙️</span>
+                <span className="text-primary font-bold text-sm">ניהול משתמשים</span>
+                <span className="mr-auto text-gray-600">›</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Menu sub-pages */}
+      {showMenu && menuPage && (
+        <div className="fixed inset-0 z-50 bg-dark flex flex-col" dir="rtl">
+          <div className="flex items-center gap-3 px-4 py-4 border-b border-dark-border shrink-0">
+            <button onClick={() => setMenuPage(null)} className="text-gray-400 text-sm">→ חזרה</button>
+            <h2 className="text-white font-black text-base">
+              {menuPage === 'rules' ? 'חוקים והוראות' : menuPage === 'privacy' ? 'מדיניות פרטיות' : menuPage === 'terms' ? 'תנאי שימוש' : 'צרו קשר'}
+            </h2>
+          </div>
+          <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 text-right">
+            {menuPage === 'rules' && (<>
+              <p className="text-primary font-black text-base">ניקוד ניחושים</p>
+              {[
+                { pts: '5 נקודות 🎯', desc: 'תוצאה מדויקת — ניחשת את הסקור המדויק' },
+                { pts: '3 נקודות', desc: 'מנצחת נכונה + כמות שערים של קבוצה אחת נכונה' },
+                { pts: '2 נקודות', desc: 'ניחשת תיקו — לא חייב מדויק' },
+                { pts: 'נקודה אחת', desc: 'ניחשת את המנצחת בלבד' },
+                { pts: '0 נקודות', desc: 'המנצחת שגויה' },
+              ].map(r => (
+                <div key={r.pts} className="bg-dark-card border border-dark-border rounded-xl px-4 py-3">
+                  <p className="text-white font-black text-sm">{r.pts}</p>
+                  <p className="text-gray-400 text-xs mt-0.5">{r.desc}</p>
+                </div>
+              ))}
+              <p className="text-primary font-black text-base pt-2">לחצנים מיוחדים</p>
+              {[
+                { name: 'X2', time: 'בזמן המחצית', desc: 'מכפיל את הניקוד שלך פי 2' },
+                { name: 'X3', time: 'לפני המשחק', desc: 'משלש את הניקוד שלך' },
+                { name: 'GOALS+', time: 'לפני המשחק', desc: 'כל גול במשחק שווה נקודה נוספת' },
+                { name: 'SHINOO', time: 'בזמן המחצית', desc: 'שנה גול אחד בניחוש שלך' },
+                { name: 'SPLIT', time: 'לפני המשחק', desc: 'נחש 2 תוצאות, תקבל ניקוד על הטובה' },
+                { name: "90'", time: 'עד דקה 90', desc: 'מגריל לך ניחוש חדש אקראי' },
+              ].map(p => (
+                <div key={p.name} className="bg-dark-card border border-dark-border rounded-xl px-4 py-3">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-white font-black text-sm">{p.name}</span>
+                    <span className="text-gray-500 text-xs">{p.time}</span>
+                  </div>
+                  <p className="text-gray-400 text-xs">{p.desc}</p>
+                </div>
+              ))}
+              <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-3">
+                <p className="text-gray-400 text-xs">• לחצן אחד בלבד לכל משחק</p>
+                <p className="text-gray-400 text-xs mt-1">• רכישה רק עם מטבעות מהמרקט</p>
+              </div>
+            </>)}
+
+            {menuPage === 'privacy' && (<>
+              <p className="text-white font-black text-base">מדיניות פרטיות</p>
+              <p className="text-gray-400 text-sm leading-relaxed">שינו אוספת מינימום מידע הכרחי לפעילות האפליקציה בלבד.</p>
+              {[
+                { title: 'מה אנחנו אוספים', body: 'שם משתמש שבחרת, ניחושים שמסרת, ופעילות כללית באפליקציה.' },
+                { title: 'מה אנחנו לא אוספים', body: 'כתובת מייל, מספר טלפון, פרטי תשלום, או כל מידע אישי מזהה.' },
+                { title: 'שיתוף מידע', body: 'המידע לא נמכר ולא מועבר לצדדים שלישיים. ניחושים של משתמשים גלויים לחברי הליגה בלבד.' },
+                { title: 'מחיקת חשבון', body: 'ניתן לפנות אלינו בכל עת לבקשת מחיקת החשבון והנתונים.' },
+              ].map(s => (
+                <div key={s.title} className="bg-dark-card border border-dark-border rounded-xl px-4 py-3">
+                  <p className="text-white font-bold text-sm mb-1">{s.title}</p>
+                  <p className="text-gray-400 text-xs leading-relaxed">{s.body}</p>
+                </div>
+              ))}
+            </>)}
+
+            {menuPage === 'terms' && (<>
+              <p className="text-white font-black text-base">תנאי שימוש</p>
+              <p className="text-gray-400 text-sm leading-relaxed">השימוש באפליקציה מהווה הסכמה לתנאים הבאים.</p>
+              {[
+                { title: 'האפליקציה לבידור בלבד', body: 'שינו היא אפליקציית ניחושים לבידור. אין כאן הימורים בכסף אמיתי ואין פרסים כספיים.' },
+                { title: 'גיל מינימלי', body: 'השימוש באפליקציה מותר מגיל 13 ומעלה.' },
+                { title: 'אחריות', body: 'אנו לא אחראים על זמינות שירות רציפה, דיוק תוצאות בזמן אמת, או כל נזק שנגרם כתוצאה משימוש באפליקציה.' },
+                { title: 'שינויים', body: 'אנו שומרים את הזכות לשנות את הכללים, הניקוד, ותנאי השימוש בכל עת.' },
+              ].map(s => (
+                <div key={s.title} className="bg-dark-card border border-dark-border rounded-xl px-4 py-3">
+                  <p className="text-white font-bold text-sm mb-1">{s.title}</p>
+                  <p className="text-gray-400 text-xs leading-relaxed">{s.body}</p>
+                </div>
+              ))}
+            </>)}
+
+            {menuPage === 'contact' && (<>
+              <p className="text-white font-black text-base">צרו קשר</p>
+              <p className="text-gray-400 text-sm leading-relaxed">לשאלות, בעיות, או הצעות — נשמח לשמוע.</p>
+              <a href="mailto:aradishai10@gmail.com"
+                className="block bg-dark-card border border-dark-border rounded-xl px-4 py-4 text-center">
+                <p className="text-primary font-black text-sm">aradishai10@gmail.com</p>
+                <p className="text-gray-500 text-xs mt-1">לחץ לשליחת מייל</p>
+              </a>
+            </>)}
+          </div>
+          <div className="px-5 pb-8 pt-3 shrink-0">
+            <button onClick={() => { setMenuPage(null); setShowMenu(false) }}
+              className="w-full py-3 rounded-2xl bg-dark-card border border-dark-border text-gray-400 font-bold text-sm">
+              סגור
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="mb-6">
         {/* Top row: יציאה + share + admin */}
@@ -577,16 +707,14 @@ export default function HomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
             </button>
-            {isAdmin && (
-              <button
-                onClick={openAdminPanel}
-                className="w-9 h-9 flex items-center justify-center bg-dark-card border border-dark-border rounded-xl text-gray-300 hover:text-white transition-all active:scale-95"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            )}
+            <button
+              onClick={() => setShowMenu(true)}
+              className="w-9 h-9 flex items-center justify-center bg-dark-card border border-dark-border rounded-xl text-gray-300 hover:text-white transition-all active:scale-95"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
         </div>
 
