@@ -175,7 +175,35 @@ export default function HomePage() {
   const [splitScores, setSplitScores] = useState({ home: '0', away: '0' })
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [minute90Reveal, setMinute90Reveal] = useState<Minute90RevealData | null>(null)
+  const [showAdminPanel, setShowAdminPanel] = useState(false)
+  const [adminUsers, setAdminUsers] = useState<{ id: string; username: string; coins: number; createdAt: string }[]>([])
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  const isAdmin = user?.username === 'ערד'
+
+  const openAdminPanel = async () => {
+    const res = await fetch('/api/admin/users')
+    if (res.ok) {
+      const data = await res.json()
+      setAdminUsers(data.users)
+    }
+    setShowAdminPanel(true)
+  }
+
+  const deleteUser = async (id: string) => {
+    if (!confirm('למחוק את המשתמש?')) return
+    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' })
+    if (res.ok) setAdminUsers(u => u.filter(x => x.id !== id))
+  }
+
+  const shareApp = () => {
+    if (navigator.share) {
+      navigator.share({ title: 'שינו', text: 'הצטרף לשינו — תחרות ניחושי כדורגל!', url: 'https://shinoo-production-7ab8.up.railway.app' })
+    } else {
+      navigator.clipboard.writeText('https://shinoo-production-7ab8.up.railway.app')
+      toast.success('הקישור הועתק!')
+    }
+  }
 
   const fetchPrimaryLeague = useCallback(async (leagueId: string) => {
     try {
@@ -471,10 +499,38 @@ export default function HomePage() {
           </div>
         </div>
       )}
+      {/* Admin panel */}
+      {showAdminPanel && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center pt-16 px-4" onClick={() => setShowAdminPanel(false)}>
+          <div className="bg-dark-card border border-dark-border rounded-2xl w-full max-w-sm max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()} dir="rtl">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-dark-border">
+              <h2 className="text-white font-black text-base">משתמשים ({adminUsers.length})</h2>
+              <button onClick={() => setShowAdminPanel(false)} className="text-gray-500 text-xl">✕</button>
+            </div>
+            <div className="overflow-y-auto flex-1">
+              {adminUsers.map(u => (
+                <div key={u.id} className="flex items-center justify-between px-4 py-3 border-b border-dark-border/50">
+                  <div>
+                    <p className="text-white font-bold text-sm">{u.username}</p>
+                    <p className="text-gray-500 text-xs">{u.coins} מטבעות</p>
+                  </div>
+                  <button
+                    onClick={() => deleteUser(u.id)}
+                    className="text-red-400 text-xs font-bold border border-red-400/30 px-2.5 py-1 rounded-lg active:scale-95 transition-all"
+                  >
+                    מחק
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="mb-6">
-        {/* Top row: יציאה on the left */}
-        <div className="flex justify-start">
+        {/* Top row: יציאה + share + admin */}
+        <div className="flex items-center justify-between">
           <button
             onClick={async () => {
               await fetch('/api/auth/logout', { method: 'POST' })
@@ -484,6 +540,26 @@ export default function HomePage() {
           >
             יציאה
           </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={shareApp}
+              className="w-9 h-9 flex items-center justify-center bg-dark-card border border-dark-border rounded-xl text-gray-300 hover:text-white transition-all active:scale-95"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+            </button>
+            {isAdmin && (
+              <button
+                onClick={openAdminPanel}
+                className="w-9 h-9 flex items-center justify-center bg-dark-card border border-dark-border rounded-xl text-gray-300 hover:text-white transition-all active:scale-95"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Logo centered */}
