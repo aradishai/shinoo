@@ -72,6 +72,7 @@ async function main() {
         CONSTRAINT "PushSubscription_endpoint_key" UNIQUE ("endpoint")
       )
     `)
+    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "notifyTournamentIds" TEXT[] NOT NULL DEFAULT '{}'`)
     console.log('Column check complete')
   } finally {
     await pool.end()
