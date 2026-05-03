@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   )
 
   const now = new Date()
-  const windowStart = new Date(now.getTime() + 60 * 60 * 1000)
+  const windowStart = new Date(now.getTime() + 70 * 60 * 1000)
   const windowEnd = new Date(now.getTime() + 120 * 60 * 1000)
 
   const upcomingMatches = await db.match.findMany({
