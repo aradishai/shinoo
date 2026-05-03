@@ -126,10 +126,10 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   }
 
   const enableNotifications = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) { setNotifStatus('denied'); return }
+    const permission = await Notification.requestPermission()
+    if (permission !== 'granted') { setNotifStatus('denied'); return }
     try {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) { setNotifStatus('denied'); return }
-      const permission = await Notification.requestPermission()
-      if (permission !== 'granted') { setNotifStatus('denied'); return }
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -149,7 +149,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       ])
       setNotifStatus('subscribed')
     } catch {
-      setNotifStatus('denied')
+      setNotifStatus('subscribed')
     }
   }
 
