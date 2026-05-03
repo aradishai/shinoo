@@ -42,6 +42,41 @@ const slides = [
   },
 ]
 
+function MarketIntroSlide({ onNext }: { onNext: () => void }) {
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    const start = Date.now()
+    const duration = 5000
+    const frame = () => {
+      const elapsed = Date.now() - start
+      const pct = Math.min(elapsed / duration, 1)
+      setProgress(pct)
+      if (pct < 1) requestAnimationFrame(frame)
+      else onNext()
+    }
+    const raf = requestAnimationFrame(frame)
+    return () => cancelAnimationFrame(raf)
+  }, [onNext])
+
+  return (
+    <div className="w-full flex flex-col items-center text-center gap-8">
+      <h2 className="text-white font-black text-3xl leading-snug">המרקט</h2>
+      <p className="text-gray-200 text-lg leading-relaxed">
+        במרקט תוכל לקנות <span className="text-primary font-black">כפתורים מיוחדים</span> שיעזרו לכם לקבל יותר נקודות מהמשחקים.
+        <br /><br />
+        כל לחצן ניתן לקנות בעזרת <span className="text-yellow-400 font-black">מטבעות</span>.
+      </p>
+      <div className="w-full bg-dark-border rounded-full h-1 overflow-hidden">
+        <div
+          className="h-1 bg-primary rounded-full transition-none"
+          style={{ width: `${progress * 100}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
 export function Onboarding({ onDone }: { onDone: () => void }) {
   const [current, setCurrent] = useState(0)
   const [notifStatus, setNotifStatus] = useState<'idle' | 'subscribed' | 'denied'>('idle')
@@ -132,27 +167,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           )}
 
           {(slide as any).marketIntro && (
-            <div className="w-full flex flex-col items-center text-center gap-5">
-              <img src="/shinoo-logo.png" alt="SHINOO" className="h-20 w-auto" style={{ mixBlendMode: 'lighten' }} />
-              <h2 className="text-white font-black text-2xl">המרקט</h2>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                במרקט תוכל לקנות <span className="text-white font-bold">לחצנים מיוחדים</span> שמשנים את חוקי המשחק לטובתך — בעזרת מטבעות שאתה צובר.
-              </p>
-              <div className="w-full bg-dark-card border border-dark-border rounded-2xl px-5 py-4 text-right space-y-3">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl mt-0.5">⚡</span>
-                  <p className="text-gray-300 text-sm leading-snug">כל לחצן נותן לך יתרון אחר — הכפלת ניקוד, שינוי ניחוש, ועוד</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-xl mt-0.5">🔒</span>
-                  <p className="text-gray-300 text-sm leading-snug">לחצן אחד בלבד לכל משחק</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-xl mt-0.5">🪙</span>
-                  <p className="text-gray-300 text-sm leading-snug">מרוויחים מטבעות: 4 בהרשמה, 1 בסיום כל משחק שניחשת</p>
-                </div>
-              </div>
-            </div>
+            <MarketIntroSlide onNext={() => setCurrent(c => c + 1)} />
           )}
 
           {(slide as any).powerupsDemo && (
