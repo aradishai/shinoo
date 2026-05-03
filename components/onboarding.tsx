@@ -44,26 +44,38 @@ const slides = [
 
 function MarketIntroSlide({ onNext }: { onNext: () => void }) {
   const [progress, setProgress] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const pausedRef = { current: paused }
+  pausedRef.current = paused
 
   useEffect(() => {
-    const start = Date.now()
-    const duration = 7000
+    const duration = 10000
+    let elapsed = 0
+    let lastTime = Date.now()
+    let raf: number
+
     const frame = () => {
-      const elapsed = Date.now() - start
-      const pct = Math.min(elapsed / duration, 1)
-      setProgress(pct)
-      if (pct < 1) requestAnimationFrame(frame)
-      else onNext()
+      if (!pausedRef.current) {
+        const now = Date.now()
+        elapsed += now - lastTime
+        lastTime = now
+        const pct = Math.min(elapsed / duration, 1)
+        setProgress(pct)
+        if (pct >= 1) { onNext(); return }
+      } else {
+        lastTime = Date.now()
+      }
+      raf = requestAnimationFrame(frame)
     }
-    const raf = requestAnimationFrame(frame)
+    raf = requestAnimationFrame(frame)
     return () => cancelAnimationFrame(raf)
   }, [onNext])
 
   return (
-    <div className="w-full flex flex-col items-center text-center gap-8">
+    <div className="w-full flex flex-col items-center text-center gap-8" onClick={() => setPaused(p => !p)}>
       <h2 className="text-white font-black text-3xl leading-snug">המרקט</h2>
       <p className="text-gray-200 text-lg leading-relaxed">
-        במרקט תוכל לקנות <span className="text-primary font-black">כפתורים מיוחדים</span> שיעזרו לכם לקבל יותר נקודות מהמשחקים.
+        במרקט תוכל לקנות <span className="text-primary font-black">לחצנים מיוחדים</span> שיעזרו לכם לקבל יותר נקודות מהמשחקים.
         <br /><br />
         כל לחצן ניתן לקנות בעזרת <span className="text-yellow-400 font-black">מטבעות</span>.
       </p>
@@ -73,6 +85,7 @@ function MarketIntroSlide({ onNext }: { onNext: () => void }) {
           style={{ width: `${progress * 100}%` }}
         />
       </div>
+      {paused && <p className="text-gray-600 text-xs">לחץ להמשך</p>}
     </div>
   )
 }
