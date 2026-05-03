@@ -176,7 +176,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               {[
                 { img: '/btn-x2.png', desc: 'הכפל ניקוד — בזמן המחצית', cost: 3 },
                 { img: '/btn-shinoo.png', desc: 'שנה גול אחד — בזמן המחצית', cost: 2 },
-                { img: '/btn-90.jpg', desc: 'הגרל ניחוש חדש — עד דקה 90', cost: 2 },
+                { img: '/btn-90.jpg', desc: 'הגרל ניחוש חדש — עד דקה 90', cost: 1 },
               ].map(({ img, desc, cost }) => (
                 <div key={img} className="bg-dark-card border border-dark-border rounded-xl px-3 py-2 flex items-center gap-3">
                   <img src={img} className="h-8 w-20 object-contain object-right rounded-lg shrink-0" style={{ mixBlendMode: 'lighten' }} />
