@@ -107,41 +107,48 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
 
 function useLiveMinute(kickoffAt: Date | string, status: string, apiMinute?: number | null) {
   const [minute, setMinute] = useState<string | null>(null)
-  const maxElapsedRef = useRef(0)
+  const baseRef = useRef<{ wallTime: number; apiMin: number } | null>(null)
+  const maxMinRef = useRef(0)
 
   useEffect(() => {
-    if (status !== 'LIVE' && status !== 'PAUSED') { setMinute(null); maxElapsedRef.current = 0; return }
+    if (status !== 'LIVE' && status !== 'PAUSED') {
+      setMinute(null)
+      baseRef.current = null
+      maxMinRef.current = 0
+      return
+    }
 
-    const hookStartTime = Date.now()
+    if (status === 'PAUSED') {
+      setMinute('HT')
+      maxMinRef.current = 0
+      return
+    }
+
+    // Anchor dead-reckoning to the latest API minute
+    if (apiMinute != null) {
+      baseRef.current = { wallTime: Date.now(), apiMin: apiMinute }
+      maxMinRef.current = apiMinute  // allow API to correct overcounting from stoppages
+    }
 
     const calc = () => {
-      // Dead-reckoning from last API sync, or fallback to kickoffAt
-      let rawElapsed: number
-      if (apiMinute != null) {
-        rawElapsed = apiMinute + (Date.now() - hookStartTime) / 60000
+      let gameMin: number
+      if (baseRef.current != null) {
+        gameMin = baseRef.current.apiMin + (Date.now() - baseRef.current.wallTime) / 60000
       } else {
-        rawElapsed = (Date.now() - new Date(kickoffAt).getTime()) / 60000
+        gameMin = (Date.now() - new Date(kickoffAt).getTime()) / 60000
       }
 
-      // Never go backward — clock only moves forward
-      const elapsed = Math.max(rawElapsed, maxElapsedRef.current)
-      maxElapsedRef.current = elapsed
+      // Never go backward
+      gameMin = Math.max(gameMin, maxMinRef.current)
+      maxMinRef.current = gameMin
 
-      if (elapsed < 1) { setMinute(null); return }
-
-      if (elapsed <= 48) {
-        setMinute(`${Math.floor(elapsed)}'`)
-      } else if (elapsed <= 64) {
-        setMinute('HT')
-      } else if (elapsed <= 109) {
-        setMinute(`${Math.min(90, Math.floor(45 + (elapsed - 64)))}'`)
-      } else {
-        setMinute('90+')
-      }
+      if (gameMin < 1) { setMinute(null); return }
+      if (gameMin > 90) { setMinute('90+'); return }
+      setMinute(`${Math.floor(gameMin)}'`)
     }
 
     calc()
-    const interval = setInterval(calc, 15000)
+    const interval = setInterval(calc, 15_000)
     return () => clearInterval(interval)
   }, [kickoffAt, status, apiMinute])
 
@@ -336,11 +343,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
 
     // Live buttons: X2/SHINOO only during halftime window, 90' up to minute ~90
     if (isLive || match.status === 'PAUSED') {
-      const gameMin = Number(liveMinute ?? 0)
+      const gameMin = parseInt(liveMinute ?? '0') || 0
       const extra = match.tournament?.type === 'world_cup' ? 5 : 3
       const windowOpenMin = 45 + extra
       const windowCloseMin = windowOpenMin + 15
-      const inHalftimeWindow = gameMin >= windowOpenMin && gameMin <= windowCloseMin
+      const inHalftimeWindow = match.status === 'PAUSED' || (gameMin >= windowOpenMin && gameMin <= windowCloseMin)
       const before90 = gameMin < 95
 
       const showX2 = powerup.x2Stock > 0 && inHalftimeWindow

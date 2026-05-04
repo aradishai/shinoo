@@ -1,0 +1,166 @@
+import { db } from './db'
+import axios from 'axios'
+import { recalculatePoints } from './sync-service'
+
+export const MIN_INTERVAL_MS = 60_000
+
+let lastSyncTime = 0
+
+const FD_API = 'https://api.football-data.org/v4'
+const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
+
+function getRoundNumber(round: string | null | undefined): number {
+  if (!round) return 0
+  const digits = round.replace(/\D/g, '')
+  if (digits) return parseInt(digits)
+  if (round.includes('גמר')) return 100
+  return 0
+}
+
+const FD_STATUS_MAP: Record<string, string> = {
+  'TIMED': 'SCHEDULED',
+  'SCHEDULED': 'SCHEDULED',
+  'IN_PLAY': 'LIVE',
+  'PAUSED': 'PAUSED',
+  'FINISHED': 'FINISHED',
+  'SUSPENDED': 'POSTPONED',
+  'POSTPONED': 'POSTPONED',
+  'CANCELLED': 'CANCELLED',
+  'AWARDED': 'FINISHED',
+}
+
+async function syncFootballData() {
+  if (!FD_KEY) return
+
+  const competitions = ['PD', 'CL']
+  const fetchResults = await Promise.allSettled(
+    competitions.flatMap(comp => [
+      axios.get(`${FD_API}/competitions/${comp}/matches?status=IN_PLAY,PAUSED`, {
+        headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
+      }),
+      axios.get(`${FD_API}/competitions/${comp}/matches?status=FINISHED`, {
+        headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
+      }),
+    ])
+  )
+
+  const liveMatches = fetchResults
+    .filter((_, i) => i % 2 === 0)
+    .flatMap(r => r.status === 'fulfilled' ? (r.value.data?.matches ?? []) : [])
+
+  const recentMatches = fetchResults
+    .filter((_, i) => i % 2 === 1)
+    .flatMap(r => r.status === 'fulfilled' ? (r.value.data?.matches ?? []) : [])
+
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  const recentFinished = recentMatches.filter((m: any) => new Date(m.lastUpdated) > cutoff)
+
+  const allMatches = [...liveMatches, ...recentFinished]
+
+  for (const m of allMatches) {
+    let match = await db.match.findUnique({
+      where: { providerMatchId: `fd-${m.id}` },
+    })
+
+    if (!match) {
+      const SKIP = new Set(['FC', 'AC', 'AS', 'CD', 'CF', 'RC', 'RCD', 'SD', 'UD', 'SC', 'FK'])
+      const findTeamFallback = async (apiTeam: any) => {
+        if (!apiTeam) return null
+        const byCode = await db.team.findFirst({ where: { code: apiTeam.tla } })
+        if (byCode) return byCode
+        const keyword = (apiTeam.name ?? '').split(' ').find((w: string) => w.length > 3 && !SKIP.has(w))
+        if (!keyword) return null
+        return db.team.findFirst({ where: { nameEn: { contains: keyword } } })
+      }
+      const homeTeam = await findTeamFallback(m.homeTeam)
+      const awayTeam = await findTeamFallback(m.awayTeam)
+      if (homeTeam && awayTeam) {
+        const kickoffDate = new Date(m.utcDate)
+        const from = new Date(kickoffDate.getTime() - 2 * 60 * 60 * 1000)
+        const to = new Date(kickoffDate.getTime() + 2 * 60 * 60 * 1000)
+        match = await db.match.findFirst({
+          where: { homeTeamId: homeTeam.id, awayTeamId: awayTeam.id, kickoffAt: { gte: from, lte: to }, providerMatchId: null }
+        }) ?? null
+        if (match) {
+          await db.match.update({ where: { id: match.id }, data: { providerMatchId: `fd-${m.id}` } })
+        }
+      }
+    }
+
+    if (!match) continue
+
+    const status = FD_STATUS_MAP[m.status] ?? match.status
+    const homeScore = m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore
+    const awayScore = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? match.awayScore
+    const minute = m.minute ?? null
+    const hasScore = homeScore !== null && awayScore !== null
+
+    await db.match.update({
+      where: { id: match.id },
+      data: { status, homeScore, awayScore, minute },
+    })
+
+    if (hasScore) {
+      await recalculatePoints(match.id)
+    }
+  }
+}
+
+async function lockExpiredMatches() {
+  await db.match.updateMany({
+    where: { status: 'SCHEDULED', lockAt: { lte: new Date() }, providerMatchId: { not: null } },
+    data: { status: 'LOCKED' },
+  })
+}
+
+async function autoFinishStaleMatches() {
+  const staleTime = new Date(Date.now() - 150 * 60 * 1000)
+  await db.match.updateMany({
+    where: {
+      status: { in: ['LIVE', 'PAUSED'] },
+      kickoffAt: { lte: staleTime },
+      providerMatchId: { not: null },
+    },
+    data: { status: 'FINISHED' },
+  })
+}
+
+async function recalculateMissingPoints() {
+  const finished = await db.match.findMany({
+    where: {
+      status: { in: ['FINISHED', 'PAUSED', 'LIVE'] },
+      homeScore: { not: null },
+      awayScore: { not: null },
+      predictions: { some: { points: null } },
+    },
+    select: { id: true },
+  })
+  for (const m of finished) {
+    await recalculatePoints(m.id)
+  }
+}
+
+export async function runLiveSync(): Promise<{ synced: boolean; activeMatches: number; nextSyncIn: number }> {
+  const now = Date.now()
+  const timeSinceLast = now - lastSyncTime
+
+  const activeCount = await db.match.count({
+    where: { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
+  })
+
+  let synced = false
+  if (timeSinceLast >= MIN_INTERVAL_MS) {
+    lastSyncTime = now
+    await lockExpiredMatches()
+    await syncFootballData()
+    await autoFinishStaleMatches()
+    await recalculateMissingPoints()
+    synced = true
+  }
+
+  return {
+    synced,
+    activeMatches: activeCount,
+    nextSyncIn: synced ? MIN_INTERVAL_MS : Math.max(0, MIN_INTERVAL_MS - timeSinceLast),
+  }
+}

@@ -112,7 +112,7 @@ export default function LeagueDetailPage() {
         if (data.synced) fetchData()
       } catch { /* silent */ }
     }
-    syncIntervalRef.current = setInterval(poll, 60_000)
+    syncIntervalRef.current = setInterval(poll, 10_000)
     return () => { if (syncIntervalRef.current) clearInterval(syncIntervalRef.current) }
   }, [fetchData])
 

@@ -125,7 +125,7 @@ export default function MatchesPage() {
       } catch { /* silent */ }
     }
     poll() // sync immediately on mount
-    syncIntervalRef.current = setInterval(poll, 60_000)
+    syncIntervalRef.current = setInterval(poll, 10_000)
     return () => { if (syncIntervalRef.current) clearInterval(syncIntervalRef.current) }
   }, [loadMatches])
 
