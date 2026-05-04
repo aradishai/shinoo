@@ -24,6 +24,25 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   if (ADMIN_USERNAMES.includes(target.username))
     return NextResponse.json({ error: 'לא ניתן למחוק אדמין' }, { status: 400 })
 
+  // מחיקת ליגות שהמשתמש יצר (כולל ניחושים וחברים בהן)
+  const ownedLeagues = await db.league.findMany({
+    where: { createdByUserId: params.id },
+    select: { id: true },
+  })
+  const ownedLeagueIds = ownedLeagues.map(l => l.id)
+
+  if (ownedLeagueIds.length > 0) {
+    await db.prediction.deleteMany({ where: { leagueId: { in: ownedLeagueIds } } })
+    await db.leagueMember.deleteMany({ where: { leagueId: { in: ownedLeagueIds } } })
+    await db.league.deleteMany({ where: { id: { in: ownedLeagueIds } } })
+  }
+
+  // מחיקת כל שאר הרשומות של המשתמש
+  await db.prediction.deleteMany({ where: { userId: params.id } })
+  await db.leagueMember.deleteMany({ where: { userId: params.id } })
+  await db.pushSubscription.deleteMany({ where: { userId: params.id } })
+  await db.coinBet.deleteMany({ where: { userId: params.id } })
+
   await db.user.delete({ where: { id: params.id } })
   return NextResponse.json({ ok: true })
 }
