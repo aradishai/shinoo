@@ -206,7 +206,7 @@ export default function HomePage() {
 
   const shareApp = () => {
     if (navigator.share) {
-      navigator.share({ title: 'שינו', text: 'הצטרף לשינו — תחרות ניחושי כדורגל!', url: 'https://shinoo-production-7ab8.up.railway.app' })
+      navigator.share({ title: 'שינו ⚽', text: 'פותחים ליגה עם חברים ומנחשים תוצאות משחקים — מונדיאל, ליגת אלופות, לה ליגה ופרמייר ליג ⚽\nהצטרף עכשיו:', url: 'https://shinoo-production-7ab8.up.railway.app' })
     } else {
       navigator.clipboard.writeText('https://shinoo-production-7ab8.up.railway.app')
       toast.success('הקישור הועתק!')
