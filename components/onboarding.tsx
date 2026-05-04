@@ -2,14 +2,6 @@
 
 import { useState, useEffect } from 'react'
 
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const rawData = window.atob(base64)
-  const output = new Uint8Array(rawData.length)
-  for (let i = 0; i < rawData.length; i++) output[i] = rawData.charCodeAt(i)
-  return output
-}
 
 const slides = [
   {
@@ -35,10 +27,6 @@ const slides = [
   {
     emoji: null,
     powerupsDemo: true,
-  },
-  {
-    emoji: null,
-    notificationsSlide: true,
   },
 ]
 
@@ -92,66 +80,8 @@ function MarketIntroSlide({ onNext }: { onNext: () => void }) {
 
 export function Onboarding({ onDone }: { onDone: () => void }) {
   const [current, setCurrent] = useState(0)
-  const [notifStatus, setNotifStatus] = useState<'idle' | 'subscribed' | 'denied'>('idle')
-  const [tournaments, setTournaments] = useState<{ id: string; nameHe: string }[]>([])
-  const [selectedTournaments, setSelectedTournaments] = useState<string[]>([])
   const slide = slides[current]
   const isLast = current === slides.length - 1
-
-  useEffect(() => {
-    if ((slide as any).notificationsSlide) {
-      fetch('/api/tournaments').then(r => r.json()).then(d => {
-        const list = d.data || []
-        setTournaments(list)
-        setSelectedTournaments(list.map((t: any) => t.id))
-      })
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        setNotifStatus('denied')
-      } else if (Notification.permission === 'denied') {
-        setNotifStatus('denied')
-      } else if (Notification.permission === 'granted') {
-        navigator.serviceWorker.ready.then(reg =>
-          reg.pushManager.getSubscription().then(sub => {
-            if (sub) setNotifStatus('subscribed')
-          })
-        )
-      }
-    }
-  }, [current])
-
-  const toggleTournament = (id: string) => {
-    setSelectedTournaments(prev =>
-      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
-    )
-  }
-
-  const enableNotifications = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) { setNotifStatus('denied'); return }
-    const permission = await Notification.requestPermission()
-    if (permission !== 'granted') { setNotifStatus('denied'); return }
-    try {
-      const reg = await navigator.serviceWorker.ready
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
-      })
-      await Promise.all([
-        fetch('/api/push/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sub.toJSON()),
-        }),
-        fetch('/api/user/notify-prefs', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tournamentIds: selectedTournaments }),
-        }),
-      ])
-      setNotifStatus('subscribed')
-    } catch {
-      setNotifStatus('subscribed')
-    }
-  }
 
   return (
     <div className="fixed inset-0 z-[100] bg-dark flex flex-col px-6 pt-10 pb-6" dir="rtl">
@@ -275,72 +205,6 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             </div>
           )}
 
-          {(slide as any).notificationsSlide && (
-            <div className="w-full flex flex-col items-center gap-5 text-center">
-              <h2 className="text-white font-black text-2xl">קבל התראות</h2>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                נשלח לך תזכורת לפני משחקים שעוד לא ניחשת עליהם — כדי שלא תפספס
-              </p>
-              {tournaments.length > 0 && notifStatus === 'idle' && (
-                <div className="w-full text-right space-y-2">
-                  <p className="text-gray-500 text-xs font-bold">על אילו תחרויות?</p>
-                  {tournaments.map(t => (
-                    <button
-                      key={t.id}
-                      onClick={() => toggleTournament(t.id)}
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                        selectedTournaments.includes(t.id)
-                          ? 'border-primary/50 bg-primary/10'
-                          : 'border-dark-border bg-dark-card'
-                      }`}
-                    >
-                      <span className={`font-bold text-sm ${selectedTournaments.includes(t.id) ? 'text-primary' : 'text-gray-400'}`}>
-                        {t.nameHe}
-                      </span>
-                      <span className={`text-lg ${selectedTournaments.includes(t.id) ? 'text-primary' : 'text-gray-600'}`}>
-                        {selectedTournaments.includes(t.id) ? '✓' : '○'}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {notifStatus === 'idle' && (
-                <button
-                  onClick={enableNotifications}
-                  className="w-full bg-primary text-black font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-green"
-                >
-                  הפעל התראות
-                </button>
-              )}
-              {notifStatus === 'subscribed' && (
-                <div className="bg-primary/10 border border-primary/30 rounded-2xl px-6 py-4 w-full">
-                  <p className="text-primary font-black text-base">✓ ההתראות פעילות!</p>
-                </div>
-              )}
-              {notifStatus === 'denied' && (
-                <div className="bg-dark-card border border-dark-border rounded-2xl px-6 py-4 w-full text-center">
-                  <p className="text-gray-300 text-sm font-bold mb-1">התראות חסומות בדפדפן</p>
-                  <p className="text-gray-500 text-xs">כדי להפעיל — עבור להגדרות הדפדפן ואפשר התראות לאתר</p>
-                </div>
-              )}
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl px-4 py-3 w-full text-right">
-                <p className="text-yellow-400 font-black text-xs mb-1">💡 טיפ — התקן כאפליקציה</p>
-                <p className="text-gray-400 text-xs leading-relaxed">
-                  להתראות אמינות יותר, התקן את שינו כאפליקציה על המסך הבית:
-                </p>
-                <p className="text-gray-500 text-xs mt-1.5">
-                  <span className="text-gray-300 font-bold">iPhone:</span> לחץ על כפתור השיתוף ← "הוסף למסך הבית"
-                </p>
-                <p className="text-gray-500 text-xs mt-0.5">
-                  <span className="text-gray-300 font-bold">Android:</span> לחץ על תפריט הדפדפן ← "הוסף למסך הבית"
-                </p>
-              </div>
-              <button onClick={onDone} className="text-gray-600 text-sm">
-                {notifStatus === 'idle' ? 'דלג' : 'בואו נתחיל!'}
-              </button>
-            </div>
-          )}
-
           {slide.title && (
             <h2 className="text-white font-black text-2xl mt-2">{slide.title}</h2>
           )}
@@ -351,8 +215,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       </div>
 
       {/* Dots + buttons — always visible at bottom */}
-      {!(slide as any).notificationsSlide && (
-        <div className="flex flex-col items-center gap-3 w-full max-w-xs mx-auto shrink-0 pt-3">
+      <div className="flex flex-col items-center gap-3 w-full max-w-xs mx-auto shrink-0 pt-3">
           <div className="flex gap-2">
             {slides.map((_, i) => (
               <div
@@ -378,7 +241,6 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             </button>
           </div>
         </div>
-      )}
     </div>
   )
 }
