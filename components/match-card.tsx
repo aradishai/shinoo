@@ -165,7 +165,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   )
   const appliedImg = !powerup ? null :
     powerup.x2Applied ? '/btn-x2.png' :
-    powerup.shinooApplied ? '/btn-shinoo.png' :
+    powerup.shinooApplied ? '/btn-shinoo-game.png' :
     powerup.x3Applied ? '/btn-x3.png' :
     powerup.goalsApplied ? '/btn-goals.png' :
     powerup.minute90Applied ? '/btn-90.png' :
@@ -357,7 +357,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           )}
           {showShinoo && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onShinoo() }} className="transition-all active:scale-95">
-              <img src="/btn-shinoo.png" alt="SHINOO" className="h-9 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              <img src="/btn-shinoo-game.png" alt="SHINOO" className="h-9 w-24 object-contain rounded-xl" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
           {showM90 && (
