@@ -60,19 +60,8 @@ async function main() {
         CONSTRAINT "CoinBet_predictionId_key" UNIQUE ("predictionId")
       )
     `)
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS "PushSubscription" (
-        "id" TEXT NOT NULL,
-        "userId" TEXT NOT NULL,
-        "endpoint" TEXT NOT NULL,
-        "p256dh" TEXT NOT NULL,
-        "auth" TEXT NOT NULL,
-        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT "PushSubscription_pkey" PRIMARY KEY ("id"),
-        CONSTRAINT "PushSubscription_endpoint_key" UNIQUE ("endpoint")
-      )
-    `)
-    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "notifyTournamentIds" TEXT[] NOT NULL DEFAULT '{}'`)
+    await pool.query(`DROP TABLE IF EXISTS "PushSubscription"`)
+    await pool.query(`ALTER TABLE "User" DROP COLUMN IF EXISTS "notifyTournamentIds"`)
     console.log('Column check complete')
   } finally {
     await pool.end()

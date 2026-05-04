@@ -40,7 +40,6 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   // מחיקת כל שאר הרשומות של המשתמש
   await db.prediction.deleteMany({ where: { userId: params.id } })
   await db.leagueMember.deleteMany({ where: { userId: params.id } })
-  await db.pushSubscription.deleteMany({ where: { userId: params.id } })
   await db.coinBet.deleteMany({ where: { userId: params.id } })
 
   await db.user.delete({ where: { id: params.id } })

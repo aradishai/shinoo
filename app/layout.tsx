@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Toaster } from 'react-hot-toast'
-import { SwRegister } from '@/components/sw-register'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -41,7 +40,6 @@ export default function RootLayout({
         />
       </head>
       <body className="font-heebo antialiased bg-dark text-white min-h-screen">
-        <SwRegister />
         {children}
         <Toaster
           position="top-center"

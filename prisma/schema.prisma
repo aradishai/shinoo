@@ -13,7 +13,6 @@ model User {
   createdAt    DateTime @default(now())
 
   coins                Int                @default(0)
-  notifyTournamentIds  String[]           @default([])
   x2Stock           Int                @default(0)
   shinooStock       Int                @default(0)
   x3Stock           Int                @default(0)
@@ -23,7 +22,6 @@ model User {
   leagueMembers     LeagueMember[]
   predictions       Prediction[]
   createdLeagues    League[]
-  pushSubscriptions PushSubscription[]
   coinBets          CoinBet[]
 }
 
@@ -173,17 +171,6 @@ model CoinBet {
 
   user       User       @relation(fields: [userId], references: [id])
   prediction Prediction @relation(fields: [predictionId], references: [id])
-}
-
-model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
 }
 
 model PredictionPoints {
