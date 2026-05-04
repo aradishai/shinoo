@@ -563,6 +563,14 @@ export default function HomePage() {
         <div className="fixed inset-0 z-50 bg-black/80 flex items-end justify-center" onClick={() => setShowMenu(false)}>
           <div className="bg-dark-card border border-dark-border rounded-t-3xl w-full max-w-sm pb-8 pt-4 overflow-y-auto max-h-[80vh]" onClick={e => e.stopPropagation()} dir="rtl">
             <div className="w-10 h-1 bg-dark-border rounded-full mx-auto mb-4" />
+            {isAdmin && (
+              <button onClick={() => { setShowMenu(false); openAdminPanel() }}
+                className="w-full flex items-center gap-3 px-6 py-4 text-right hover:bg-dark-50 transition-all border-b border-dark-border">
+                <span className="text-lg">⚙️</span>
+                <span className="text-primary font-bold text-sm">ניהול משתמשים</span>
+                <span className="mr-auto text-gray-600">›</span>
+              </button>
+            )}
             {[
               { key: 'rules', label: 'חוקים והוראות', icon: '📋' },
               { key: 'privacy', label: 'מדיניות פרטיות', icon: '🔒' },
@@ -576,14 +584,6 @@ export default function HomePage() {
                 <span className="mr-auto text-gray-600">›</span>
               </button>
             ))}
-            {isAdmin && (
-              <button onClick={() => { setShowMenu(false); openAdminPanel() }}
-                className="w-full flex items-center gap-3 px-6 py-4 text-right hover:bg-dark-50 transition-all border-t border-dark-border mt-2">
-                <span className="text-lg">⚙️</span>
-                <span className="text-primary font-bold text-sm">ניהול משתמשים</span>
-                <span className="mr-auto text-gray-600">›</span>
-              </button>
-            )}
           </div>
         </div>
       )}
