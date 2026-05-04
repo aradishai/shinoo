@@ -221,12 +221,6 @@ export async function recalculatePoints(matchId: string): Promise<void> {
       },
     })
 
-    if (isFirstCalc && isFinished) {
-      await db.user.update({
-        where: { id: prediction.userId },
-        data: { coins: { increment: 1 } },
-      })
-    }
   }
 
   console.log(`[sync] Recalculated points for ${predictions.length} predictions`)

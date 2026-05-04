@@ -83,6 +83,7 @@ async function syncFootballData() {
 
     if (!match) continue
 
+    const prevStatus = match.status
     const status = FD_STATUS_MAP[m.status] ?? match.status
     const homeScore = m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore
     const awayScore = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? match.awayScore
@@ -96,6 +97,18 @@ async function syncFootballData() {
 
     if (hasScore) {
       await recalculatePoints(match.id)
+    }
+
+    // Grant 1 coin per user when match transitions to FINISHED for the first time
+    if (status === 'FINISHED' && prevStatus !== 'FINISHED') {
+      const predictors = await db.prediction.findMany({
+        where: { matchId: match.id },
+        select: { userId: true },
+        distinct: ['userId'],
+      })
+      for (const { userId } of predictors) {
+        await db.user.update({ where: { id: userId }, data: { coins: { increment: 1 } } })
+      }
     }
   }
 }
