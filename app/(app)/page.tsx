@@ -563,7 +563,6 @@ export default function HomePage() {
         <div className="fixed inset-0 z-50 bg-black/80 flex items-end justify-center" onClick={() => setShowMenu(false)}>
           <div className="bg-dark-card border border-dark-border rounded-t-3xl w-full max-w-sm pb-8 pt-4" onClick={e => e.stopPropagation()} dir="rtl">
             <div className="w-10 h-1 bg-dark-border rounded-full mx-auto mb-4" />
-            <p className="text-gray-600 text-xs text-center mb-2">{user?.username} · {String(isAdmin)}</p>
             {[
               { key: 'rules', label: 'חוקים והוראות', icon: '📋' },
               { key: 'privacy', label: 'מדיניות פרטיות', icon: '🔒' },
