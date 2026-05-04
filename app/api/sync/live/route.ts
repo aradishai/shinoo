@@ -108,7 +108,7 @@ async function lockExpiredMatches() {
 }
 
 async function autoFinishStaleMatches() {
-  const staleTime = new Date(Date.now() - 150 * 60 * 1000)
+  const staleTime = new Date(Date.now() - 115 * 60 * 1000)
   await db.match.updateMany({
     where: {
       status: { in: ['LIVE', 'PAUSED'] },
