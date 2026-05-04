@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'משתמש לא נמצא' }, { status: 404 })
     }
 
-    return NextResponse.json({ data: user })
+    return NextResponse.json({ data: { ...user, isAdmin: user.username === 'ערד' } })
   } catch (error) {
     console.error('Me error:', error)
     return NextResponse.json({ error: 'שגיאת שרת פנימית' }, { status: 500 })

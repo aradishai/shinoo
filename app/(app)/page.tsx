@@ -11,6 +11,7 @@ import { Onboarding } from '@/components/onboarding'
 interface User {
   id: string
   username: string
+  isAdmin?: boolean
   x2Stock?: number
   shinooStock?: number
   x3Stock?: number
@@ -186,7 +187,7 @@ export default function HomePage() {
   const [adminFilter, setAdminFilter] = useState<'all' | 'managers'>('all')
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const isAdmin = user?.username === 'ערד'
+  const isAdmin = user?.isAdmin ?? false
 
   const openAdminPanel = async () => {
     const res = await fetch('/api/admin/users')
