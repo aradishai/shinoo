@@ -185,6 +185,8 @@ export default function HomePage() {
     joinedLeaguesCount: number
   }[]>([])
   const [adminFilter, setAdminFilter] = useState<'all' | 'managers'>('all')
+  const [resetLeagueName, setResetLeagueName] = useState('')
+  const [resetLeagueLoading, setResetLeagueLoading] = useState(false)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const isAdmin = user?.isAdmin ?? false
@@ -196,6 +198,28 @@ export default function HomePage() {
       setAdminUsers(data.users)
     }
     setShowAdminPanel(true)
+  }
+
+  const resetLeague = async () => {
+    if (!resetLeagueName.trim()) return
+    if (!confirm(`לאפס את ליגת "${resetLeagueName}"? כל הניחושים והנקודות יימחקו.`)) return
+    setResetLeagueLoading(true)
+    try {
+      const res = await fetch('/api/admin/reset-league', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leagueName: resetLeagueName.trim() }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        alert(`אופסה ליגת "${data.league}" — נמחקו ${data.deleted} ניחושים`)
+        setResetLeagueName('')
+      } else {
+        alert(data.error || 'שגיאה')
+      }
+    } finally {
+      setResetLeagueLoading(false)
+    }
   }
 
   const deleteUser = async (id: string) => {
@@ -525,6 +549,26 @@ export default function HomePage() {
                 onClick={() => setAdminFilter('managers')}
                 className={`text-xs font-bold px-3 py-1 rounded-lg transition-all ${adminFilter === 'managers' ? 'bg-primary text-black' : 'bg-dark-50 text-gray-400 border border-dark-border'}`}
               >מנהלי ליגה</button>
+            </div>
+            {/* Reset league */}
+            <div className="px-4 py-3 border-b border-dark-border/50 bg-red-900/10">
+              <p className="text-red-400 font-black text-xs mb-2">איפוס ליגה</p>
+              <div className="flex gap-2">
+                <input
+                  value={resetLeagueName}
+                  onChange={e => setResetLeagueName(e.target.value)}
+                  placeholder="שם הליגה"
+                  className="flex-1 bg-dark-50 border border-dark-border rounded-lg px-3 py-1.5 text-white text-xs placeholder-gray-600 text-right"
+                  dir="rtl"
+                />
+                <button
+                  onClick={resetLeague}
+                  disabled={resetLeagueLoading || !resetLeagueName.trim()}
+                  className="bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-lg disabled:opacity-40 active:scale-95 transition-all"
+                >
+                  {resetLeagueLoading ? '...' : 'אפס'}
+                </button>
+              </div>
             </div>
             <div className="overflow-y-auto flex-1">
               {adminUsers
