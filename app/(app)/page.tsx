@@ -561,7 +561,7 @@ export default function HomePage() {
       {/* Menu */}
       {showMenu && !menuPage && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-end justify-center" onClick={() => setShowMenu(false)}>
-          <div className="bg-dark-card border border-dark-border rounded-t-3xl w-full max-w-sm pb-8 pt-4" onClick={e => e.stopPropagation()} dir="rtl">
+          <div className="bg-dark-card border border-dark-border rounded-t-3xl w-full max-w-sm pb-8 pt-4 overflow-y-auto max-h-[80vh]" onClick={e => e.stopPropagation()} dir="rtl">
             <div className="w-10 h-1 bg-dark-border rounded-full mx-auto mb-4" />
             {[
               { key: 'rules', label: 'חוקים והוראות', icon: '📋' },
