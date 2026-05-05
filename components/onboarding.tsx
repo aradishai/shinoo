@@ -80,14 +80,14 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
           רוצים לקבל עדכונים על הליגה הספרדית?<br />
           <span className="text-gray-500 text-xs">מידע על קבוצות, העברות, תקצירים ועוד הפתעות</span>
         </p>
+        <style>{`@keyframes tg-glow{0%,100%{box-shadow:0 0 8px 2px rgba(34,158,217,0.3)}50%{box-shadow:0 0 22px 6px rgba(34,158,217,0.7)}}`}</style>
         <a
           href={TELEGRAM_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          className="relative flex flex-col items-center gap-2 active:scale-90 transition-transform duration-150"
+          className="flex flex-col items-center gap-2 active:scale-90 transition-transform duration-150"
         >
-          <div className="absolute inset-0 rounded-2xl bg-[#229ED9]/20 animate-ping opacity-60 scale-110" style={{ animationDuration: '2s' }} />
-          <div className="relative bg-dark-card border border-[#229ED9]/40 rounded-2xl px-6 py-4 flex flex-col items-center gap-2 shadow-lg">
+          <div className="bg-dark-card border border-[#229ED9]/40 rounded-2xl px-6 py-4 flex flex-col items-center gap-2" style={{ animation: 'tg-glow 2s ease-in-out infinite' }}>
             <img src="/laliga-logo.png" alt="LaLiga" className="h-16 w-auto" style={{ mixBlendMode: 'lighten' }} />
             <div className="flex items-center gap-1.5">
               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-[#229ED9] shrink-0">
