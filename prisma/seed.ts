@@ -45,7 +45,7 @@ const TEAMS = [
   { nameHe: 'אירן',              nameEn: 'Iran',            code: 'IRN' },
   { nameHe: 'ניו זילנד',         nameEn: 'New Zealand',     code: 'NZL' },
   // Group H
-  { nameHe: 'ספרד',              nameEn: 'Spain',           code: 'ESP' },
+  { nameHe: 'ספרד',              nameEn: 'Spain',           code: 'ESP-NT' },
   { nameHe: 'כף ורדה',           nameEn: 'Cape Verde',      code: 'CPV' },
   { nameHe: 'ערב הסעודית',       nameEn: 'Saudi Arabia',    code: 'SAU' },
   { nameHe: 'אורוגוואי',         nameEn: 'Uruguay',         code: 'URU' },
@@ -97,7 +97,7 @@ const PLAYERS: Record<string, { nameHe: string; nameEn: string }[]> = {
     { nameHe: 'פיל פודן',          nameEn: 'Phil Foden' },
     { nameHe: 'בוקאיו סאקא',       nameEn: 'Bukayo Saka' },
   ],
-  ESP: [
+  'ESP-NT': [
     { nameHe: 'לאמין ימאל',        nameEn: 'Lamine Yamal' },
     { nameHe: 'ניקו וויליאמס',     nameEn: 'Nico Williams' },
     { nameHe: 'דאני אולמו',        nameEn: 'Dani Olmo' },
@@ -243,12 +243,12 @@ const MATCHES: { home: string; away: string; date: string; group: string }[] = [
   { home: 'EGY', away: 'IRN', date: '2026-06-27T03:00:00Z', group: 'בית ז\'' },
 
   // ── בית ח' ──
-  { home: 'ESP', away: 'CPV', date: '2026-06-15T16:00:00Z', group: 'בית ח\'' },
+  { home: 'ESP-NT', away: 'CPV', date: '2026-06-15T16:00:00Z', group: 'בית ח\'' },
   { home: 'SAU', away: 'URU', date: '2026-06-15T20:00:00Z', group: 'בית ח\'' },
-  { home: 'ESP', away: 'SAU', date: '2026-06-21T16:00:00Z', group: 'בית ח\'' },
+  { home: 'ESP-NT', away: 'SAU', date: '2026-06-21T16:00:00Z', group: 'בית ח\'' },
   { home: 'URU', away: 'CPV', date: '2026-06-21T20:00:00Z', group: 'בית ח\'' },
   { home: 'CPV', away: 'SAU', date: '2026-06-27T00:00:00Z', group: 'בית ח\'' },
-  { home: 'URU', away: 'ESP', date: '2026-06-27T00:00:00Z', group: 'בית ח\'' },
+  { home: 'URU', away: 'ESP-NT', date: '2026-06-27T00:00:00Z', group: 'בית ח\'' },
 
   // ── בית ט' ──
   { home: 'FRA', away: 'SEN', date: '2026-06-16T19:00:00Z', group: 'בית ט\'' },

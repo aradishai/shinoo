@@ -62,6 +62,7 @@ async function main() {
     `)
     await pool.query(`DROP TABLE IF EXISTS "PushSubscription"`)
     await pool.query(`ALTER TABLE "User" DROP COLUMN IF EXISTS "notifyTournamentIds"`)
+    await pool.query(`UPDATE "Team" SET code = 'ESP-NT' WHERE code = 'ESP' AND "nameEn" = 'Spain'`)
     console.log('Column check complete')
   } finally {
     await pool.end()
