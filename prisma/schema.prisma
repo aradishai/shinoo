@@ -19,6 +19,7 @@ model User {
   goalsStock        Int                @default(0)
   minute90Stock     Int                @default(0)
   splitStock        Int                @default(0)
+  interests         String[]           @default([])
   leagueMembers     LeagueMember[]
   predictions       Prediction[]
   createdLeagues    League[]

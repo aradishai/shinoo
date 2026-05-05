@@ -187,15 +187,23 @@ export default function HomePage() {
   const [adminFilter, setAdminFilter] = useState<'all' | 'managers'>('all')
   const [resetLeagueName, setResetLeagueName] = useState('')
   const [resetLeagueLoading, setResetLeagueLoading] = useState(false)
+  const [interestCounts, setInterestCounts] = useState<{ league: string; count: number }[]>([])
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const isAdmin = user?.isAdmin ?? false
 
   const openAdminPanel = async () => {
-    const res = await fetch('/api/admin/users')
-    if (res.ok) {
-      const data = await res.json()
+    const [usersRes, interestsRes] = await Promise.all([
+      fetch('/api/admin/users'),
+      fetch('/api/admin/interests'),
+    ])
+    if (usersRes.ok) {
+      const data = await usersRes.json()
       setAdminUsers(data.users)
+    }
+    if (interestsRes.ok) {
+      const data = await interestsRes.json()
+      setInterestCounts(data.interests)
     }
     setShowAdminPanel(true)
   }
@@ -539,6 +547,26 @@ export default function HomePage() {
               <h2 className="text-white font-black text-base">משתמשים ({adminUsers.length})</h2>
               <button onClick={() => setShowAdminPanel(false)} className="text-gray-500 text-xl">✕</button>
             </div>
+            {/* Interests */}
+            {interestCounts.length > 0 && (
+              <div className="px-4 py-3 border-b border-dark-border/50">
+                <p className="text-gray-500 font-black text-xs mb-2">ביקושי ליגות</p>
+                <div className="space-y-1.5">
+                  {interestCounts.map(({ league, count }) => {
+                    const max = interestCounts[0].count
+                    return (
+                      <div key={league} className="flex items-center gap-2">
+                        <span className="text-gray-300 text-xs w-28 text-right shrink-0">{league}</span>
+                        <div className="flex-1 bg-dark-50 rounded-full h-1.5 overflow-hidden">
+                          <div className="h-1.5 bg-primary rounded-full" style={{ width: `${(count / max) * 100}%` }} />
+                        </div>
+                        <span className="text-primary font-black text-xs w-5 text-left shrink-0">{count}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
             {/* Filter */}
             <div className="flex gap-2 px-4 py-2.5 border-b border-dark-border/50">
               <button

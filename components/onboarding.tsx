@@ -45,18 +45,7 @@ const LEAGUES = [
   'ליגת העל',
 ]
 
-function InterestsSlide() {
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-
-  const toggle = (league: string) => {
-    setSelected(prev => {
-      const next = new Set(prev)
-      if (next.has(league)) next.delete(league)
-      else next.add(league)
-      return next
-    })
-  }
-
+function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggle: (l: string) => void }) {
   return (
     <div className="w-full flex flex-col gap-4 text-right">
       <div className="text-center">
@@ -70,7 +59,7 @@ function InterestsSlide() {
           return (
             <button
               key={league}
-              onClick={() => toggle(league)}
+              onClick={() => onToggle(league)}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all active:scale-95 ${
                 on ? 'bg-primary/10 border-primary/40' : 'bg-dark-card border-dark-border'
               }`}
@@ -154,8 +143,29 @@ function MarketIntroSlide({ onNext }: { onNext: () => void }) {
 
 export function Onboarding({ onDone }: { onDone: () => void }) {
   const [current, setCurrent] = useState(0)
+  const [interests, setInterests] = useState<Set<string>>(new Set())
   const slide = slides[current]
   const isLast = current === slides.length - 1
+
+  const handleDone = async () => {
+    if (interests.size > 0) {
+      fetch('/api/user/interests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interests: Array.from(interests) }),
+      }).catch(() => {})
+    }
+    onDone()
+  }
+
+  const toggleInterest = (league: string) => {
+    setInterests(prev => {
+      const next = new Set(prev)
+      if (next.has(league)) next.delete(league)
+      else next.add(league)
+      return next
+    })
+  }
 
   return (
     <div className="fixed inset-0 z-[100] bg-dark flex flex-col px-6 pt-10 pb-6" dir="rtl">
@@ -207,7 +217,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             <MarketIntroSlide onNext={() => setCurrent(c => c + 1)} />
           )}
 
-          {(slide as any).interestsSlide && <InterestsSlide />}
+          {(slide as any).interestsSlide && <InterestsSlide selected={interests} onToggle={toggleInterest} />}
 
           {(slide as any).powerupsDemo && (
             <div className="w-full space-y-2.5 text-right">
@@ -310,7 +320,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               </button>
             )}
             <button
-              onClick={() => isLast ? onDone() : setCurrent(c => c + 1)}
+              onClick={() => isLast ? handleDone() : setCurrent(c => c + 1)}
               className="flex-1 bg-primary text-black font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-green"
             >
               {isLast ? 'בואו נתחיל!' : 'הבא'}
