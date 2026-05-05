@@ -78,8 +78,9 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
       <div className="flex flex-col items-center gap-3 pt-2">
         <p className="text-gray-400 text-sm text-center leading-relaxed">
           רוצים לקבל עדכונים על הליגה הספרדית?<br />
-          <span className="text-gray-500 text-xs">מידע על קבוצות, העברות, תקצירים ועוד הפתעות</span>
+          <span className="text-gray-500 text-xs">מידע על כל הקבוצות, סטטיסטיקות מיוחדות, העברות רשמיות, קטעי וידאו, הרכבים, סיכומי משחקים, תקצירים ועוד הרבה הפתעות.</span>
         </p>
+        <p className="text-gray-300 font-bold text-sm text-center">מוזמנים להצטרף לקהילה</p>
         <style>{`@keyframes tg-glow{0%,100%{box-shadow:0 0 8px 2px rgba(34,158,217,0.3)}50%{box-shadow:0 0 22px 6px rgba(34,158,217,0.7)}}`}</style>
         <a
           href={TELEGRAM_LINK}
