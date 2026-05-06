@@ -49,8 +49,7 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
   return (
     <div className="w-full flex flex-col gap-4 text-right">
       <div className="text-center">
-        <h2 className="text-white font-black text-2xl">איזה מפעלים מעניינים אתכם?</h2>
-        <p className="text-white font-bold text-sm mt-2 leading-relaxed">סמנו איזה מפעלים הכי מעניינים אתכם ועליהם תרצו להתחרות נגד חברים שלכם ואנחנו נדאג שתקבלו אותם!</p>
+        <p className="text-white font-bold text-base leading-relaxed">סמנו איזה מפעלים הכי מעניינים אתכם ועליהם תרצו להתחרות נגד חברים שלכם - אנחנו כבר נדאג שתקבלו אותם!</p>
       </div>
 
       <div className="space-y-2">
@@ -83,7 +82,7 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
           href={TELEGRAM_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-col items-center gap-2 active:scale-95 transition-transform duration-150"
+          className="flex flex-col items-center gap-1 active:scale-95 transition-transform duration-150"
         >
           <img src="/laliga-logo.png" alt="LaLiga" className="h-32 w-auto" />
           <div className="flex items-center gap-1.5">
