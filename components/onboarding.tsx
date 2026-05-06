@@ -54,22 +54,22 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
         <p className="text-white text-xs mt-1">אנחנו נדאג לשאר...</p>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-2">
         {LEAGUES.map(league => {
           const on = selected.has(league)
           return (
             <button
               key={league}
               onClick={() => onToggle(league)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all active:scale-95 ${
+              className={`flex items-center justify-between px-3 py-3 rounded-xl border transition-all active:scale-95 ${
                 on ? 'bg-primary/10 border-primary/40' : 'bg-dark-card border-dark-border'
               }`}
             >
               <span className={`font-bold text-sm ${on ? 'text-white' : 'text-gray-300'}`}>{league}</span>
-              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
+              <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
                 on ? 'bg-primary border-primary' : 'border-gray-600'
               }`}>
-                {on && <span className="text-black text-[11px] font-black leading-none">✓</span>}
+                {on && <span className="text-black text-[9px] font-black leading-none">✓</span>}
               </div>
             </button>
           )
