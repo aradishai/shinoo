@@ -115,9 +115,9 @@ function ScoringDemoSlide() {
   const rows = [
     { pts: '0 נקודות', label: 'טעיתם במנצחת', sub: 'תיקו / ניצחון ריאל מדריד', color: 'text-red-500', border: 'border-red-500/20' },
     { pts: 'נקודה אחת', label: 'צדקתם במנצחת בלבד', sub: '1:0 / 3:2 לברצלונה', color: 'text-yellow-400', border: 'border-yellow-400/20' },
-    { pts: '2 נקודות 🤝', label: 'ניחשתם תיקו — לא מדויק', sub: 'כל תיקו שאינו הסקור המדויק', color: 'text-orange-400', border: 'border-orange-400/20' },
+    { pts: '2 נקודות', label: 'ניחשתם תיקו — לא מדויק', sub: 'כל תיקו שאינו הסקור המדויק', color: 'text-orange-400', border: 'border-orange-400/20' },
     { pts: '3 נקודות', label: 'מנצחת + קבוצה אחת', sub: '4:0 / 2:1 לברצלונה', color: 'text-blue-400', border: 'border-blue-400/20' },
-    { pts: '5 נקודות 🎯', label: 'תוצאה מדויקת!', sub: 'בדיוק 4:1 — וגם תיקו מדויק', color: 'text-green-400', border: 'border-green-400/20' },
+    { pts: '5 נקודות', label: 'תוצאה מדויקת', sub: 'כמו למשל 4:1 לבארסה (גם ניחוש תיקו מדויק = 5 נקודות)', color: 'text-green-400', border: 'border-green-400/20' },
   ]
 
   return (
@@ -128,7 +128,7 @@ function ScoringDemoSlide() {
 
       {/* שלב 1: המשחק */}
       <div className="anim-up bg-dark-card border border-dark-border rounded-2xl px-4 py-3">
-        <p className="text-gray-500 text-[10px] text-center mb-2 font-bold tracking-widest">⚽ המשחק</p>
+        <p className="text-gray-500 text-[10px] text-center mb-2 font-bold tracking-widest">ברצלונה נגד ריאל מדריד</p>
         <div className="flex items-center justify-between">
           <div className="text-center">
             <p className="text-white font-black text-sm">ריאל מדריד</p>
@@ -145,7 +145,7 @@ function ScoringDemoSlide() {
       {/* שלב 2: הניחוש */}
       {phase >= 1 && (
         <div className="anim-up bg-dark-card border border-primary/40 rounded-2xl px-4 py-3">
-          <p className="text-gray-500 text-[10px] text-center mb-2 font-bold tracking-widest">✏️ הניחוש שלכם</p>
+          <p className="text-gray-500 text-[10px] text-center mb-2 font-bold tracking-widest">הניחוש שלכם</p>
           <div className="flex items-center justify-center gap-3">
             <span className="text-white font-bold text-sm">ריאל מדריד</span>
             <div className="bg-dark-50 border border-primary/60 rounded-xl px-5 py-2 min-w-[64px] text-center">
