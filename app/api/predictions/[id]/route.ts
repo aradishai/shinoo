@@ -46,15 +46,24 @@ export async function PUT(
       return NextResponse.json({ error: 'תוצאה לא תקינה' }, { status: 400 })
     }
 
-    const updated = await db.prediction.update({
-      where: { id: params.id },
-      data: {
-        predictedHomeScore,
-        predictedAwayScore,
-        predictedTopScorerPlayerId: predictedTopScorerPlayerId || null,
-      },
-      include: { points: true },
-    })
+    const predData = {
+      predictedHomeScore,
+      predictedAwayScore,
+      predictedTopScorerPlayerId: predictedTopScorerPlayerId || null,
+    }
+
+    // Update this prediction and all matching predictions for the same match across all leagues
+    const [updated] = await Promise.all([
+      db.prediction.update({
+        where: { id: params.id },
+        data: predData,
+        include: { points: true },
+      }),
+      db.prediction.updateMany({
+        where: { userId, matchId: prediction.matchId, id: { not: params.id } },
+        data: predData,
+      }),
+    ])
 
     return NextResponse.json({ data: updated, message: 'הניחוש עודכן!' })
   } catch (error) {

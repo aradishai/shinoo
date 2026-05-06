@@ -912,13 +912,17 @@ export default function HomePage() {
           {leagues.length > 1 && (
             <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
               {leagues.map((league) => (
-                <Link
+                <button
                   key={league.id}
-                  href={`/leagues/${league.id}`}
-                  className="flex-shrink-0 text-xs bg-dark-card border border-dark-border rounded-xl px-3 py-2 text-gray-400 hover:border-primary/40 hover:text-white transition-all"
+                  onClick={() => fetchPrimaryLeague(league.id)}
+                  className={`flex-shrink-0 text-xs rounded-xl px-3 py-2 transition-all whitespace-nowrap ${
+                    primaryLeague?.id === league.id
+                      ? 'bg-primary text-black font-black'
+                      : 'bg-dark-card border border-dark-border text-gray-400 hover:border-primary/40 hover:text-white'
+                  }`}
                 >
                   {league.name}
-                </Link>
+                </button>
               ))}
             </div>
           )}

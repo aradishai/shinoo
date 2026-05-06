@@ -46,8 +46,8 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { matchId, leagueId, predictedHomeScore, predictedAwayScore, predictedTopScorerPlayerId } = body
 
-    if (!matchId || !leagueId) {
-      return NextResponse.json({ error: 'matchId ו-leagueId נדרשים' }, { status: 400 })
+    if (!matchId) {
+      return NextResponse.json({ error: 'matchId נדרש' }, { status: 400 })
     }
 
     if (predictedHomeScore === undefined || predictedAwayScore === undefined) {
@@ -79,32 +79,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'זמן הניחוש עבר' }, { status: 400 })
     }
 
-    // Check user is member of league
-    const membership = await db.leagueMember.findUnique({
-      where: { leagueId_userId: { leagueId, userId } },
+    // Get all leagues the user is a member of
+    const memberships = await db.leagueMember.findMany({
+      where: { userId },
+      select: { leagueId: true },
     })
-    if (!membership) {
-      return NextResponse.json({ error: 'אינך חבר בליגה זו' }, { status: 403 })
+
+    if (memberships.length === 0) {
+      return NextResponse.json({ error: 'אינך חבר בשום ליגה' }, { status: 403 })
     }
 
-    // Upsert prediction
-    const prediction = await db.prediction.upsert({
-      where: { userId_leagueId_matchId: { userId, leagueId, matchId } },
-      update: {
-        predictedHomeScore,
-        predictedAwayScore,
-        predictedTopScorerPlayerId: predictedTopScorerPlayerId || null,
-      },
-      create: {
-        userId,
-        leagueId,
-        matchId,
-        predictedHomeScore,
-        predictedAwayScore,
-        predictedTopScorerPlayerId: predictedTopScorerPlayerId || null,
-      },
-      include: { points: true },
-    })
+    // Upsert prediction in all user leagues simultaneously
+    const predData = {
+      predictedHomeScore,
+      predictedAwayScore,
+      predictedTopScorerPlayerId: predictedTopScorerPlayerId || null,
+    }
+    const upserts = memberships.map(({ leagueId: lid }) =>
+      db.prediction.upsert({
+        where: { userId_leagueId_matchId: { userId, leagueId: lid, matchId } },
+        update: predData,
+        create: { userId, leagueId: lid, matchId, ...predData },
+      })
+    )
+    const results = await Promise.all(upserts)
+    const prediction = results[0]
 
     return NextResponse.json(
       { data: prediction, message: 'הניחוש נשמר!' },
