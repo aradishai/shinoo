@@ -106,7 +106,6 @@ function MarketIntroSlide({ onNext: _ }: { onNext: () => void }) {
         <br /><br />
         כל לחצן ניתן לקנות בעזרת <span className="text-yellow-400 font-black">מטבעות</span>.
       </p>
-      <img src="/market-logo.png" alt="מרקט" className="h-36 w-auto" style={{ mixBlendMode: 'lighten' }} />
     </div>
   )
 }
