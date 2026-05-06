@@ -7,8 +7,8 @@ const slides = [
   {
     emoji: null,
     logo: true,
-    title: 'ברוך הבא לשינו!',
-    body: 'תחרות ניחושי כדורגל עם החברים שלך. נחש, צבור נקודות, עלה בדירוג.',
+    title: 'ברוכים הבאים לשינו!',
+    body: 'תחרות ניחושי כדורגל עם החברים שלכם. נחשו, צברו נקודות, עלו בדירוג.',
   },
   {
     emoji: null,
@@ -18,7 +18,7 @@ const slides = [
     emoji: null,
     leagueDemo: true,
     title: 'התחרו עם חברים',
-    body: 'צור ליגה, שלח קוד הזמנה לחברים, והתחרו על המקום הראשון.',
+    body: 'צרו ליגה, שלחו קוד הזמנה לחברים, והתחרו על המקום הראשון.',
   },
   {
     emoji: null,
@@ -102,7 +102,7 @@ function MarketIntroSlide({ onNext: _ }: { onNext: () => void }) {
     <div className="w-full flex flex-col items-center text-center gap-8">
       <h2 className="text-white font-black text-3xl leading-snug">המרקט</h2>
       <p className="text-gray-200 text-lg leading-relaxed">
-        במרקט תוכל לקנות <span className="text-primary font-black">לחצנים מיוחדים</span> שיעזרו לכם לקבל יותר נקודות מהמשחקים.
+        במרקט תוכלו לקנות <span className="text-primary font-black">לחצנים מיוחדים</span> שיעזרו לכם לקבל יותר נקודות מהמשחקים.
         <br /><br />
         כל לחצן ניתן לקנות בעזרת <span className="text-yellow-400 font-black">מטבעות</span>.
       </p>
@@ -155,13 +155,13 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             <div className="w-full space-y-2 text-right">
               <h2 className="text-white font-black text-xl text-center mb-1">איך עובד הניקוד?</h2>
               <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-2.5 text-center">
-                <p className="text-gray-400 text-xs mb-0.5">הניחוש שלך</p>
+                <p className="text-gray-400 text-xs mb-0.5">הניחוש שלכם</p>
                 <p className="text-white font-black text-base">4:1 <span className="text-gray-400 font-normal text-sm">ברצלונה נגד ריאל מדריד</span></p>
               </div>
               {[
-                { pts: '0 נקודות', color: 'text-gray-500', label: 'לא צדקת במנצחת', sub: 'תיקו / ניצחון ריאל מדריד' },
-                { pts: 'נקודה אחת', color: 'text-gray-300', label: 'צדקת במנצחת בלבד', sub: '1:0 לברצלונה / 3:2 לברצלונה' },
-                { pts: '3 נקודות', color: 'text-gray-300', label: 'מנצחת + קבוצה אחת', sub: '4:0 (פגעת בברצלונה) / 2:1 (פגעת בריאל)' },
+                { pts: '0 נקודות', color: 'text-gray-500', label: 'לא צדקתם במנצחת', sub: 'תיקו / ניצחון ריאל מדריד' },
+                { pts: 'נקודה אחת', color: 'text-gray-300', label: 'צדקתם במנצחת בלבד', sub: '1:0 לברצלונה / 3:2 לברצלונה' },
+                { pts: '3 נקודות', color: 'text-gray-300', label: 'מנצחת + קבוצה אחת', sub: '4:0 (פגעתם בברצלונה) / 2:1 (פגעתם בריאל)' },
                 { pts: '5 נקודות 🎯', color: 'text-yellow-400', label: 'תוצאה מדויקת', sub: 'בדיוק 4:1 לברצלונה', highlight: true },
               ].map(({ pts, color, label, sub, highlight }) => (
                 <div key={pts} className={`bg-dark-card border ${highlight ? 'border-primary/40' : 'border-dark-border'} rounded-xl px-4 py-2.5`}>
@@ -227,7 +227,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-3 py-2.5">
                 <p className="text-yellow-400 font-black text-xs mb-1">🪙 איך מרוויחים מטבעות?</p>
                 <p className="text-gray-300 text-xs">• הרשמה לאפליקציה — <span className="text-yellow-400 font-bold">4 מטבעות</span></p>
-                <p className="text-gray-300 text-xs">• כל משחק שניחשת — <span className="text-yellow-400 font-bold">מטבע 1</span> בסיומו</p>
+                <p className="text-gray-300 text-xs">• כל משחק שניחשתם — <span className="text-yellow-400 font-bold">מטבע 1</span> בסיומו</p>
               </div>
             </div>
           )}
@@ -235,14 +235,14 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           {(slide as any).leagueDemo && (
             <div className="w-full space-y-3 mt-2">
               <div>
-                <p className="text-gray-500 text-xs mb-1.5 text-right">① לחץ על "צור ליגה חדשה"</p>
+                <p className="text-gray-500 text-xs mb-1.5 text-right">① לחצו על "צור ליגה חדשה"</p>
                 <div className="bg-dark-card border border-primary/30 rounded-2xl p-4 text-center">
                   <p className="text-white font-bold text-sm">צור ליגה חדשה</p>
                   <p className="text-gray-500 text-xs mt-0.5">הזמן חברים ותתחרו ביניכם</p>
                 </div>
               </div>
               <div>
-                <p className="text-gray-500 text-xs mb-1.5 text-right">② שתף את קוד ההזמנה</p>
+                <p className="text-gray-500 text-xs mb-1.5 text-right">② שתפו את קוד ההזמנה</p>
                 <div className="bg-dark-card border border-dark-border rounded-2xl p-4 flex items-center justify-between">
                   <div className="bg-primary/10 border border-primary/30 rounded-xl px-3 py-1.5">
                     <span className="text-primary font-black text-sm tracking-widest">AB12CD34</span>
