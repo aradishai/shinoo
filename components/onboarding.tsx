@@ -209,9 +209,9 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
               <p className="text-gray-500 text-[11px] font-bold">לפני המשחק</p>
               {[
-                { img: '/btn-x3.png', desc: 'שלש את הניקוד', cost: 4 },
+                { img: '/btn-x3.png', desc: 'שלשו את הניקוד', cost: 4 },
                 { img: '/btn-goals.png', desc: 'כל גול שווה נקודה', cost: 3 },
-                { img: '/btn-split.png', desc: 'נחש 2 תוצאות, וקבל ניקוד על הטובה מבניהן', cost: 2 },
+                { img: '/btn-split.png', desc: 'נחשו 2 תוצאות, וקבלו ניקוד על הטובה מבניהן', cost: 2 },
               ].map(({ img, desc, cost }) => (
                 <div key={img} className="bg-dark-card border border-dark-border rounded-xl px-3 py-2 flex items-center gap-3">
                   <img src={img} className="h-8 w-20 object-contain object-right rounded-lg shrink-0" style={{ mixBlendMode: 'lighten' }} />
@@ -222,9 +222,9 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
               <p className="text-gray-500 text-[11px] font-bold pt-1">במהלך המשחק</p>
               {[
-                { img: '/btn-x2.png', desc: 'הכפל ניקוד — בזמן המחצית', cost: 3 },
-                { img: '/btn-shinoo.png', desc: 'שנה גול אחד — בזמן המחצית', cost: 2 },
-                { img: '/btn-90.png', desc: 'הגרל ניחוש חדש — עד דקה 90', cost: 1 },
+                { img: '/btn-x2.png', desc: 'הכפילו ניקוד — בזמן המחצית', cost: 3 },
+                { img: '/btn-shinoo.png', desc: 'שנו גול אחד — בזמן המחצית', cost: 2 },
+                { img: '/btn-90.png', desc: 'הגרילו ניחוש חדש — עד דקה 90', cost: 1 },
               ].map(({ img, desc, cost }) => (
                 <div key={img} className="bg-dark-card border border-dark-border rounded-xl px-3 py-2 flex items-center gap-3">
                   <img src={img} className="h-8 w-20 object-contain object-right rounded-lg shrink-0" style={{ mixBlendMode: 'lighten' }} />
