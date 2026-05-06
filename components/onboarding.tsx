@@ -119,7 +119,7 @@ function ScoringDemoSlide() {
     { pts: 'נקודה אחת', label: 'צדקתם במנצחת בלבד', sub: '1:0 / 3:2 לברצלונה', color: 'text-yellow-400', border: 'border-yellow-400/20' },
     { pts: '2 נקודות', label: 'ניחשתם תיקו — לא מדויק', sub: 'כל תיקו שאינו הסקור המדויק', color: 'text-orange-400', border: 'border-orange-400/20' },
     { pts: '3 נקודות', label: 'מנצחת + קבוצה אחת', sub: '4:0 / 2:1 לברצלונה', color: 'text-blue-400', border: 'border-blue-400/20' },
-    { pts: '5 נקודות', label: 'תוצאה מדויקת', sub: 'כמו למשל 4:1 לבארסה (גם ניחוש תיקו מדויק = 5 נקודות)', color: 'text-green-400', border: 'border-green-400/20' },
+    { pts: '5 נקודות', label: 'תוצאה מדויקת כמו 4:1 לבארסה', sub: '(גם ניחוש תיקו מדויק = 5 נקודות)', color: 'text-green-400', border: 'border-green-400/20' },
   ]
 
   return (
@@ -154,7 +154,8 @@ function ScoringDemoSlide() {
         <div className="anim-up bg-dark-card border border-primary/40 rounded-2xl px-4 py-3">
           <p className="text-gray-500 text-[10px] text-center mb-2 font-bold">הניחוש שלכם</p>
           <div className="flex items-center gap-2">
-            <div className="flex flex-col items-center flex-1">
+            <div className="flex flex-col items-center gap-1.5 flex-1">
+              <img src="https://crests.football-data.org/86.png" className="w-9 h-9 object-contain" onError={e => { (e.target as HTMLImageElement).style.display='none' }} />
               <span className="text-white font-semibold text-sm text-center">ריאל מדריד</span>
             </div>
             <div className="w-14 flex items-center justify-center">
@@ -163,7 +164,8 @@ function ScoringDemoSlide() {
                 {typed.length < 3 && <span className="text-primary font-black text-xl animate-pulse">|</span>}
               </div>
             </div>
-            <div className="flex flex-col items-center flex-1">
+            <div className="flex flex-col items-center gap-1.5 flex-1">
+              <img src="https://crests.football-data.org/81.png" className="w-9 h-9 object-contain" onError={e => { (e.target as HTMLImageElement).style.display='none' }} />
               <span className="text-white font-semibold text-sm text-center">ברצלונה</span>
             </div>
           </div>
