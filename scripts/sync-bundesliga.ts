@@ -1,8 +1,10 @@
+import { config } from 'dotenv'
+config({ path: '.env.local' })
 import axios from 'axios'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
-import { recalculatePoints } from '../lib/sync-service'
+
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
@@ -88,7 +90,7 @@ async function main() {
     })
 
     if (status === 'FINISHED' && homeScore !== null && awayScore !== null && existing?.status !== 'FINISHED') {
-      await recalculatePoints(match.id); finished++
+      finished++
     }
     synced++
   }
