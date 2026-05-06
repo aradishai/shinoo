@@ -58,7 +58,7 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
           <span className="text-xs text-gray-600">מש׳</span>
           <span className="text-xs text-red-500">✗</span>
           <span className="text-xs text-yellow-400">1+</span>
-          <span className="text-xs text-orange-400">+2</span>
+          <span className="text-xs text-orange-400">2+</span>
           <span className="text-xs text-blue-400">3+</span>
           <span className="text-xs text-green-400">בול</span>
         </div>
