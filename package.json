@@ -13,7 +13,14 @@
     "db:generate": "prisma generate",
     "db:setup": "node scripts/setup-db.js",
     "db:seed": "tsx prisma/seed.ts",
-    "sync": "tsx lib/sync-service.ts"
+    "sync": "tsx lib/sync-service.ts",
+    "sync:laliga": "tsx scripts/sync-laliga.ts",
+    "sync:cl": "tsx scripts/sync-champions-league.ts",
+    "sync:pl": "tsx scripts/sync-premier-league.ts",
+    "sync:bundesliga": "tsx scripts/sync-bundesliga.ts",
+    "sync:seriea": "tsx scripts/sync-serie-a.ts",
+    "sync:ligathaal": "tsx scripts/sync-ligat-haal.ts",
+    "sync:all": "tsx scripts/sync-laliga.ts && tsx scripts/sync-champions-league.ts && tsx scripts/sync-premier-league.ts && tsx scripts/sync-bundesliga.ts && tsx scripts/sync-serie-a.ts && tsx scripts/sync-ligat-haal.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.2",
