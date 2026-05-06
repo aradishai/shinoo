@@ -298,7 +298,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
               נחש עכשיו ›
             </div>
           ) : (
-            <div className="bg-dark-muted border border-white/20 text-white text-center py-2.5 rounded-xl text-sm font-bold active:scale-95 transition-transform">
+            <div className="bg-dark-muted border border-white/20 text-white text-center py-2 px-4 rounded-xl text-sm font-bold active:scale-95 transition-transform w-fit mx-auto">
               ערוך ניחוש ›
             </div>
           )}
