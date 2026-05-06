@@ -50,7 +50,7 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
     <div className="w-full flex flex-col gap-4 text-right">
       <div className="text-center">
         <h2 className="text-white font-black text-2xl">איזה מפעלים מעניינים אתכם?</h2>
-        <p className="text-gray-400 text-sm mt-1 leading-relaxed">סמנו את המפעלים שהייתם רוצים לראות באפליקציה — נבנה לפי מה שחשוב לכם</p>
+        <p className="text-white font-bold text-sm mt-2 leading-relaxed">סמנו איזה מפעלים הכי מעניינים אתכם ועליהם תרצו להתחרות נגד חברים שלכם ואנחנו נדאג שתקבלו אותם!</p>
       </div>
 
       <div className="space-y-2">
@@ -64,35 +64,33 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
                 on ? 'bg-primary/10 border-primary/40' : 'bg-dark-card border-dark-border'
               }`}
             >
+              <span className={`font-bold text-sm ${on ? 'text-white' : 'text-gray-300'}`}>{league}</span>
               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
                 on ? 'bg-primary border-primary' : 'border-gray-600'
               }`}>
                 {on && <span className="text-black text-[11px] font-black leading-none">✓</span>}
               </div>
-              <span className={`font-bold text-sm ${on ? 'text-white' : 'text-gray-300'}`}>{league}</span>
             </button>
           )
         })}
       </div>
 
-      <div className="flex flex-col items-center gap-3 pt-2">
+      <div className="flex flex-col items-center gap-2 pt-2">
         <p className="text-white font-black text-base text-center">רוצים לקבל עדכונים על הליגה הספרדית?</p>
-        <p className="text-gray-400 text-xs text-center leading-relaxed">מידע על כל הקבוצות, סטטיסטיקות מיוחדות, העברות רשמיות, קטעי וידאו, הרכבים, סיכומי משחקים, תקצירים ועוד הרבה הפתעות.</p>
-        <p className="text-white font-black text-sm text-center">מוזמנים להצטרף לקהילה</p>
+        <p className="text-white font-bold text-xs text-center leading-relaxed">מידע על כל הקבוצות, סטטיסטיקות מיוחדות, העברות רשמיות, קטעי וידאו, הרכבים, סיכומי משחקים, תקצירים ועוד הרבה הפתעות.</p>
+        <p className="text-[#229ED9] font-black text-base text-center">מוזמנים להצטרף לקהילה</p>
         <a
           href={TELEGRAM_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full active:scale-95 transition-transform duration-150"
+          className="flex flex-col items-center gap-2 active:scale-95 transition-transform duration-150"
         >
-          <div className="bg-dark-card border border-dark-border rounded-xl w-full flex flex-col items-center gap-2 py-4">
-            <img src="/laliga-logo.png" alt="LaLiga" className="h-28 w-auto" />
-            <div className="flex items-center gap-1.5">
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-[#229ED9] shrink-0">
-                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-              </svg>
-              <span className="text-[#229ED9] font-black text-sm">הצטרפו לקהילה</span>
-            </div>
+          <img src="/laliga-logo.png" alt="LaLiga" className="h-32 w-auto" />
+          <div className="flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-[#229ED9] shrink-0">
+              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+            </svg>
+            <span className="text-white font-black text-sm">הצטרפו כאן</span>
           </div>
         </a>
       </div>
