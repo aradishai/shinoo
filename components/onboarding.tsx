@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 
 const slides = [
@@ -87,7 +87,7 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
           rel="noopener noreferrer"
           className="flex flex-col items-center gap-2 active:scale-90 transition-transform duration-150"
         >
-          <div className="bg-dark-card border border-[#229ED9]/40 rounded-2xl px-6 py-4 flex flex-col items-center gap-2">
+          <div className="bg-dark-card border border-dark-border rounded-2xl px-6 py-4 flex flex-col items-center gap-2">
             <img src="/laliga-logo.png" alt="LaLiga" className="h-28 w-auto" />
             <div className="flex items-center gap-1.5">
               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-[#229ED9] shrink-0">
@@ -102,50 +102,15 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
   )
 }
 
-function MarketIntroSlide({ onNext }: { onNext: () => void }) {
-  const [progress, setProgress] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const pausedRef = { current: paused }
-  pausedRef.current = paused
-
-  useEffect(() => {
-    const duration = 10000
-    let elapsed = 0
-    let lastTime = Date.now()
-    let raf: number
-
-    const frame = () => {
-      if (!pausedRef.current) {
-        const now = Date.now()
-        elapsed += now - lastTime
-        lastTime = now
-        const pct = Math.min(elapsed / duration, 1)
-        setProgress(pct)
-        if (pct >= 1) { onNext(); return }
-      } else {
-        lastTime = Date.now()
-      }
-      raf = requestAnimationFrame(frame)
-    }
-    raf = requestAnimationFrame(frame)
-    return () => cancelAnimationFrame(raf)
-  }, [onNext])
-
+function MarketIntroSlide({ onNext: _ }: { onNext: () => void }) {
   return (
-    <div className="w-full flex flex-col items-center text-center gap-8" onClick={() => setPaused(p => !p)}>
+    <div className="w-full flex flex-col items-center text-center gap-8">
       <h2 className="text-white font-black text-3xl leading-snug">המרקט</h2>
       <p className="text-gray-200 text-lg leading-relaxed">
         במרקט תוכל לקנות <span className="text-primary font-black">לחצנים מיוחדים</span> שיעזרו לכם לקבל יותר נקודות מהמשחקים.
         <br /><br />
         כל לחצן ניתן לקנות בעזרת <span className="text-yellow-400 font-black">מטבעות</span>.
       </p>
-      <div className="w-full bg-dark-border rounded-full h-1 overflow-hidden">
-        <div
-          className="h-1 bg-primary rounded-full transition-none"
-          style={{ width: `${progress * 100}%` }}
-        />
-      </div>
-      {paused && <p className="text-gray-600 text-xs">לחץ להמשך</p>}
     </div>
   )
 }
