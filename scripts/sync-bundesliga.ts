@@ -10,8 +10,8 @@ const db = new PrismaClient({ adapter } as any)
 
 const BASE = 'https://www.thesportsdb.com/api/v1/json/3'
 const LEAGUE_ID = 4331
-const SEASON = '2024-2025'
-const SLUG = 'bundesliga-2024-2025'
+const SEASON = '2025-2026'
+const SLUG = 'bundesliga-2025-2026'
 
 const STATUS_MAP: Record<string, string> = {
   'Not Started': 'SCHEDULED',
