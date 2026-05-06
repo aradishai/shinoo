@@ -95,12 +95,20 @@ export async function GET(
 
     // Get live + upcoming matches (LIVE/PAUSED can have kickoffAt in the past)
     const now = new Date()
+
+    // Also include matches the user has already predicted (even if beyond the display window)
+    const userPredictedMatchIds = await db.prediction.findMany({
+      where: { userId, leagueId: params.id },
+      select: { matchId: true },
+    }).then(ps => ps.map(p => p.matchId))
+
     const matches = await db.match.findMany({
       where: {
         OR: [
           { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
           { status: 'SCHEDULED', kickoffAt: { gte: now } },
           { status: 'SCHEDULED', lockAt: { gte: now } },
+          ...(userPredictedMatchIds.length > 0 ? [{ id: { in: userPredictedMatchIds } }] : []),
         ],
       },
       include: {
@@ -109,7 +117,7 @@ export async function GET(
         tournament: { select: { type: true } },
       },
       orderBy: { kickoffAt: 'asc' },
-      take: 10,
+      take: 15,
     })
 
     const matchIds = matches.map((m) => m.id)
@@ -198,4 +206,24 @@ export async function PATCH(
   })
 
   return NextResponse.json({ ok: true, name: updated.name })
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const userId = request.headers.get('x-user-id')
+  if (!userId) return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
+
+  const membership = await db.leagueMember.findUnique({
+    where: { leagueId_userId: { leagueId: params.id, userId } },
+  })
+  if (!membership || membership.role !== 'ADMIN')
+    return NextResponse.json({ error: 'רק מנהל הליגה יכול למחוק אותה' }, { status: 403 })
+
+  await db.prediction.deleteMany({ where: { leagueId: params.id } })
+  await db.leagueMember.deleteMany({ where: { leagueId: params.id } })
+  await db.league.delete({ where: { id: params.id } })
+
+  return NextResponse.json({ ok: true })
 }

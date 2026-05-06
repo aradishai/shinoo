@@ -184,6 +184,18 @@ export default function LeagueDetailPage() {
     }
   }
 
+  const handleDeleteLeague = async () => {
+    if (!confirm(`למחוק את הליגה "${league?.name}" לצמיתות? כל הניחושים יימחקו.`)) return
+    const res = await fetch(`/api/leagues/${leagueId}`, { method: 'DELETE' })
+    if (res.ok) {
+      toast.success('הליגה נמחקה')
+      router.push('/')
+    } else {
+      const d = await res.json()
+      toast.error(d.error || 'שגיאה במחיקה')
+    }
+  }
+
   const handleRemoveMember = async (memberId: string, username: string) => {
     if (!confirm(`להסיר את ${username} מהליגה?`)) return
     setRemovingMember(memberId)
@@ -403,8 +415,20 @@ export default function LeagueDetailPage() {
         </div>
       )}
 
+      {/* Delete League (admin only) */}
+      {isAdmin && (
+        <div className="mt-6">
+          <button
+            onClick={handleDeleteLeague}
+            className="w-full py-3 rounded-xl border border-red-500/40 text-red-400 font-black text-sm active:scale-95 transition-all"
+          >
+            מחק ליגה לצמיתות
+          </button>
+        </div>
+      )}
+
       {/* Invite Code */}
-      <div className="mt-8 flex items-center justify-between py-3 px-4 bg-dark-card border border-dark-border rounded-xl">
+      <div className="mt-4 flex items-center justify-between py-3 px-4 bg-dark-card border border-dark-border rounded-xl">
         <button onClick={copyInviteCode} className="text-primary text-xs font-medium">
           {copiedCode ? 'הועתק! ✓' : 'העתק'}
         </button>
