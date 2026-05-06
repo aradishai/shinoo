@@ -49,7 +49,8 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
   return (
     <div className="w-full flex flex-col gap-4 text-right">
       <div className="text-center">
-        <p className="text-white font-bold text-base leading-relaxed">סמנו איזה מפעלים הכי מעניינים אתכם ועליהם תרצו להתחרות נגד חברים שלכם - אנחנו כבר נדאג שתקבלו אותם!</p>
+        <p className="text-[#229ED9] font-black text-xl">בחרו את המפעלים המועדפים עליכם!</p>
+        <p className="text-gray-400 text-sm mt-1">אנחנו נדאג לשאר...</p>
       </div>
 
       <div className="space-y-2">
