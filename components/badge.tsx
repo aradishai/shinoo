@@ -37,6 +37,8 @@ const VARIANT_CONFIG: Record<BadgeVariant, { label: string; classes: string }> =
 }
 
 export function Badge({ variant, className }: BadgeProps) {
+  if (variant === 'open') return null
+
   const config = VARIANT_CONFIG[variant]
 
   return (
