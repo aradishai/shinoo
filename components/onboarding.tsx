@@ -22,15 +22,15 @@ const slides = [
   },
   {
     emoji: null,
+    interestsSlide: true,
+  },
+  {
+    emoji: null,
     marketIntro: true,
   },
   {
     emoji: null,
     powerupsDemo: true,
-  },
-  {
-    emoji: null,
-    interestsSlide: true,
   },
 ]
 
