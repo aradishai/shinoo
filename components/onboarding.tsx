@@ -76,18 +76,16 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
       </div>
 
       <div className="flex flex-col items-center gap-3 pt-2">
-        <p className="text-gray-400 text-sm text-center leading-relaxed">
-          רוצים לקבל עדכונים על הליגה הספרדית?<br />
-          <span className="text-gray-500 text-xs">מידע על כל הקבוצות, סטטיסטיקות מיוחדות, העברות רשמיות, קטעי וידאו, הרכבים, סיכומי משחקים, תקצירים ועוד הרבה הפתעות.</span>
-        </p>
-        <p className="text-gray-300 font-bold text-sm text-center">מוזמנים להצטרף לקהילה</p>
+        <p className="text-white font-black text-base text-center">רוצים לקבל עדכונים על הליגה הספרדית?</p>
+        <p className="text-gray-400 text-xs text-center leading-relaxed">מידע על כל הקבוצות, סטטיסטיקות מיוחדות, העברות רשמיות, קטעי וידאו, הרכבים, סיכומי משחקים, תקצירים ועוד הרבה הפתעות.</p>
+        <p className="text-white font-black text-sm text-center">מוזמנים להצטרף לקהילה</p>
         <a
           href={TELEGRAM_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-col items-center gap-2 active:scale-90 transition-transform duration-150"
+          className="w-full active:scale-95 transition-transform duration-150"
         >
-          <div className="bg-dark-card border border-dark-border rounded-2xl px-6 py-4 flex flex-col items-center gap-2">
+          <div className="bg-dark-card border border-dark-border rounded-xl w-full flex flex-col items-center gap-2 py-4">
             <img src="/laliga-logo.png" alt="LaLiga" className="h-28 w-auto" />
             <div className="flex items-center gap-1.5">
               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-[#229ED9] shrink-0">
@@ -149,7 +147,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       </div>
 
       {/* Slide content — scrollable */}
-      <div className="flex-1 overflow-y-auto w-full max-w-xs mx-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden w-full max-w-xs mx-auto">
         <div className="flex flex-col items-center text-center gap-4 pb-4">
 
           {slide.logo && (
