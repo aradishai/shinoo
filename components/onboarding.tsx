@@ -43,6 +43,7 @@ const LEAGUES = [
   'בונדסליגה',
   'סרייה א\'',
   'ליגת העל',
+  'מונדיאל 2026',
 ]
 
 function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggle: (l: string) => void }) {
