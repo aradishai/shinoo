@@ -127,33 +127,44 @@ function ScoringDemoSlide() {
 
       <h2 className="text-white font-black text-xl text-center">איך עובד הניקוד?</h2>
 
-      {/* שלב 1: המשחק */}
+      {/* שלב 1: כרטיס משחק */}
       <div className="anim-up bg-dark-card border border-dark-border rounded-2xl px-4 py-3">
-        <p className="text-gray-500 text-[10px] text-center mb-2 font-bold tracking-widest">ברצלונה נגד ריאל מדריד</p>
-        <div className="flex items-center justify-between">
-          <div className="text-center">
-            <p className="text-white font-black text-sm">ריאל מדריד</p>
-            <p className="text-gray-600 text-[10px]">חוץ</p>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-bold bg-white/10 text-white px-2 py-0.5 rounded-full">פתוח לניחוש ›</span>
+          <span className="text-gray-600 text-[10px]">מחזור 35</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col items-center gap-1.5 flex-1">
+            <img src="https://crests.football-data.org/81.png" className="w-9 h-9 object-contain" onError={e => { (e.target as HTMLImageElement).style.display='none' }} />
+            <span className="text-white font-semibold text-sm text-center">ברצלונה</span>
           </div>
-          <span className="text-gray-600 font-bold text-lg">נגד</span>
-          <div className="text-center">
-            <p className="text-white font-black text-sm">ברצלונה</p>
-            <p className="text-gray-600 text-[10px]">בית</p>
+          <div className="w-14 flex items-center justify-center">
+            <span className="text-gray-600 font-bold text-sm">נגד</span>
+          </div>
+          <div className="flex flex-col items-center gap-1.5 flex-1">
+            <img src="https://crests.football-data.org/86.png" className="w-9 h-9 object-contain" onError={e => { (e.target as HTMLImageElement).style.display='none' }} />
+            <span className="text-white font-semibold text-sm text-center">ריאל מדריד</span>
           </div>
         </div>
       </div>
 
-      {/* שלב 2: הניחוש */}
+      {/* שלב 2: ניחוש */}
       {phase >= 1 && (
         <div className="anim-up bg-dark-card border border-primary/40 rounded-2xl px-4 py-3">
-          <p className="text-gray-500 text-[10px] text-center mb-2 font-bold tracking-widest">הניחוש שלכם</p>
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-white font-bold text-sm">ריאל מדריד</span>
-            <div className="bg-dark-50 border border-primary/60 rounded-xl px-5 py-2 min-w-[64px] text-center">
-              <span className="text-primary font-black text-xl">{typed}</span>
-              {typed.length < 3 && <span className="text-primary font-black text-xl animate-pulse">|</span>}
+          <p className="text-gray-500 text-[10px] text-center mb-2 font-bold">הניחוש שלכם</p>
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col items-center flex-1">
+              <span className="text-white font-semibold text-sm text-center">ברצלונה</span>
             </div>
-            <span className="text-white font-bold text-sm">ברצלונה</span>
+            <div className="w-14 flex items-center justify-center">
+              <div className="bg-dark-50 border border-primary/60 rounded-xl px-3 py-1.5 text-center w-full">
+                <span className="text-primary font-black text-xl">{typed}</span>
+                {typed.length < 3 && <span className="text-primary font-black text-xl animate-pulse">|</span>}
+              </div>
+            </div>
+            <div className="flex flex-col items-center flex-1">
+              <span className="text-white font-semibold text-sm text-center">ריאל מדריד</span>
+            </div>
           </div>
         </div>
       )}
