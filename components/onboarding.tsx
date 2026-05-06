@@ -105,11 +105,11 @@ function ScoringDemoSlide() {
   useEffect(() => {
     const t1 = setTimeout(() => {
       setPhase(1)
-      setTimeout(() => setTyped('4'), 350)
-      setTimeout(() => setTyped('4:'), 750)
-      setTimeout(() => setTyped('4:1'), 1100)
-    }, 1800)
-    const t2 = setTimeout(() => setPhase(2), 4200)
+      setTimeout(() => setTyped('4'), 250)
+      setTimeout(() => setTyped('4:'), 550)
+      setTimeout(() => setTyped('4:1'), 850)
+    }, 900)
+    const t2 = setTimeout(() => setPhase(2), 3000)
     return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [])
 
