@@ -82,7 +82,7 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
           href={TELEGRAM_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-col items-center gap-1 active:scale-95 transition-transform duration-150"
+          className="flex flex-col items-center gap-0 active:scale-95 transition-transform duration-150"
         >
           <img src="/laliga-logo.png" alt="LaLiga" className="h-32 w-auto" />
           <div className="flex items-center gap-1.5">
