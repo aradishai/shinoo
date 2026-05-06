@@ -113,8 +113,13 @@ function MarketIntroSlide({ onNext: _ }: { onNext: () => void }) {
 export function Onboarding({ onDone }: { onDone: () => void }) {
   const [current, setCurrent] = useState(0)
   const [interests, setInterests] = useState<Set<string>>(new Set())
+  const [dir, setDir] = useState<'next' | 'prev'>('next')
+  const [animKey, setAnimKey] = useState(0)
   const slide = slides[current]
   const isLast = current === slides.length - 1
+
+  const goNext = () => { setDir('next'); setAnimKey(k => k + 1); setCurrent(c => c + 1) }
+  const goPrev = () => { setDir('prev'); setAnimKey(k => k + 1); setCurrent(c => c - 1) }
 
   const handleDone = async () => {
     if (interests.size > 0) {
@@ -143,9 +148,18 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         <button onClick={onDone} className="text-gray-600 text-sm">דלג</button>
       </div>
 
+      <style>{`
+        @keyframes slide-from-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        @keyframes slide-from-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
+      `}</style>
+
       {/* Slide content — scrollable */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden w-full max-w-xs mx-auto">
-        <div className="flex flex-col items-center text-center gap-4 pb-4">
+        <div
+          key={animKey}
+          className="flex flex-col items-center text-center gap-4 pb-4"
+          style={{ animation: `${dir === 'next' ? 'slide-from-left' : 'slide-from-right'} 0.3s ease-out` }}
+        >
 
           {slide.logo && (
             <img src="/shinoo-logo.png" alt="SHINOO" className="h-40 w-auto" style={{ mixBlendMode: 'lighten' }} />
@@ -282,14 +296,14 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           <div className="flex gap-3 w-full">
             {current > 0 && (
               <button
-                onClick={() => setCurrent(c => c - 1)}
+                onClick={goPrev}
                 className="bg-dark-card border border-dark-border text-gray-300 font-bold text-lg py-4 px-6 rounded-2xl active:scale-95 transition-all"
               >
                 הקודם
               </button>
             )}
             <button
-              onClick={() => isLast ? handleDone() : setCurrent(c => c + 1)}
+              onClick={() => isLast ? handleDone() : goNext()}
               className="flex-1 bg-primary text-black font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-green"
             >
               {isLast ? 'בואו נתחיל!' : 'הבא'}
