@@ -52,17 +52,30 @@ export async function PUT(
       predictedTopScorerPlayerId: predictedTopScorerPlayerId || null,
     }
 
-    // Update this prediction and all matching predictions for the same match across all leagues
+    // Get all leagues the user belongs to
+    const memberships = await db.leagueMember.findMany({
+      where: { userId },
+      select: { leagueId: true },
+    })
+
+    const otherLeagues = memberships
+      .map(m => m.leagueId)
+      .filter(lid => lid !== prediction.leagueId)
+
+    // Update this prediction + upsert (create if missing) in all other leagues
     const [updated] = await Promise.all([
       db.prediction.update({
         where: { id: params.id },
         data: predData,
         include: { points: true },
       }),
-      db.prediction.updateMany({
-        where: { userId, matchId: prediction.matchId, id: { not: params.id } },
-        data: predData,
-      }),
+      ...otherLeagues.map(lid =>
+        db.prediction.upsert({
+          where: { userId_leagueId_matchId: { userId, leagueId: lid, matchId: prediction.matchId } },
+          update: predData,
+          create: { userId, leagueId: lid, matchId: prediction.matchId, ...predData },
+        })
+      ),
     ])
 
     return NextResponse.json({ data: updated, message: 'הניחוש עודכן!' })
