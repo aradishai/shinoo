@@ -178,7 +178,12 @@ export default function HomePage() {
   const [minute90Reveal, setMinute90Reveal] = useState<Minute90RevealData | null>(null)
   const [showAdminPanel, setShowAdminPanel] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
-  const [menuPage, setMenuPage] = useState<'rules' | 'privacy' | 'terms' | 'contact' | null>(null)
+  const [menuPage, setMenuPage] = useState<'rules' | 'privacy' | 'terms' | 'contact' | 'account' | null>(null)
+  const [accountUsername, setAccountUsername] = useState('')
+  const [accountCurPass, setAccountCurPass] = useState('')
+  const [accountNewPass, setAccountNewPass] = useState('')
+  const [accountMsg, setAccountMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [accountLoading, setAccountLoading] = useState(false)
   const [adminUsers, setAdminUsers] = useState<{
     id: string; username: string; coins: number; createdAt: string
     managedLeagues: { id: string; name: string; memberCount: number }[]
@@ -643,6 +648,12 @@ export default function HomePage() {
                 <span className="mr-auto text-gray-600">›</span>
               </button>
             )}
+            <button onClick={() => setMenuPage('account')}
+              className="w-full flex items-center gap-3 px-6 py-4 text-right hover:bg-dark-50 transition-all border-b border-dark-border/40">
+              <span className="text-lg">👤</span>
+              <span className="text-white font-bold text-sm">ניהול חשבון</span>
+              <span className="mr-auto text-gray-600">›</span>
+            </button>
             {[
               { key: 'rules', label: 'חוקים והוראות', icon: '📋' },
               { key: 'privacy', label: 'מדיניות פרטיות', icon: '🔒' },
@@ -666,7 +677,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3 px-4 py-4 border-b border-dark-border shrink-0">
             <button onClick={() => setMenuPage(null)} className="text-gray-400 text-sm">→ חזרה</button>
             <h2 className="text-white font-black text-base">
-              {menuPage === 'rules' ? 'חוקים והוראות' : menuPage === 'privacy' ? 'מדיניות פרטיות' : menuPage === 'terms' ? 'תנאי שימוש' : 'צרו קשר'}
+              {menuPage === 'rules' ? 'חוקים והוראות' : menuPage === 'privacy' ? 'מדיניות פרטיות' : menuPage === 'terms' ? 'תנאי שימוש' : menuPage === 'account' ? 'ניהול חשבון' : 'צרו קשר'}
             </h2>
           </div>
           <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 text-right">
@@ -737,6 +748,78 @@ export default function HomePage() {
                   <p className="text-gray-400 text-xs leading-relaxed">{s.body}</p>
                 </div>
               ))}
+              <p className="text-gray-600 text-xs text-center pt-2">© כל הזכויות שמורות לערד ישי</p>
+            </>)}
+
+            {menuPage === 'account' && (<>
+              <p className="text-white font-black text-base">שינוי שם משתמש</p>
+              <div className="flex gap-2">
+                <input
+                  value={accountUsername}
+                  onChange={e => setAccountUsername(e.target.value)}
+                  placeholder="שם משתמש חדש"
+                  className="flex-1 bg-dark-50 border border-dark-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 text-right"
+                  dir="rtl"
+                />
+                <button
+                  disabled={accountLoading || !accountUsername.trim()}
+                  onClick={async () => {
+                    setAccountLoading(true); setAccountMsg(null)
+                    const res = await fetch('/api/user/account', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'username', newUsername: accountUsername }) })
+                    const data = await res.json()
+                    setAccountMsg(res.ok ? { ok: true, text: 'שם משתמש עודכן!' } : { ok: false, text: data.error })
+                    setAccountLoading(false)
+                  }}
+                  className="bg-primary text-black font-black text-sm px-4 py-3 rounded-xl disabled:opacity-40 active:scale-95 transition-all"
+                >שמור</button>
+              </div>
+
+              <p className="text-white font-black text-base pt-2">שינוי סיסמה</p>
+              <input
+                type="password"
+                value={accountCurPass}
+                onChange={e => setAccountCurPass(e.target.value)}
+                placeholder="סיסמה נוכחית"
+                className="w-full bg-dark-50 border border-dark-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 text-right"
+                dir="rtl"
+              />
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  value={accountNewPass}
+                  onChange={e => setAccountNewPass(e.target.value)}
+                  placeholder="סיסמה חדשה"
+                  className="flex-1 bg-dark-50 border border-dark-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 text-right"
+                  dir="rtl"
+                />
+                <button
+                  disabled={accountLoading || !accountCurPass || !accountNewPass}
+                  onClick={async () => {
+                    setAccountLoading(true); setAccountMsg(null)
+                    const res = await fetch('/api/user/account', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'password', currentPassword: accountCurPass, newPassword: accountNewPass }) })
+                    const data = await res.json()
+                    setAccountMsg(res.ok ? { ok: true, text: 'סיסמה עודכנה!' } : { ok: false, text: data.error })
+                    if (res.ok) { setAccountCurPass(''); setAccountNewPass('') }
+                    setAccountLoading(false)
+                  }}
+                  className="bg-primary text-black font-black text-sm px-4 py-3 rounded-xl disabled:opacity-40 active:scale-95 transition-all"
+                >שמור</button>
+              </div>
+
+              {accountMsg && (
+                <p className={`text-sm font-bold text-center ${accountMsg.ok ? 'text-primary' : 'text-red-400'}`}>{accountMsg.text}</p>
+              )}
+
+              <div className="pt-4 border-t border-dark-border">
+                <button
+                  onClick={async () => {
+                    if (!confirm('למחוק את החשבון לצמיתות? לא ניתן לשחזר.')) return
+                    const res = await fetch('/api/user/account', { method: 'DELETE' })
+                    if (res.ok) window.location.href = '/login'
+                  }}
+                  className="w-full py-3 rounded-xl border border-red-500/40 text-red-400 font-black text-sm active:scale-95 transition-all"
+                >מחק חשבון לצמיתות</button>
+              </div>
             </>)}
 
             {menuPage === 'contact' && (<>
