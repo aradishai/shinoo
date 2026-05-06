@@ -8,6 +8,7 @@ interface StandingsEntry {
   predictionCount: number
   wrong: number
   outcomeOnly: number
+  drawInexact?: number
   outcomeAndOne: number
   exactScores: number
   role?: string
@@ -53,10 +54,11 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
       <div className="flex items-center px-3 py-2 gap-2 border-b border-dark-border">
         <div className="w-7 flex-shrink-0" />
         <div className="flex-1" />
-        <div className="grid grid-cols-5 text-center" style={{ width: '55%' }}>
+        <div className="grid grid-cols-6 text-center" style={{ width: '60%' }}>
           <span className="text-xs text-gray-600">מש׳</span>
           <span className="text-xs text-red-500">✗</span>
           <span className="text-xs text-yellow-400">1+</span>
+          <span className="text-xs text-orange-400">+2</span>
           <span className="text-xs text-blue-400">3+</span>
           <span className="text-xs text-green-400">בול</span>
         </div>
@@ -82,10 +84,11 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
                 {isCurrentUser && <span className="text-xs text-gray-500 font-normal mr-1">(אני)</span>}
               </span>
             </div>
-            <div className="grid grid-cols-5 text-center" style={{ width: '55%' }}>
+            <div className="grid grid-cols-6 text-center" style={{ width: '60%' }}>
               <span className="text-sm font-bold text-gray-400">{entry.predictionCount}</span>
               <span className="text-sm font-bold text-red-500">{entry.wrong}</span>
               <span className="text-sm font-bold text-yellow-400">{entry.outcomeOnly}</span>
+              <span className="text-sm font-bold text-orange-400">{entry.drawInexact ?? 0}</span>
               <span className="text-sm font-bold text-blue-400">{entry.outcomeAndOne}</span>
               <span className="text-sm font-bold text-green-400">{entry.exactScores}</span>
             </div>

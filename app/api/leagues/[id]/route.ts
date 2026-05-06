@@ -75,6 +75,7 @@ export async function GET(
         const finished = scored.filter(p => p.match?.status === 'FINISHED')
         const wrong = finished.filter(p => (p.points?.resultPoints || 0) === 0).length
         const outcomeOnly = scored.filter(p => (p.points?.resultPoints || 0) === 1).length
+        const drawInexact = scored.filter(p => (p.points?.resultPoints || 0) === 2).length
         const outcomeAndOne = scored.filter(p => (p.points?.resultPoints || 0) === 3).length
         const exactScores = scored.filter(p => (p.points?.resultPoints || 0) === 5).length
 
@@ -86,6 +87,7 @@ export async function GET(
           predictionCount: scored.length,
           wrong,
           outcomeOnly,
+          drawInexact,
           outcomeAndOne,
           exactScores,
         }
