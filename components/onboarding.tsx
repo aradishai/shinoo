@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 
 const slides = [
@@ -97,6 +97,88 @@ function InterestsSlide({ selected, onToggle }: { selected: Set<string>; onToggl
   )
 }
 
+function ScoringDemoSlide() {
+  const [phase, setPhase] = useState(0)
+  const [typed, setTyped] = useState('')
+
+  useEffect(() => {
+    const t1 = setTimeout(() => {
+      setPhase(1)
+      setTimeout(() => setTyped('4'), 350)
+      setTimeout(() => setTyped('4:'), 750)
+      setTimeout(() => setTyped('4:1'), 1100)
+    }, 1800)
+    const t2 = setTimeout(() => setPhase(2), 4200)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
+
+  const rows = [
+    { pts: '0 נקודות', label: 'טעיתם במנצחת', sub: 'תיקו / ניצחון ריאל מדריד', color: 'text-red-500', border: 'border-red-500/20' },
+    { pts: 'נקודה אחת', label: 'צדקתם במנצחת בלבד', sub: '1:0 / 3:2 לברצלונה', color: 'text-yellow-400', border: 'border-yellow-400/20' },
+    { pts: '2 נקודות 🤝', label: 'ניחשתם תיקו — לא מדויק', sub: 'כל תיקו שאינו הסקור המדויק', color: 'text-orange-400', border: 'border-orange-400/20' },
+    { pts: '3 נקודות', label: 'מנצחת + קבוצה אחת', sub: '4:0 / 2:1 לברצלונה', color: 'text-blue-400', border: 'border-blue-400/20' },
+    { pts: '5 נקודות 🎯', label: 'תוצאה מדויקת!', sub: 'בדיוק 4:1 — וגם תיקו מדויק', color: 'text-green-400', border: 'border-green-400/20' },
+  ]
+
+  return (
+    <div className="w-full space-y-3 text-right">
+      <style>{`@keyframes fade-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}.anim-up{animation:fade-up 0.4s ease-out both}`}</style>
+
+      <h2 className="text-white font-black text-xl text-center">איך עובד הניקוד?</h2>
+
+      {/* שלב 1: המשחק */}
+      <div className="anim-up bg-dark-card border border-dark-border rounded-2xl px-4 py-3">
+        <p className="text-gray-500 text-[10px] text-center mb-2 font-bold tracking-widest">⚽ המשחק</p>
+        <div className="flex items-center justify-between">
+          <div className="text-center">
+            <p className="text-white font-black text-sm">ריאל מדריד</p>
+            <p className="text-gray-600 text-[10px]">חוץ</p>
+          </div>
+          <span className="text-gray-600 font-bold text-lg">נגד</span>
+          <div className="text-center">
+            <p className="text-white font-black text-sm">ברצלונה</p>
+            <p className="text-gray-600 text-[10px]">בית</p>
+          </div>
+        </div>
+      </div>
+
+      {/* שלב 2: הניחוש */}
+      {phase >= 1 && (
+        <div className="anim-up bg-dark-card border border-primary/40 rounded-2xl px-4 py-3">
+          <p className="text-gray-500 text-[10px] text-center mb-2 font-bold tracking-widest">✏️ הניחוש שלכם</p>
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-white font-bold text-sm">ריאל מדריד</span>
+            <div className="bg-dark-50 border border-primary/60 rounded-xl px-5 py-2 min-w-[64px] text-center">
+              <span className="text-primary font-black text-xl">{typed}</span>
+              {typed.length < 3 && <span className="text-primary font-black text-xl animate-pulse">|</span>}
+            </div>
+            <span className="text-white font-bold text-sm">ברצלונה</span>
+          </div>
+        </div>
+      )}
+
+      {/* שלב 3: תוצאות */}
+      {phase >= 2 && (
+        <div className="space-y-2">
+          {rows.map((row, i) => (
+            <div
+              key={i}
+              className={`anim-up bg-dark-card border ${row.border} rounded-xl px-3 py-2.5`}
+              style={{ animationDelay: `${i * 130}ms` }}
+            >
+              <div className="flex items-center justify-between mb-0.5">
+                <span className={`${row.color} font-black text-sm`}>{row.pts}</span>
+                <span className="text-gray-300 text-xs">{row.label}</span>
+              </div>
+              <p className="text-gray-500 text-xs">{row.sub}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function MarketIntroSlide({ onNext: _ }: { onNext: () => void }) {
   return (
     <div className="w-full flex flex-col items-center text-center gap-8">
@@ -165,36 +247,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             <img src="/shinoo-logo.png" alt="SHINOO" className="h-40 w-auto" style={{ mixBlendMode: 'lighten' }} />
           )}
 
-          {(slide as any).scoringDemo && (
-            <div className="w-full space-y-2 text-right">
-              <h2 className="text-white font-black text-xl text-center mb-1">איך עובד הניקוד?</h2>
-              <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-2.5 text-center">
-                <p className="text-gray-400 text-xs mb-0.5">הניחוש שלכם</p>
-                <p className="text-white font-black text-base">4:1 <span className="text-gray-400 font-normal text-sm">ברצלונה נגד ריאל מדריד</span></p>
-              </div>
-              {[
-                { pts: '0 נקודות', color: 'text-gray-500', label: 'לא צדקתם במנצחת', sub: 'תיקו / ניצחון ריאל מדריד' },
-                { pts: 'נקודה אחת', color: 'text-gray-300', label: 'צדקתם במנצחת בלבד', sub: '1:0 לברצלונה / 3:2 לברצלונה' },
-                { pts: '3 נקודות', color: 'text-gray-300', label: 'מנצחת + קבוצה אחת', sub: '4:0 (פגעתם בברצלונה) / 2:1 (פגעתם בריאל)' },
-                { pts: '5 נקודות 🎯', color: 'text-yellow-400', label: 'תוצאה מדויקת', sub: 'בדיוק 4:1 לברצלונה', highlight: true },
-              ].map(({ pts, color, label, sub, highlight }) => (
-                <div key={pts} className={`bg-dark-card border ${highlight ? 'border-primary/40' : 'border-dark-border'} rounded-xl px-4 py-2.5`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={`${color} font-black text-sm`}>{pts}</span>
-                    <span className="text-gray-300 text-xs">{label}</span>
-                  </div>
-                  <p className="text-gray-500 text-xs">{sub}</p>
-                </div>
-              ))}
-              <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-2.5 flex items-center gap-2">
-                <span className="text-gray-500">🤝</span>
-                <div className="text-right">
-                  <p className="text-gray-300 text-xs font-bold">ניחוש תיקו</p>
-                  <p className="text-gray-500 text-xs">תיקו לא מדויק = 2 נקודות · תיקו מדויק = 5</p>
-                </div>
-              </div>
-            </div>
-          )}
+          {(slide as any).scoringDemo && <ScoringDemoSlide />}
 
           {(slide as any).marketIntro && (
             <MarketIntroSlide onNext={() => setCurrent(c => c + 1)} />
