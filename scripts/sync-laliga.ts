@@ -74,7 +74,7 @@ async function main() {
   for (const [tsdbId, info] of Array.from(teamEntries)) {
     const team = await db.team.upsert({
       where: { code: tsdbId },
-      update: { nameEn: info.name, nameHe: info.name, ...(info.badge ? { flagUrl: info.badge } : {}) },
+      update: { nameEn: info.name, ...(info.badge ? { flagUrl: info.badge } : {}) },
       create: { code: tsdbId, nameEn: info.name, nameHe: info.name, flagUrl: info.badge },
     })
     teamMap[tsdbId] = team.id
