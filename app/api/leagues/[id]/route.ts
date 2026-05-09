@@ -223,7 +223,17 @@ export async function DELETE(
   if (!membership || membership.role !== 'ADMIN')
     return NextResponse.json({ error: 'רק מנהל הליגה יכול למחוק אותה' }, { status: 403 })
 
+  const predIds = await db.prediction.findMany({
+    where: { leagueId: params.id },
+    select: { id: true },
+  }).then(ps => ps.map(p => p.id))
+
+  if (predIds.length > 0) {
+    await db.coinBet.deleteMany({ where: { predictionId: { in: predIds } } })
+    await db.predictionPoints.deleteMany({ where: { predictionId: { in: predIds } } })
+  }
   await db.prediction.deleteMany({ where: { leagueId: params.id } })
+  await db.powerupUsage.deleteMany({ where: { leagueId: params.id } })
   await db.leagueMember.deleteMany({ where: { leagueId: params.id } })
   await db.league.delete({ where: { id: params.id } })
 
