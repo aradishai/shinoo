@@ -32,8 +32,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'אין לך ספליט — קנה בחנות' }, { status: 400 })
 
   await db.user.update({ where: { id: userId }, data: { splitStock: { decrement: 1 } } })
-  await db.prediction.update({
-    where: { id: predictionId },
+  await db.prediction.updateMany({
+    where: { userId, matchId: prediction.matchId },
     data: { splitApplied: true, splitHomeScore2, splitAwayScore2 } as any,
   })
 

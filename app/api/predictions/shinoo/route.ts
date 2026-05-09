@@ -59,8 +59,8 @@ export async function POST(request: Request) {
   const matchday = getRoundNumber(prediction.match.round)
 
   await db.user.update({ where: { id: userId }, data: { shinooStock: { decrement: 1 } } })
-  await db.prediction.update({
-    where: { id: predictionId },
+  await db.prediction.updateMany({
+    where: { userId, matchId: prediction.matchId },
     data: { predictedHomeScore: newHome, predictedAwayScore: newAway, shinooApplied: true },
   })
   await db.powerupUsage.create({ data: { id: `shinoo-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'SHINOO' } })

@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'אין לך גולס+ — קנה בחנות' }, { status: 400 })
 
   await db.user.update({ where: { id: userId }, data: { goalsStock: { decrement: 1 } } })
-  await db.prediction.update({ where: { id: predictionId }, data: { goalsApplied: true } as any })
+  await db.prediction.updateMany({ where: { userId, matchId: prediction.matchId }, data: { goalsApplied: true } as any })
 
   const updatedUser = await db.user.findUnique({
     where: { id: userId },

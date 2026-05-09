@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   const matchday = getRoundNumber(prediction.match.round)
 
   await db.user.update({ where: { id: userId }, data: { x2Stock: { decrement: 1 } } })
-  await db.prediction.update({ where: { id: predictionId }, data: { x2Applied: true } })
+  await db.prediction.updateMany({ where: { userId, matchId: prediction.matchId }, data: { x2Applied: true } })
   await db.powerupUsage.create({ data: { id: `x2-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'X2' } })
 
   const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { x2Stock: true, shinooStock: true } })

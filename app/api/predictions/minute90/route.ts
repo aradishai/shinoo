@@ -45,8 +45,8 @@ export async function POST(request: Request) {
   const matchday = getRoundNumber(prediction.match.round)
 
   await db.user.update({ where: { id: userId }, data: { minute90Stock: { decrement: 1 } } })
-  await db.prediction.update({
-    where: { id: predictionId },
+  await db.prediction.updateMany({
+    where: { userId, matchId: prediction.matchId },
     data: { predictedHomeScore: newHome, predictedAwayScore: newAway, minute90Applied: true } as any,
   })
   if (matchday > 0) {
