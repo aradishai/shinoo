@@ -121,13 +121,14 @@ export default function MatchesPage() {
       try {
         const res = await fetch('/api/sync/live')
         const data = await res.json()
-        if (data.synced) loadMatches()
+        // Always reload on the LIVE tab; elsewhere only reload after a real sync
+        if (data.synced || activeStatus === 'LIVE') loadMatches()
       } catch { /* silent */ }
     }
     poll() // sync immediately on mount
     syncIntervalRef.current = setInterval(poll, 10_000)
     return () => { if (syncIntervalRef.current) clearInterval(syncIntervalRef.current) }
-  }, [loadMatches])
+  }, [loadMatches, activeStatus])
 
   const save = async (match: Match) => {
     const s = scores[match.id]

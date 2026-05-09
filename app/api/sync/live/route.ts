@@ -6,7 +6,8 @@ import axios from 'axios'
 export const dynamic = 'force-dynamic'
 
 let lastSyncTime = 0
-const MIN_INTERVAL_MS = 60_000
+const MIN_INTERVAL_LIVE = 30_000   // 30s when matches are active
+const MIN_INTERVAL_IDLE = 60_000   // 60s when nothing is live
 
 const FD_API = 'https://api.football-data.org/v4'
 const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
@@ -155,8 +156,10 @@ export async function GET() {
       where: { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
     })
 
+    const minInterval = activeCount > 0 ? MIN_INTERVAL_LIVE : MIN_INTERVAL_IDLE
+
     let synced = false
-    if (timeSinceLast >= MIN_INTERVAL_MS) {
+    if (timeSinceLast >= minInterval) {
       lastSyncTime = now
       await lockExpiredMatches()
       await syncFootballData()
@@ -165,13 +168,20 @@ export async function GET() {
       synced = true
     }
 
+    // Always return current live match states so clients can patch in-place
+    const liveMatchData = await db.match.findMany({
+      where: { status: { in: ['LIVE', 'PAUSED'] } },
+      select: { id: true, status: true, homeScore: true, awayScore: true, minute: true },
+    })
+
     return NextResponse.json({
       synced,
       activeMatches: activeCount,
-      nextSyncIn: synced ? MIN_INTERVAL_MS : Math.max(0, MIN_INTERVAL_MS - timeSinceLast),
+      nextSyncIn: synced ? minInterval : Math.max(0, minInterval - timeSinceLast),
+      liveMatchData,
     })
   } catch (error) {
     console.error('[sync/live] Error:', error)
-    return NextResponse.json({ synced: false, activeMatches: 0, nextSyncIn: MIN_INTERVAL_MS })
+    return NextResponse.json({ synced: false, activeMatches: 0, nextSyncIn: MIN_INTERVAL_IDLE, liveMatchData: [] })
   }
 }

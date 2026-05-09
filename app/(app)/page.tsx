@@ -194,6 +194,7 @@ export default function HomePage() {
   const [resetLeagueLoading, setResetLeagueLoading] = useState(false)
   const [interestCounts, setInterestCounts] = useState<{ league: string; count: number }[]>([])
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const primaryLeagueRef = useRef<LeagueDetail | null>(null)
 
   const isAdmin = user?.isAdmin ?? false
 
@@ -256,6 +257,7 @@ export default function HomePage() {
       if (!res.ok) return
       const data = await res.json()
       setPrimaryLeague(data.data)
+      primaryLeagueRef.current = data.data
       setLastUpdated(new Date())
     } catch (err) {
       console.error(err)
@@ -293,19 +295,40 @@ export default function HomePage() {
     }
   }, [router, fetchPrimaryLeague])
 
-  // Live sync polling — refresh data after sync reports active matches
+  // Live sync polling — refresh data and patch live match states in-place
   const pollLiveSync = useCallback(async () => {
-    if (!primaryLeague) return
+    const league = primaryLeagueRef.current
+    if (!league) return
     try {
       const res = await fetch('/api/sync/live')
       const data = await res.json()
-      if (data.synced && primaryLeague) {
-        await fetchPrimaryLeague(primaryLeague.id)
+
+      if (data.synced) {
+        // Full reload: may include status transitions (LOCKED→LIVE, LIVE→FINISHED)
+        await fetchPrimaryLeague(league.id)
+      } else if (data.liveMatchData?.length > 0) {
+        // Lightweight in-place patch: update score + minute for live matches
+        const liveMap = new Map<string, { status: string; homeScore: number | null; awayScore: number | null; minute: number | null }>(
+          data.liveMatchData.map((m: any) => [m.id, m])
+        )
+        setPrimaryLeague(prev => {
+          if (!prev) return prev
+          const updated = {
+            ...prev,
+            matches: prev.matches.map(m => {
+              const u = liveMap.get(m.id)
+              if (!u) return m
+              return { ...m, status: u.status, homeScore: u.homeScore, awayScore: u.awayScore, minute: u.minute }
+            }),
+          }
+          primaryLeagueRef.current = updated
+          return updated
+        })
       }
     } catch {
       // silent fail — live sync is best-effort
     }
-  }, [primaryLeague, fetchPrimaryLeague])
+  }, [fetchPrimaryLeague])  // no primaryLeague dep — uses ref to avoid interval resets
 
   useEffect(() => {
     fetchData()

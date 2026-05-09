@@ -106,53 +106,80 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
 }
 
 function useLiveMinute(kickoffAt: Date | string, status: string, apiMinute?: number | null) {
-  const [minute, setMinute] = useState<string | null>(null)
-  const baseRef = useRef<{ wallTime: number; apiMin: number } | null>(null)
-  const maxMinRef = useRef(0)
+  const [display, setDisplay] = useState<string | null>(null)
+  const anchorRef = useRef<{ wallMs: number; apiMin: number } | null>(null)
+  const pausedSinceRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (status !== 'LIVE' && status !== 'PAUSED') {
-      setMinute(null)
-      baseRef.current = null
-      maxMinRef.current = 0
+      setDisplay(null)
+      anchorRef.current = null
+      pausedSinceRef.current = null
       return
+    }
+
+    // Always update anchor from API — allows backward correction
+    if (apiMinute != null) {
+      anchorRef.current = { wallMs: Date.now(), apiMin: apiMinute }
     }
 
     if (status === 'PAUSED') {
-      setMinute('HT')
-      maxMinRef.current = 0
-      return
+      if (pausedSinceRef.current === null) pausedSinceRef.current = Date.now()
+    } else {
+      pausedSinceRef.current = null
     }
 
-    // Anchor dead-reckoning to the latest API minute
-    if (apiMinute != null) {
-      baseRef.current = { wallTime: Date.now(), apiMin: apiMinute }
-      maxMinRef.current = apiMinute  // allow API to correct overcounting from stoppages
-    }
+    const tick = () => {
+      const now = Date.now()
 
-    const calc = () => {
-      let gameMin: number
-      if (baseRef.current != null) {
-        gameMin = baseRef.current.apiMin + (Date.now() - baseRef.current.wallTime) / 60000
-      } else {
-        gameMin = (Date.now() - new Date(kickoffAt).getTime()) / 60000
+      if (status === 'PAUSED') {
+        const pausedMs = pausedSinceRef.current ? now - pausedSinceRef.current : 0
+        if (pausedMs > 15 * 60_000) {
+          // Halftime exceeded 15 min — fallback: count 2H from 45'
+          const into2H = (pausedMs - 15 * 60_000) / 60_000
+          const m = Math.min(90, Math.floor(45 + into2H))
+          setDisplay(`${m}'`)
+        } else {
+          setDisplay('מחצית')
+        }
+        return
       }
 
-      // Never go backward
-      gameMin = Math.max(gameMin, maxMinRef.current)
-      maxMinRef.current = gameMin
+      // LIVE — compute game minute
+      let gameMin: number
+      if (anchorRef.current) {
+        gameMin = anchorRef.current.apiMin + (now - anchorRef.current.wallMs) / 60_000
+      } else {
+        // Kickoff fallback: 3-minute delay before showing minute 1
+        const elapsed = (now - new Date(kickoffAt).getTime()) / 60_000
+        if (elapsed < 3) { setDisplay(null); return }
+        gameMin = elapsed - 3
+      }
 
-      if (gameMin < 1) { setMinute(null); return }
-      if (gameMin > 90) { setMinute('90+'); return }
-      setMinute(`${Math.floor(gameMin)}'`)
+      gameMin = Math.max(0, gameMin)
+      const m = Math.floor(gameMin)
+
+      if (gameMin < 1) {
+        setDisplay(null)
+      } else if (gameMin < 46) {
+        setDisplay(`${m}'`)
+      } else if (gameMin < 49) {
+        // 1st-half stoppage: 45+1', 45+2', 45+3'
+        setDisplay(`45+${m - 45}'`)
+      } else if (gameMin < 91) {
+        setDisplay(`${m}'`)
+      } else {
+        // 2nd-half stoppage: 90+1', 90+2', ...
+        setDisplay(`90+${m - 90}'`)
+      }
     }
 
-    calc()
-    const interval = setInterval(calc, 15_000)
+    tick()
+    const interval = setInterval(tick, 1_000)
     return () => clearInterval(interval)
   }, [kickoffAt, status, apiMinute])
 
-  return minute
+  return display
 }
 
 export function MatchCard({ match, prediction, memberPredictions = [], leagueId, onPredictClick, powerup }: MatchCardProps) {
@@ -210,21 +237,21 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
 
         {/* Score / VS */}
         <div className="flex flex-col items-center gap-1 px-2">
-          {(isFinished || isLive || isLocked) && match.homeScore !== null && match.awayScore !== null ? (
+          {(isFinished || isLocked) ? (
             <div className="flex flex-col items-center gap-0.5">
               <div className="flex items-center gap-1">
                 <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
-                  {match.homeScore}
+                  {isLive || status === 'PAUSED' ? (match.homeScore ?? 0) : match.homeScore}
                 </span>
                 <span className="text-gray-500 text-lg">-</span>
                 <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
-                  {match.awayScore}
+                  {isLive || status === 'PAUSED' ? (match.awayScore ?? 0) : match.awayScore}
                 </span>
               </div>
               {(isLive || status === 'PAUSED') && liveMinute && (
                 <span className={`text-xs font-bold ${
                   status === 'PAUSED' ? 'text-yellow-400' :
-                  liveMinute === '90+' ? 'text-red-400 animate-pulse' :
+                  liveMinute.includes('+') ? 'text-red-400 animate-pulse' :
                   'text-primary animate-pulse'
                 }`}>
                   {liveMinute}
