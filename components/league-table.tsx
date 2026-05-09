@@ -53,8 +53,8 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
       {/* Header */}
       <div className="flex items-center px-3 py-2 gap-2 border-b border-dark-border">
         <div className="w-7 flex-shrink-0" />
-        <div className="flex-1" />
-        <div className="grid grid-cols-6 text-center" style={{ width: '58%' }}>
+        <div className="w-16 flex-shrink-0" />
+        <div className="grid grid-cols-6 text-center flex-1">
           <span className="text-[10px] text-gray-600">מש׳</span>
           <span className="text-[10px] text-red-500">✗</span>
           <span className="text-[10px] text-yellow-400">1+</span>
@@ -78,19 +78,19 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
             } ${isCurrentUser ? 'bg-primary/10' : ''}`}
           >
             <RankIndicator rank={entry.rank} />
-            <div className="min-w-0 flex-1 text-right">
+            <div className="w-16 flex-shrink-0 text-right">
               <span className={`font-bold text-sm truncate block ${isCurrentUser ? 'text-primary' : 'text-white'}`}>
                 {entry.username}
                 {isCurrentUser && <span className="text-xs text-gray-500 font-normal mr-1">(אני)</span>}
               </span>
             </div>
-            <div className="grid grid-cols-6 text-center flex-shrink-0" style={{ width: '58%' }}>
-              <span className="text-xs font-bold text-gray-400">{entry.predictionCount}</span>
-              <span className="text-xs font-bold text-red-500">{entry.wrong}</span>
-              <span className="text-xs font-bold text-yellow-400">{entry.outcomeOnly}</span>
-              <span className="text-xs font-bold text-orange-400">{entry.drawInexact ?? 0}</span>
-              <span className="text-xs font-bold text-blue-400">{entry.outcomeAndOne}</span>
-              <span className="text-xs font-bold text-green-400">{entry.exactScores}</span>
+            <div className="grid grid-cols-6 text-center flex-1">
+              <span className="text-sm font-bold text-gray-400">{entry.predictionCount}</span>
+              <span className="text-sm font-bold text-red-500">{entry.wrong}</span>
+              <span className="text-sm font-bold text-yellow-400">{entry.outcomeOnly}</span>
+              <span className="text-sm font-bold text-orange-400">{entry.drawInexact ?? 0}</span>
+              <span className="text-sm font-bold text-blue-400">{entry.outcomeAndOne}</span>
+              <span className="text-sm font-bold text-green-400">{entry.exactScores}</span>
             </div>
             <div className={`w-8 text-center font-black text-lg ${isCurrentUser ? 'text-primary' : 'text-white'}`}>
               {entry.totalPoints}
