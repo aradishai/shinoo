@@ -6,11 +6,16 @@ import axios from 'axios'
 export const dynamic = 'force-dynamic'
 
 let lastSyncTime = 0
+let lastMinuteSyncTime = 0
 const MIN_INTERVAL_LIVE = 30_000   // 30s when matches are active
 const MIN_INTERVAL_IDLE = 60_000   // 60s when nothing is live
+const MIN_INTERVAL_MINUTE = 2 * 60_000  // 2 min for minute updates
 
 const FD_API = 'https://api.football-data.org/v4'
 const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
+
+const AF_API = 'https://v3.football.api-sports.io'
+const AF_KEY = process.env.API_FOOTBALL_KEY
 
 const FD_STATUS_MAP: Record<string, string> = {
   'TIMED': 'SCHEDULED',
@@ -132,6 +137,43 @@ async function autoFinishStaleMatches() {
   })
 }
 
+async function syncLiveMinutes() {
+  if (!AF_KEY) return
+
+  const res = await axios.get(`${AF_API}/fixtures?live=all`, {
+    headers: { 'x-apisports-key': AF_KEY },
+    timeout: 8000,
+  })
+
+  const fixtures: any[] = res.data?.response ?? []
+  if (fixtures.length === 0) return
+
+  const liveMatches = await db.match.findMany({
+    where: { status: { in: ['LIVE', 'PAUSED'] } },
+    include: { homeTeam: true, awayTeam: true },
+  })
+
+  for (const match of liveMatches) {
+    const kickoffMs = new Date(match.kickoffAt).getTime()
+    const fixture = fixtures.find((f: any) => {
+      const diff = Math.abs(new Date(f.fixture.date).getTime() - kickoffMs)
+      if (diff > 2 * 60 * 60_000) return false
+      const hName = (f.teams.home.name ?? '').toLowerCase()
+      const aName = (f.teams.away.name ?? '').toLowerCase()
+      const hEn = (match.homeTeam.nameEn ?? '').toLowerCase()
+      const aEn = (match.awayTeam.nameEn ?? '').toLowerCase()
+      const hMatch = hName.includes(hEn.split(' ')[0]) || hEn.includes(hName.split(' ')[0])
+      const aMatch = aName.includes(aEn.split(' ')[0]) || aEn.includes(aName.split(' ')[0])
+      return hMatch && aMatch
+    })
+
+    const minute = fixture?.fixture?.status?.elapsed ?? null
+    if (minute != null) {
+      await db.match.update({ where: { id: match.id }, data: { minute } })
+    }
+  }
+}
+
 async function recalculateMissingPoints() {
   const finished = await db.match.findMany({
     where: {
@@ -166,6 +208,13 @@ export async function GET() {
       await autoFinishStaleMatches()
       await recalculateMissingPoints()
       synced = true
+    }
+
+    // Minute sync every 2 min (only when live matches exist)
+    const liveCount = await db.match.count({ where: { status: { in: ['LIVE', 'PAUSED'] } } })
+    if (liveCount > 0 && now - lastMinuteSyncTime >= MIN_INTERVAL_MINUTE) {
+      lastMinuteSyncTime = now
+      await syncLiveMinutes()
     }
 
     // Always return current live match states so clients can patch in-place
