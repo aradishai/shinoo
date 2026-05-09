@@ -298,7 +298,7 @@ async function main() {
   for (const t of TEAMS) {
     const team = await db.team.upsert({
       where: { code: t.code },
-      update: { nameHe: t.nameHe, nameEn: t.nameEn },
+      update: { nameEn: t.nameEn },
       create: { nameHe: t.nameHe, nameEn: t.nameEn, code: t.code },
     })
     teamMap[t.code] = team.id
