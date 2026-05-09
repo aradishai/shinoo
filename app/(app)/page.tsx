@@ -983,14 +983,14 @@ export default function HomePage() {
               <h2 className="text-white font-bold text-lg">משחקים קרובים</h2>
             </div>
 
-            {primaryLeague.matches.filter(m => !['LIVE', 'PAUSED'].includes(m.status)).length === 0 ? (
+            {primaryLeague.matches.filter(m => ['SCHEDULED', 'LOCKED'].includes(m.status)).length === 0 ? (
               <div className="text-center py-10 text-gray-500">
                 <div className="text-4xl mb-3">📅</div>
                 <p>אין משחקים מתוכננים כרגע</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {primaryLeague.matches.filter(m => !['LIVE', 'PAUSED'].includes(m.status)).slice(0, 5).map((match) => (
+                {primaryLeague.matches.filter(m => ['SCHEDULED', 'LOCKED'].includes(m.status)).slice(0, 5).map((match) => (
                   <MatchCard
                     key={match.id}
                     match={match}
