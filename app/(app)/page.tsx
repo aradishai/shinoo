@@ -193,6 +193,9 @@ export default function HomePage() {
   const [resetLeagueName, setResetLeagueName] = useState('')
   const [resetLeagueLoading, setResetLeagueLoading] = useState(false)
   const [interestCounts, setInterestCounts] = useState<{ league: string; count: number }[]>([])
+  const [openPredictId, setOpenPredictId] = useState<string | null>(null)
+  const [inlineScores, setInlineScores] = useState<Record<string, { home: string; away: string }>>({})
+  const [inlineSaving, setInlineSaving] = useState<string | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const primaryLeagueRef = useRef<LeagueDetail | null>(null)
 
@@ -385,6 +388,43 @@ export default function HomePage() {
         <span className="text-green-400 font-black text-base">✓</span>
       </div>
     ), { duration: 2000 })
+  }
+
+  const openInlinePredict = (match: Match) => {
+    if (openPredictId === match.id) { setOpenPredictId(null); return }
+    setOpenPredictId(match.id)
+    setInlineScores(prev => ({
+      ...prev,
+      [match.id]: {
+        home: match.userPrediction?.predictedHomeScore?.toString() ?? '0',
+        away: match.userPrediction?.predictedAwayScore?.toString() ?? '0',
+      },
+    }))
+  }
+
+  const saveInline = async (match: Match) => {
+    const s = inlineScores[match.id]
+    if (!s || !primaryLeague) return
+    setInlineSaving(match.id)
+    const existing = match.userPrediction
+    const res = await fetch(existing ? `/api/predictions/${existing.id}` : '/api/predictions', {
+      method: existing ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        predictedHomeScore: parseInt(s.home) || 0,
+        predictedAwayScore: parseInt(s.away) || 0,
+        ...(!existing && { matchId: match.id, leagueId: primaryLeague.id }),
+      }),
+    })
+    setInlineSaving(null)
+    if (res.ok) {
+      toast.success('✓')
+      setOpenPredictId(null)
+      await fetchPrimaryLeague(primaryLeague.id)
+    } else {
+      const data = await res.json()
+      toast.error(data.error || 'שגיאה')
+    }
   }
 
   const applyX2 = async (match: Match) => {
@@ -1013,38 +1053,69 @@ export default function HomePage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {primaryLeague.matches.filter(m => ['SCHEDULED', 'LOCKED'].includes(m.status)).slice(0, 5).map((match) => (
-                  <MatchCard
-                    key={match.id}
-                    match={match}
-                    prediction={match.userPrediction}
-                    memberPredictions={match.memberPredictions}
-                    leagueId={primaryLeague.id}
-                    powerup={match.userPrediction ? {
-                      predictionId: match.userPrediction.id,
-                      x2Applied: !!match.userPrediction.x2Applied,
-                      shinooApplied: !!match.userPrediction.shinooApplied,
-                      x3Applied: !!match.userPrediction.x3Applied,
-                      goalsApplied: !!match.userPrediction.goalsApplied,
-                      minute90Applied: !!match.userPrediction.minute90Applied,
-                      splitApplied: !!match.userPrediction.splitApplied,
-                      x2Stock: user?.x2Stock ?? 0,
-                      shinooStock: user?.shinooStock ?? 0,
-                      x3Stock: user?.x3Stock ?? 0,
-                      goalsStock: user?.goalsStock ?? 0,
-                      minute90Stock: user?.minute90Stock ?? 0,
-                      splitStock: user?.splitStock ?? 0,
-                      usage: match.powerupUsage || null,
-                      onX2: () => applyX2(match),
-                      onShinoo: () => setShinooModal(match),
-                      onX3: () => applyX3(match),
-                      onGoals: () => applyGoals(match),
-                      onMinute90: () => applyMinute90(match),
-                      onSplit: () => { setSplitModal(match); setSplitScores({ home: '0', away: '0' }) },
-                      loading: powerupLoading,
-                    } : null}
-                  />
-                ))}
+                {primaryLeague.matches.filter(m => ['SCHEDULED', 'LOCKED'].includes(m.status)).slice(0, 5).map((match) => {
+                  const isInlineOpen = openPredictId === match.id
+                  const s = inlineScores[match.id] || { home: '0', away: '0' }
+                  const isOpen = match.status === 'SCHEDULED' && new Date() < new Date(match.lockAt)
+                  return (
+                    <div key={match.id}>
+                      <MatchCard
+                        match={match}
+                        prediction={match.userPrediction}
+                        memberPredictions={match.memberPredictions}
+                        leagueId={primaryLeague.id}
+                        onPredictClick={isOpen ? () => openInlinePredict(match) : undefined}
+                        powerup={match.userPrediction ? {
+                          predictionId: match.userPrediction.id,
+                          x2Applied: !!match.userPrediction.x2Applied,
+                          shinooApplied: !!match.userPrediction.shinooApplied,
+                          x3Applied: !!match.userPrediction.x3Applied,
+                          goalsApplied: !!match.userPrediction.goalsApplied,
+                          minute90Applied: !!match.userPrediction.minute90Applied,
+                          splitApplied: !!match.userPrediction.splitApplied,
+                          x2Stock: user?.x2Stock ?? 0,
+                          shinooStock: user?.shinooStock ?? 0,
+                          x3Stock: user?.x3Stock ?? 0,
+                          goalsStock: user?.goalsStock ?? 0,
+                          minute90Stock: user?.minute90Stock ?? 0,
+                          splitStock: user?.splitStock ?? 0,
+                          usage: match.powerupUsage || null,
+                          onX2: () => applyX2(match),
+                          onShinoo: () => setShinooModal(match),
+                          onX3: () => applyX3(match),
+                          onGoals: () => applyGoals(match),
+                          onMinute90: () => applyMinute90(match),
+                          onSplit: () => { setSplitModal(match); setSplitScores({ home: '0', away: '0' }) },
+                          loading: powerupLoading,
+                        } : null}
+                      />
+                      {isInlineOpen && (
+                        <div className="bg-dark-card border border-primary/40 border-t-0 rounded-b-2xl px-4 pb-4 pt-3 -mt-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => setInlineScores(p => ({ ...p, [match.id]: { ...p[match.id], home: String(Math.max(0, parseInt(p[match.id]?.home||'0') - 1)) } }))}
+                                className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
+                              <span className="w-7 text-center text-2xl font-black text-white">{s.home}</span>
+                              <button onClick={() => setInlineScores(p => ({ ...p, [match.id]: { ...p[match.id], home: String(Math.min(20, parseInt(p[match.id]?.home||'0') + 1)) } }))}
+                                className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">+</button>
+                            </div>
+                            <button onClick={() => saveInline(match)} disabled={inlineSaving === match.id}
+                              className="px-6 h-9 rounded-xl font-black text-sm bg-primary text-black disabled:opacity-40 active:scale-95 transition-all">
+                              {inlineSaving === match.id ? '...' : '✓'}
+                            </button>
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => setInlineScores(p => ({ ...p, [match.id]: { ...p[match.id], away: String(Math.max(0, parseInt(p[match.id]?.away||'0') - 1)) } }))}
+                                className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
+                              <span className="w-7 text-center text-2xl font-black text-white">{s.away}</span>
+                              <button onClick={() => setInlineScores(p => ({ ...p, [match.id]: { ...p[match.id], away: String(Math.min(20, parseInt(p[match.id]?.away||'0') + 1)) } }))}
+                                className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">+</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </section>
