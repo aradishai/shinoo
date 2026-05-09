@@ -93,11 +93,14 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
     : flagUrl || null
 
   if (src) {
+    // Country flags (flagcdn) are rectangular → object-cover
+    // Club crests (flagUrl) are square/tall → object-contain, no crop
+    const isFlag = !!iso
     return (
       <img
         src={src}
         alt={code}
-        className="w-9 h-6 object-cover rounded-sm shadow-sm"
+        className={isFlag ? 'w-9 h-6 object-cover rounded-sm shadow-sm' : 'w-9 h-9 object-contain rounded-sm shadow-sm'}
         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
       />
     )
