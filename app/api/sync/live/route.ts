@@ -115,7 +115,7 @@ async function syncFootballData() {
 
 async function lockExpiredMatches() {
   await db.match.updateMany({
-    where: { status: 'SCHEDULED', lockAt: { lte: new Date() }, providerMatchId: { not: null } },
+    where: { status: 'SCHEDULED', lockAt: { lte: new Date() } },
     data: { status: 'LOCKED' },
   })
 }
@@ -124,9 +124,8 @@ async function autoFinishStaleMatches() {
   const staleTime = new Date(Date.now() - 115 * 60 * 1000)
   await db.match.updateMany({
     where: {
-      status: { in: ['LIVE', 'PAUSED'] },
+      status: { in: ['LIVE', 'PAUSED', 'LOCKED'] },
       kickoffAt: { lte: staleTime },
-      providerMatchId: { not: null },
     },
     data: { status: 'FINISHED' },
   })
