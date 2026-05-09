@@ -1091,8 +1091,8 @@ export default function HomePage() {
                       />
                       {isInlineOpen && (
                         <div className="bg-dark-card border border-primary/40 border-t-0 rounded-b-2xl px-4 pb-4 pt-3 -mt-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 flex items-center justify-center gap-2">
                               <button onClick={() => setInlineScores(p => ({ ...p, [match.id]: { ...p[match.id], home: String(Math.max(0, parseInt(p[match.id]?.home||'0') - 1)) } }))}
                                 className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
                               <span className="w-7 text-center text-2xl font-black text-white">{s.home}</span>
@@ -1103,7 +1103,7 @@ export default function HomePage() {
                               className="px-6 h-9 rounded-xl font-black text-sm bg-primary text-black disabled:opacity-40 active:scale-95 transition-all">
                               {inlineSaving === match.id ? '...' : '✓'}
                             </button>
-                            <div className="flex items-center gap-2">
+                            <div className="flex-1 flex items-center justify-center gap-2">
                               <button onClick={() => setInlineScores(p => ({ ...p, [match.id]: { ...p[match.id], away: String(Math.max(0, parseInt(p[match.id]?.away||'0') - 1)) } }))}
                                 className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
                               <span className="w-7 text-center text-2xl font-black text-white">{s.away}</span>
