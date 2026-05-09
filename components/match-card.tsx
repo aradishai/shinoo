@@ -110,76 +110,49 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
 
 function useLiveMinute(kickoffAt: Date | string, status: string, apiMinute?: number | null) {
   const [display, setDisplay] = useState<string | null>(null)
-  const anchorRef = useRef<{ wallMs: number; apiMin: number } | null>(null)
-  const pausedSinceRef = useRef<number | null>(null)
 
   useEffect(() => {
-    if (status !== 'LIVE' && status !== 'PAUSED') {
-      setDisplay(null)
-      anchorRef.current = null
-      pausedSinceRef.current = null
+    if (status === 'PAUSED') {
+      setDisplay('מחצית')
       return
     }
 
-    // Always update anchor from API — allows backward correction
-    if (apiMinute != null) {
-      anchorRef.current = { wallMs: Date.now(), apiMin: apiMinute }
+    if (status !== 'LIVE') {
+      setDisplay(null)
+      return
     }
 
-    if (status === 'PAUSED') {
-      if (pausedSinceRef.current === null) pausedSinceRef.current = Date.now()
-    } else {
-      pausedSinceRef.current = null
-    }
+    // Capture anchor at the moment this effect runs
+    const effectStartMs = Date.now()
+    const baseMin = apiMinute ?? null
+    const kickoffMs = new Date(kickoffAt).getTime()
 
     const tick = () => {
-      const now = Date.now()
-
-      if (status === 'PAUSED') {
-        const pausedMs = pausedSinceRef.current ? now - pausedSinceRef.current : 0
-        if (pausedMs > 15 * 60_000) {
-          // Halftime exceeded 15 min — fallback: count 2H from 45'
-          const into2H = (pausedMs - 15 * 60_000) / 60_000
-          const m = Math.min(90, Math.floor(45 + into2H))
-          setDisplay(`${m}'`)
-        } else {
-          setDisplay('מחצית')
-        }
-        return
-      }
-
-      // LIVE — compute game minute
+      const elapsedMin = (Date.now() - effectStartMs) / 60_000
       let gameMin: number
-      if (anchorRef.current) {
-        gameMin = anchorRef.current.apiMin + (now - anchorRef.current.wallMs) / 60_000
+
+      if (baseMin != null) {
+        gameMin = baseMin + elapsedMin
       } else {
-        // Kickoff fallback: 3-minute delay before showing minute 1
-        const elapsed = (now - new Date(kickoffAt).getTime()) / 60_000
-        if (elapsed < 3) { setDisplay(null); return }
-        gameMin = elapsed - 3
+        const sinceKickoff = (Date.now() - kickoffMs) / 60_000
+        if (sinceKickoff < 3) { setDisplay(null); return }
+        gameMin = sinceKickoff - 3
       }
 
-      gameMin = Math.max(0, gameMin)
+      // Cap at 100 to prevent stale-anchor runaway (90+10' max)
+      gameMin = Math.min(Math.max(0, gameMin), 100)
       const m = Math.floor(gameMin)
 
-      if (gameMin < 1) {
-        setDisplay(null)
-      } else if (gameMin < 46) {
-        setDisplay(`${m}'`)
-      } else if (gameMin < 49) {
-        // 1st-half stoppage: 45+1', 45+2', 45+3'
-        setDisplay(`45+${m - 45}'`)
-      } else if (gameMin < 91) {
-        setDisplay(`${m}'`)
-      } else {
-        // 2nd-half stoppage: 90+1', 90+2', ...
-        setDisplay(`90+${m - 90}'`)
-      }
+      if (m < 1) { setDisplay(null); return }
+      if (m <= 45) { setDisplay(`${m}'`); return }
+      if (m <= 48) { setDisplay(`45+${m - 45}'`); return }
+      if (m <= 90) { setDisplay(`${m}'`); return }
+      setDisplay(`90+${m - 90}'`)
     }
 
     tick()
-    const interval = setInterval(tick, 1_000)
-    return () => clearInterval(interval)
+    const id = setInterval(tick, 1_000)
+    return () => clearInterval(id)
   }, [kickoffAt, status, apiMinute])
 
   return display
