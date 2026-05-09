@@ -128,13 +128,28 @@ async function lockExpiredMatches() {
 
 async function autoFinishStaleMatches() {
   const staleTime = new Date(Date.now() - 115 * 60 * 1000)
+  const staleMatches = await db.match.findMany({
+    where: { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] }, kickoffAt: { lte: staleTime } },
+    select: { id: true },
+  })
+  if (staleMatches.length === 0) return
+
   await db.match.updateMany({
-    where: {
-      status: { in: ['LIVE', 'PAUSED', 'LOCKED'] },
-      kickoffAt: { lte: staleTime },
-    },
+    where: { id: { in: staleMatches.map(m => m.id) } },
     data: { status: 'FINISHED' },
   })
+
+  // Grant coins for matches that just auto-finished
+  for (const { id: matchId } of staleMatches) {
+    const predictors = await db.prediction.findMany({
+      where: { matchId },
+      select: { userId: true },
+      distinct: ['userId'],
+    })
+    for (const { userId } of predictors) {
+      await db.user.update({ where: { id: userId }, data: { coins: { increment: 1 } } })
+    }
+  }
 }
 
 async function syncLiveMinutes() {
