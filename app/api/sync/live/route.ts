@@ -183,8 +183,24 @@ async function syncLiveMinutes() {
     })
 
     const minute = fixture?.fixture?.status?.elapsed ?? null
-    if (minute != null) {
-      await db.match.update({ where: { id: match.id }, data: { minute } })
+    const events: any[] = fixture?.events ?? []
+
+    // Count red cards per team
+    const homeId = fixture?.teams?.home?.id
+    const awayId = fixture?.teams?.away?.id
+    const homeRedCards = events.filter(e => e.team?.id === homeId && e.type === 'Card' && e.detail === 'Red Card').length
+    const awayRedCards = events.filter(e => e.team?.id === awayId && e.type === 'Card' && e.detail === 'Red Card').length
+    const hasPenalty = events.some(e => e.detail === 'Penalty')
+
+    const updateData: any = {}
+    if (minute != null) updateData.minute = minute
+    if (fixture) {
+      updateData.homeRedCards = homeRedCards
+      updateData.awayRedCards = awayRedCards
+      updateData.hasPenalty = hasPenalty
+    }
+    if (Object.keys(updateData).length > 0) {
+      await db.match.update({ where: { id: match.id }, data: updateData })
     }
   }
 }
@@ -235,7 +251,7 @@ export async function GET() {
     // Always return current live match states so clients can patch in-place
     const liveMatchData = await db.match.findMany({
       where: { status: { in: ['LIVE', 'PAUSED'] } },
-      select: { id: true, status: true, homeScore: true, awayScore: true, minute: true },
+      select: { id: true, status: true, homeScore: true, awayScore: true, minute: true, homeRedCards: true, awayRedCards: true, hasPenalty: true },
     })
 
     return NextResponse.json({

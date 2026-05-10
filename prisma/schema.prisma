@@ -72,6 +72,9 @@ model Match {
   homeScore       Int?
   awayScore       Int?
   minute          Int?
+  homeRedCards    Int         @default(0)
+  awayRedCards    Int         @default(0)
+  hasPenalty      Boolean     @default(false)
   providerMatchId String?     @unique
   round           String?
 

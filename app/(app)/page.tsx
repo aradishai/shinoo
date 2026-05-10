@@ -321,7 +321,7 @@ export default function HomePage() {
             matches: prev.matches.map(m => {
               const u = liveMap.get(m.id)
               if (!u) return m
-              return { ...m, status: u.status, homeScore: u.homeScore, awayScore: u.awayScore, minute: u.minute }
+              return { ...m, status: u.status, homeScore: u.homeScore, awayScore: u.awayScore, minute: u.minute, homeRedCards: u.homeRedCards, awayRedCards: u.awayRedCards, hasPenalty: u.hasPenalty }
             }),
           }
           primaryLeagueRef.current = updated

@@ -65,6 +65,9 @@ interface MatchCardProps {
     homeScore?: number | null
     awayScore?: number | null
     minute?: number | null
+    homeRedCards?: number | null
+    awayRedCards?: number | null
+    hasPenalty?: boolean | null
     round?: string | null
     tournament?: { type: string } | null
   }
@@ -224,20 +227,31 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
                 <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
                   {isLive || status === 'PAUSED' ? (match.homeScore ?? 0) : match.homeScore}
                 </span>
+                {(match.homeRedCards ?? 0) > 0 && (
+                  <span className="text-xs">{'🟥'.repeat(Math.min(match.homeRedCards!, 3))}</span>
+                )}
                 <span className="text-gray-500 text-lg">-</span>
+                {(match.awayRedCards ?? 0) > 0 && (
+                  <span className="text-xs">{'🟥'.repeat(Math.min(match.awayRedCards!, 3))}</span>
+                )}
                 <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
                   {isLive || status === 'PAUSED' ? (match.awayScore ?? 0) : match.awayScore}
                 </span>
               </div>
-              {(isLive || status === 'PAUSED') && liveMinute && (
-                <span className={`text-xs font-bold ${
-                  status === 'PAUSED' ? 'text-yellow-400' :
-                  liveMinute.includes('+') ? 'text-red-400 animate-pulse' :
-                  'text-primary animate-pulse'
-                }`}>
-                  {liveMinute}
-                </span>
-              )}
+              <div className="flex items-center gap-1.5">
+                {(isLive || status === 'PAUSED') && liveMinute && (
+                  <span className={`text-xs font-bold ${
+                    status === 'PAUSED' ? 'text-yellow-400' :
+                    liveMinute.includes('+') ? 'text-red-400 animate-pulse' :
+                    'text-primary animate-pulse'
+                  }`}>
+                    {liveMinute}
+                  </span>
+                )}
+                {match.hasPenalty && (
+                  <span className="text-xs font-bold text-orange-400 border border-orange-400/40 bg-orange-400/10 px-1 rounded">P</span>
+                )}
+              </div>
             </div>
           ) : (
             <div className="flex flex-col items-center">
