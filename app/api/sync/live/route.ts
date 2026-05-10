@@ -104,8 +104,9 @@ async function syncFootballData() {
       await recalculatePoints(match.id)
     }
 
-    // Grant 1 coin per user when match transitions to FINISHED for the first time
-    if (status === 'FINISHED' && prevStatus !== 'FINISHED') {
+    // Grant 1 coin per user when match transitions to FINISHED — guarded by coinsGranted flag
+    if (status === 'FINISHED' && !(match as any).coinsGranted) {
+      await db.match.update({ where: { id: match.id }, data: { coinsGranted: true } as any })
       const predictors = await db.prediction.findMany({
         where: { matchId: match.id },
         select: { userId: true },
@@ -135,7 +136,7 @@ async function autoFinishStaleMatches() {
 
   await db.match.updateMany({
     where: { id: { in: staleMatches.map(m => m.id) } },
-    data: { status: 'FINISHED' },
+    data: { status: 'FINISHED', coinsGranted: true } as any,
   })
 
   // Grant coins for matches that just auto-finished
