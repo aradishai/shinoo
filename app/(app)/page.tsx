@@ -309,24 +309,32 @@ export default function HomePage() {
       if (data.synced) {
         // Full reload: may include status transitions (LOCKED→LIVE, LIVE→FINISHED)
         await fetchPrimaryLeague(league.id)
-      } else if (data.liveMatchData?.length > 0) {
-        // Lightweight in-place patch: update score + minute for live matches
-        const liveMap = new Map<string, { status: string; homeScore: number | null; awayScore: number | null; minute: number | null; homeRedCards: number; awayRedCards: number; hasPenalty: boolean }>(
-          data.liveMatchData.map((m: any) => [m.id, m])
-        )
-        setPrimaryLeague(prev => {
-          if (!prev) return prev
-          const updated = {
-            ...prev,
-            matches: prev.matches.map(m => {
-              const u = liveMap.get(m.id)
-              if (!u) return m
-              return { ...m, status: u.status, homeScore: u.homeScore, awayScore: u.awayScore, minute: u.minute, homeRedCards: u.homeRedCards, awayRedCards: u.awayRedCards, hasPenalty: u.hasPenalty }
-            }),
-          }
-          primaryLeagueRef.current = updated
-          return updated
-        })
+      } else {
+        const liveIds = new Set((data.liveMatchData ?? []).map((m: any) => m.id))
+        const currentLive = primaryLeagueRef.current?.matches.filter(m => ['LIVE', 'PAUSED'].includes(m.status)) ?? []
+        // If a match that was LIVE is now gone from liveMatchData, it transitioned → full reload
+        const lostMatch = currentLive.some(m => !liveIds.has(m.id))
+        if (lostMatch) {
+          await fetchPrimaryLeague(league.id)
+        } else if (data.liveMatchData?.length > 0) {
+          // Lightweight in-place patch: update score + minute for live matches
+          const liveMap = new Map<string, { status: string; homeScore: number | null; awayScore: number | null; minute: number | null; homeRedCards: number; awayRedCards: number; hasPenalty: boolean }>(
+            data.liveMatchData.map((m: any) => [m.id, m])
+          )
+          setPrimaryLeague(prev => {
+            if (!prev) return prev
+            const updated = {
+              ...prev,
+              matches: prev.matches.map(m => {
+                const u = liveMap.get(m.id)
+                if (!u) return m
+                return { ...m, status: u.status, homeScore: u.homeScore, awayScore: u.awayScore, minute: u.minute, homeRedCards: u.homeRedCards, awayRedCards: u.awayRedCards, hasPenalty: u.hasPenalty }
+              }),
+            }
+            primaryLeagueRef.current = updated
+            return updated
+          })
+        }
       }
     } catch {
       // silent fail — live sync is best-effort

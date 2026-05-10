@@ -189,11 +189,14 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       {/* Match Row */}
       <div className="flex items-center justify-between gap-2">
         {/* Home Team */}
-        <div className="flex flex-col items-center gap-1.5 flex-1">
+        <div className="flex flex-col items-center gap-1 flex-1">
           <TeamFlag code={match.homeTeam.code} flagUrl={match.homeTeam.flagUrl} />
           <span className="text-white text-sm font-semibold text-center leading-tight">
             {match.homeTeam.nameHe}
           </span>
+          {(match.homeRedCards ?? 0) > 0 && (
+            <span className="text-xs leading-none">{'🟥'.repeat(Math.min(match.homeRedCards!, 3))}</span>
+          )}
         </div>
 
         {/* Score / VS */}
@@ -204,13 +207,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
                 <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
                   {isLive || status === 'PAUSED' ? (match.homeScore ?? 0) : match.homeScore}
                 </span>
-                {(match.homeRedCards ?? 0) > 0 && (
-                  <span className="text-xs">{'🟥'.repeat(Math.min(match.homeRedCards!, 3))}</span>
-                )}
                 <span className="text-gray-500 text-lg">-</span>
-                {(match.awayRedCards ?? 0) > 0 && (
-                  <span className="text-xs">{'🟥'.repeat(Math.min(match.awayRedCards!, 3))}</span>
-                )}
                 <span className={`text-2xl font-black ${isLive ? 'text-primary' : 'text-white'}`}>
                   {isLive || status === 'PAUSED' ? (match.awayScore ?? 0) : match.awayScore}
                 </span>
@@ -255,11 +252,14 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         </div>
 
         {/* Away Team */}
-        <div className="flex flex-col items-center gap-1.5 flex-1">
+        <div className="flex flex-col items-center gap-1 flex-1">
           <TeamFlag code={match.awayTeam.code} flagUrl={match.awayTeam.flagUrl} />
           <span className="text-white text-sm font-semibold text-center leading-tight">
             {match.awayTeam.nameHe}
           </span>
+          {(match.awayRedCards ?? 0) > 0 && (
+            <span className="text-xs leading-none">{'🟥'.repeat(Math.min(match.awayRedCards!, 3))}</span>
+          )}
         </div>
       </div>
 
