@@ -134,15 +134,13 @@ function useLiveMinute(kickoffAt: Date | string, status: string, apiMinute?: num
       if (baseMin != null) {
         gameMin = baseMin + elapsedMin
       } else {
-        // Kickoff fallback: account for 15-min halftime break
+        // Kickoff fallback (no API minute). Never show מחצית here — status=PAUSED handles that.
         const sinceKickoff = (Date.now() - kickoffMs) / 60_000
         if (sinceKickoff < 3) { setDisplay(null); return }
         if (sinceKickoff <= 48) {
           gameMin = sinceKickoff - 3        // 1st half
-        } else if (sinceKickoff <= 63) {
-          setDisplay('מחצית'); return       // halftime window
         } else {
-          gameMin = sinceKickoff - 18       // 2nd half: minus 3 start + 15 halftime
+          gameMin = sinceKickoff - 18       // 2nd half: assume 15-min halftime passed
         }
       }
 
