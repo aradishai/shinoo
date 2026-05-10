@@ -9,7 +9,7 @@ let lastSyncTime = 0
 let lastMinuteSyncTime = 0
 const MIN_INTERVAL_LIVE = 30_000   // 30s when matches are active
 const MIN_INTERVAL_IDLE = 60_000   // 60s when nothing is live
-const MIN_INTERVAL_MINUTE = 2 * 60_000  // 2 min for minute updates
+const MIN_INTERVAL_MINUTE = 4 * 60_000  // 4 min for minute updates (~15 req/hr)
 
 const FD_API = 'https://api.football-data.org/v4'
 const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
