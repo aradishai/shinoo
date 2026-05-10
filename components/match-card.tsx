@@ -197,6 +197,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     <div className="p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
+        {/* RIGHT in RTL: status badge — always a container so left side stays left */}
+        <div className="flex-shrink-0">
+          <Badge variant={badgeVariant} />
+        </div>
+        {/* LEFT in RTL: round + powerup applied */}
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           {anyApplied && appliedImg && (
             <div className="flex items-center gap-1">
@@ -206,7 +211,6 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           )}
           {match.round && <span>{match.round}</span>}
         </div>
-        <Badge variant={badgeVariant} />
       </div>
 
       {/* Match Row */}
