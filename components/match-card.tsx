@@ -111,59 +111,17 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
-function useLiveMinute(kickoffAt: Date | string, status: string, apiMinute?: number | null) {
-  const [display, setDisplay] = useState<string | null>(null)
+function useLiveMinute(status: string, apiMinute?: number | null) {
+  if (status === 'PAUSED') return 'מחצית'
+  if (status !== 'LIVE') return null
+  if (apiMinute == null) return null
 
-  useEffect(() => {
-    if (status === 'PAUSED') {
-      setDisplay('מחצית')
-      return
-    }
-
-    if (status !== 'LIVE') {
-      setDisplay(null)
-      return
-    }
-
-    // Capture anchor at the moment this effect runs
-    const effectStartMs = Date.now()
-    const baseMin = apiMinute ?? null
-    const kickoffMs = new Date(kickoffAt).getTime()
-
-    const tick = () => {
-      const elapsedMin = (Date.now() - effectStartMs) / 60_000
-      let gameMin: number
-
-      if (baseMin != null) {
-        gameMin = baseMin + elapsedMin
-      } else {
-        // Kickoff fallback (no API minute). Never show מחצית here — status=PAUSED handles that.
-        const sinceKickoff = (Date.now() - kickoffMs) / 60_000
-        if (sinceKickoff < 3) { setDisplay(null); return }
-        if (sinceKickoff <= 48) {
-          gameMin = sinceKickoff - 3        // 1st half
-        } else {
-          gameMin = sinceKickoff - 18       // 2nd half: assume 15-min halftime passed
-        }
-      }
-
-      // Cap at 100 to prevent stale-anchor runaway (90+10' max)
-      gameMin = Math.min(Math.max(0, gameMin), 100)
-      const m = Math.floor(gameMin)
-
-      if (m < 1) { setDisplay(null); return }
-      if (m <= 45) { setDisplay(`${m}'`); return }
-      if (m <= 48) { setDisplay(`45+${m - 45}'`); return }
-      if (m <= 90) { setDisplay(`${m}'`); return }
-      setDisplay(`90+${m - 90}'`)
-    }
-
-    tick()
-    const id = setInterval(tick, 1_000)
-    return () => clearInterval(id)
-  }, [kickoffAt, status, apiMinute])
-
-  return display
+  const m = apiMinute
+  if (m < 1) return null
+  if (m <= 45) return `${m}'`
+  if (m <= 48) return `45+${m - 45}'`
+  if (m <= 90) return `${m}'`
+  return `90+${m - 90}'`
 }
 
 export function MatchCard({ match, prediction, memberPredictions = [], leagueId, onPredictClick, powerup }: MatchCardProps) {
@@ -175,7 +133,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const isLocked = status === 'LOCKED' || status === 'LIVE' || status === 'PAUSED'
   const isOpen = status === 'SCHEDULED' && new Date() < lockAt
   const badgeVariant = matchStatusToBadgeVariant(status)
-  const liveMinute = useLiveMinute(match.kickoffAt, status, match.minute)
+  const liveMinute = useLiveMinute(status, match.minute)
 
   const anyApplied = !!powerup && (
     powerup.x2Applied || powerup.shinooApplied || powerup.x3Applied ||
