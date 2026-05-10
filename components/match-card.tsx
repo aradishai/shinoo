@@ -121,8 +121,7 @@ function useLiveMinute(status: string, apiMinute?: number | null) {
     const effectStartMs = Date.now()
 
     const tick = () => {
-      // Cap dead-reckoning at 4 min (sync interval) so we never overshoot
-      const elapsedMin = Math.min((Date.now() - effectStartMs) / 60_000, 4)
+      const elapsedMin = (Date.now() - effectStartMs) / 60_000
       const m = Math.floor(apiMinute + elapsedMin)
       if (m < 1) { setDisplay(null); return }
       if (m <= 45) { setDisplay(`${m}'`); return }
