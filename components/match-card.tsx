@@ -112,16 +112,31 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
 }
 
 function useLiveMinute(status: string, apiMinute?: number | null) {
-  if (status === 'PAUSED') return 'מחצית'
-  if (status !== 'LIVE') return null
-  if (apiMinute == null) return null
+  const [display, setDisplay] = useState<string | null>(null)
 
-  const m = apiMinute
-  if (m < 1) return null
-  if (m <= 45) return `${m}'`
-  if (m <= 48) return `45+${m - 45}'`
-  if (m <= 90) return `${m}'`
-  return `90+${m - 90}'`
+  useEffect(() => {
+    if (status === 'PAUSED') { setDisplay('מחצית'); return }
+    if (status !== 'LIVE' || apiMinute == null) { setDisplay(null); return }
+
+    const effectStartMs = Date.now()
+
+    const tick = () => {
+      // Cap dead-reckoning at 4 min (sync interval) so we never overshoot
+      const elapsedMin = Math.min((Date.now() - effectStartMs) / 60_000, 4)
+      const m = Math.floor(apiMinute + elapsedMin)
+      if (m < 1) { setDisplay(null); return }
+      if (m <= 45) { setDisplay(`${m}'`); return }
+      if (m <= 48) { setDisplay(`45+${m - 45}'`); return }
+      if (m <= 90) { setDisplay(`${m}'`); return }
+      setDisplay(`90+${m - 90}'`)
+    }
+
+    tick()
+    const id = setInterval(tick, 1_000)
+    return () => clearInterval(id)
+  }, [status, apiMinute])
+
+  return display
 }
 
 export function MatchCard({ match, prediction, memberPredictions = [], leagueId, onPredictClick, powerup }: MatchCardProps) {
