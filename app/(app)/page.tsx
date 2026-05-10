@@ -311,7 +311,7 @@ export default function HomePage() {
         await fetchPrimaryLeague(league.id)
       } else if (data.liveMatchData?.length > 0) {
         // Lightweight in-place patch: update score + minute for live matches
-        const liveMap = new Map<string, { status: string; homeScore: number | null; awayScore: number | null; minute: number | null }>(
+        const liveMap = new Map<string, { status: string; homeScore: number | null; awayScore: number | null; minute: number | null; homeRedCards: number; awayRedCards: number; hasPenalty: boolean }>(
           data.liveMatchData.map((m: any) => [m.id, m])
         )
         setPrimaryLeague(prev => {
