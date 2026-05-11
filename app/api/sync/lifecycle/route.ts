@@ -90,8 +90,8 @@ async function syncFootballData() {
 
     if (hasScore) await recalculatePoints(match.id)
 
-    if (status === 'FINISHED' && !(match as any).coinsGranted) {
-      await db.match.update({ where: { id: match.id }, data: { coinsGranted: true } as any })
+    if (status === 'FINISHED' && !match.coinsGranted) {
+      await db.match.update({ where: { id: match.id }, data: { coinsGranted: true } })
       const predictors = await db.prediction.findMany({
         where: { matchId: match.id }, select: { userId: true }, distinct: ['userId'],
       })
@@ -112,7 +112,7 @@ async function autoFinishStaleMatches() {
 
   await db.match.updateMany({
     where: { id: { in: staleMatches.map(m => m.id) } },
-    data: { status: 'FINISHED', coinsGranted: true } as any,
+    data: { status: 'FINISHED', coinsGranted: true },
   })
 
   for (const { id: matchId } of staleMatches) {
@@ -141,6 +141,7 @@ async function recalculateMissingPoints() {
 export async function GET() {
   try {
     await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "minuteAt" TIMESTAMP(3)`
+    await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "coinsGranted" BOOLEAN NOT NULL DEFAULT false`
     await lockExpiredMatches()
     await syncFootballData()
     await autoFinishStaleMatches()
