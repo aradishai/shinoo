@@ -9,8 +9,6 @@ let lastSyncTime = 0
 const MIN_INTERVAL_LIVE = 30_000
 const MIN_INTERVAL_IDLE = 60_000
 
-// Per-match throttle for API Football calls (module-level, reset on server restart)
-const lastSyncAttemptMs = new Map<string, number>()
 
 const FD_API = 'https://api.football-data.org/v4'
 const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
@@ -141,23 +139,22 @@ async function autoFinishStaleMatches() {
   }
 }
 
-function matchNeedsMinuteUpdate(match: { id: string; kickoffAt: Date; minuteAt: Date | null }): boolean {
+function matchNeedsMinuteUpdate(match: { kickoffAt: Date; minuteAt: Date | null }): boolean {
   const now = Date.now()
   const kickoffMs = match.kickoffAt.getTime()
-  const lastAttempt = lastSyncAttemptMs.get(match.id) ?? 0
+  const minuteAtMs = match.minuteAt ? match.minuteAt.getTime() : null
 
-  // Regular 4-min throttle based on last attempt
-  if (now - lastAttempt >= 4 * 60_000) return true
+  // No previous reading — always fetch
+  if (minuteAtMs === null) return true
+
+  // Regular 4-min throttle anchored to last DB update (survives server restarts)
+  if (now - minuteAtMs >= 4 * 60_000) return true
 
   // Trigger points: kickoff+45, kickoff+60, kickoff+108 min
-  // Fire if we've crossed the trigger but last *successful* update was before it
-  const minuteAtMs = match.minuteAt ? match.minuteAt.getTime() : null
-  if (minuteAtMs !== null) {
-    const nowFromKickoff = (now - kickoffMs) / 60_000
-    const lastUpdateFromKickoff = (minuteAtMs - kickoffMs) / 60_000
-    for (const t of [45, 60, 108]) {
-      if (nowFromKickoff >= t && lastUpdateFromKickoff < t) return true
-    }
+  const nowFromKickoff = (now - kickoffMs) / 60_000
+  const lastFromKickoff = (minuteAtMs - kickoffMs) / 60_000
+  for (const t of [45, 60, 108]) {
+    if (nowFromKickoff >= t && lastFromKickoff < t) return true
   }
 
   return false
@@ -175,9 +172,6 @@ async function syncLiveMinutes() {
 
   const toUpdate = liveMatches.filter(m => matchNeedsMinuteUpdate(m as any))
   if (toUpdate.length === 0) return
-
-  const now = Date.now()
-  for (const m of toUpdate) lastSyncAttemptMs.set(m.id, now)
 
   const res = await axios.get(`${AF_API}/fixtures?live=all`, {
     headers: { 'x-apisports-key': AF_KEY },
@@ -209,8 +203,26 @@ async function syncLiveMinutes() {
     const homeRedCards = events.filter((e: any) => e.team?.id === homeId && e.type === 'Card' && e.detail === 'Red Card').length
     const awayRedCards = events.filter((e: any) => e.team?.id === awayId && e.type === 'Card' && e.detail === 'Red Card').length
 
-    const updateData: any = { minuteAt: new Date(), homeRedCards, awayRedCards }
-    if (minute != null) updateData.minute = minute
+    const updateData: any = { homeRedCards, awayRedCards }
+
+    if (minute != null) {
+      const prevMinute = match.minute ?? -1
+      const isFirstReading = match.minuteAt == null
+
+      if (isFirstReading) {
+        // First reading — always anchor
+        updateData.minute = minute
+        updateData.minuteAt = new Date()
+      } else if (minute > prevMinute) {
+        // Minute advanced — update anchor only if the advance is real
+        // Guard: if minuteAt is recent (<4 min old), the advance is genuine
+        // If minuteAt is old (>4 min), API might just be slowly catching up — still update
+        updateData.minute = minute
+        updateData.minuteAt = new Date()
+      }
+      // If minute <= prevMinute: stale/delayed API — don't touch minute or minuteAt
+      // Dead-reckoning continues counting forward from the last good anchor
+    }
 
     await db.match.update({ where: { id: match.id }, data: updateData })
   }

@@ -118,22 +118,20 @@ function useLiveMinute(status: string, apiMinute?: number | null, minuteAt?: str
     if (status === 'PAUSED') { setDisplay('מחצית'); return }
     if (status !== 'LIVE' || apiMinute == null) { setDisplay(null); return }
 
-    // Anchor: server timestamp of when this apiMinute reading was taken
     const anchorMs = minuteAt ? new Date(minuteAt).getTime() : Date.now()
     const inSecondHalf = apiMinute >= 46
 
     const tick = () => {
       const elapsedMin = (Date.now() - anchorMs) / 60_000
       if (inSecondHalf) {
-        // Second half: cap at 90+3
         const raw = Math.min(apiMinute + elapsedMin, 93)
         const m = Math.floor(raw)
         if (m <= 90) { setDisplay(`${m}'`); return }
         setDisplay(`90+${m - 90}'`)
       } else {
-        // First half: cap at 45+3
         const raw = Math.min(apiMinute + elapsedMin, 48)
         const m = Math.floor(raw)
+        if (m < 1) { setDisplay(null); return }
         if (m <= 45) { setDisplay(`${m}'`); return }
         setDisplay(`45+${m - 45}'`)
       }
