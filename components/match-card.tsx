@@ -145,8 +145,18 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const isFinished = status === 'FINISHED'
   const isLive = status === 'LIVE'
   const isLocked = status === 'LOCKED' || status === 'LIVE' || status === 'PAUSED'
-  const isOpen = status === 'SCHEDULED' && new Date() < lockAt
-  const badgeVariant = matchStatusToBadgeVariant(status)
+
+  const [isOpen, setIsOpen] = useState(status === 'SCHEDULED' && new Date() < lockAt)
+  useEffect(() => {
+    if (status !== 'SCHEDULED') { setIsOpen(false); return }
+    const remaining = lockAt.getTime() - Date.now()
+    if (remaining <= 0) { setIsOpen(false); return }
+    setIsOpen(true)
+    const t = setTimeout(() => setIsOpen(false), remaining)
+    return () => clearTimeout(t)
+  }, [status, lockAt.getTime()])
+  const effectiveStatus = !isOpen && status === 'SCHEDULED' ? 'LOCKED' : status
+  const badgeVariant = matchStatusToBadgeVariant(effectiveStatus)
   const liveMinute = useLiveMinute(status, match.minute)
 
   const anyApplied = !!powerup && (
