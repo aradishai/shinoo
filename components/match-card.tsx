@@ -119,17 +119,19 @@ function useLiveMinute(status: string, apiMinute?: number | null, minuteAt?: str
     if (status !== 'LIVE' || apiMinute == null) { setDisplay(null); return }
 
     const anchorMs = minuteAt ? new Date(minuteAt).getTime() : Date.now()
-    const inSecondHalf = apiMinute >= 46
 
     const tick = () => {
       const elapsedMin = (Date.now() - anchorMs) / 60_000
+      const rawUncapped = apiMinute + elapsedMin
+      // inSecondHalf from raw (not apiMinute) so stale API data doesn't cap at 45+3'
+      const inSecondHalf = rawUncapped > 50 || apiMinute >= 46
       if (inSecondHalf) {
-        const raw = Math.min(apiMinute + elapsedMin, 93)
+        const raw = Math.min(rawUncapped, 93)
         const m = Math.floor(raw)
         if (m <= 90) { setDisplay(`${m}'`); return }
         setDisplay(`90+${m - 90}'`)
       } else {
-        const raw = Math.min(apiMinute + elapsedMin, 48)
+        const raw = Math.min(rawUncapped, 48)
         const m = Math.floor(raw)
         if (m < 1) { setDisplay(null); return }
         if (m <= 45) { setDisplay(`${m}'`); return }

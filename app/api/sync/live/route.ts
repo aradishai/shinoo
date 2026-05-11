@@ -139,13 +139,18 @@ async function autoFinishStaleMatches() {
   }
 }
 
-function matchNeedsMinuteUpdate(match: { kickoffAt: Date; minuteAt: Date | null }): boolean {
+function matchNeedsMinuteUpdate(match: { kickoffAt: Date; minuteAt: Date | null; minute: number | null }): boolean {
   const now = Date.now()
   const kickoffMs = match.kickoffAt.getTime()
   const minuteAtMs = match.minuteAt ? match.minuteAt.getTime() : null
 
   // No previous reading — always fetch
   if (minuteAtMs === null) return true
+
+  // Sanity check: if dead-reckoning is >20 min behind kickoff, anchor is stale → force refresh
+  const kickoffElapsed = (now - kickoffMs) / 60_000
+  const deadReckoning = (match.minute ?? 0) + (now - minuteAtMs) / 60_000
+  if (kickoffElapsed - deadReckoning > 20) return true
 
   // Regular 4-min throttle anchored to last DB update (survives server restarts)
   if (now - minuteAtMs >= 4 * 60_000) return true
@@ -209,19 +214,15 @@ async function syncLiveMinutes() {
       const prevMinute = match.minute ?? -1
       const isFirstReading = match.minuteAt == null
 
-      if (isFirstReading) {
-        // First reading — always anchor
+      const kickoffMs = new Date(match.kickoffAt).getTime()
+      if (isFirstReading || minute > prevMinute) {
         updateData.minute = minute
-        updateData.minuteAt = new Date()
-      } else if (minute > prevMinute) {
-        // Minute advanced — update anchor only if the advance is real
-        // Guard: if minuteAt is recent (<4 min old), the advance is genuine
-        // If minuteAt is old (>4 min), API might just be slowly catching up — still update
-        updateData.minute = minute
-        updateData.minuteAt = new Date()
+        // Anchor minuteAt to the match-clock position, not wall-clock now.
+        // Dead-reckoning: minute + (now - minuteAt)/60000 = kickoffElapsed,
+        // so stale API data (minute=4 at 91' elapsed) still shows ~91'.
+        updateData.minuteAt = new Date(kickoffMs + minute * 60_000)
       }
-      // If minute <= prevMinute: stale/delayed API — don't touch minute or minuteAt
-      // Dead-reckoning continues counting forward from the last good anchor
+      // If minute <= prevMinute: stale/no-progress API — don't touch minute or minuteAt
     }
 
     await db.match.update({ where: { id: match.id }, data: updateData })
