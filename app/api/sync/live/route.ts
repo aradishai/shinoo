@@ -97,14 +97,18 @@ async function syncFootballData() {
 
     if (hasScore) await recalculatePoints(match.id)
 
-    if (status === 'FINISHED' && !match.coinsGranted) {
-      await db.match.update({ where: { id: match.id }, data: { coinsGranted: true } })
-      const predictors = await db.prediction.findMany({
-        where: { matchId: match.id }, select: { userId: true }, distinct: ['userId'],
-      })
-      for (const { userId } of predictors) {
-        await db.user.update({ where: { id: userId }, data: { coins: { increment: 1 } } })
-      }
+    if (status === 'FINISHED') {
+      try {
+        const claimed = await db.$executeRaw`UPDATE "Match" SET "coinsGranted" = true WHERE id = ${match.id} AND "coinsGranted" = false`
+        if (claimed > 0) {
+          const predictors = await db.prediction.findMany({
+            where: { matchId: match.id }, select: { userId: true }, distinct: ['userId'],
+          })
+          for (const { userId } of predictors) {
+            await db.user.update({ where: { id: userId }, data: { coins: { increment: 1 } } })
+          }
+        }
+      } catch { /* coinsGranted column not yet in DB — skip until migration runs */ }
     }
   }
 }
@@ -124,10 +128,15 @@ async function autoFinishStaleMatches() {
   })
   if (staleMatches.length === 0) return
 
+  const staleIds = staleMatches.map(m => m.id)
   await db.match.updateMany({
-    where: { id: { in: staleMatches.map(m => m.id) } },
-    data: { status: 'FINISHED', coinsGranted: true },
+    where: { id: { in: staleIds } },
+    data: { status: 'FINISHED' },
   })
+  await db.$executeRawUnsafe(
+    `UPDATE "Match" SET "coinsGranted" = true WHERE id IN (${staleIds.map((_, i) => `$${i + 1}`).join(',')})`,
+    ...staleIds
+  )
 
   for (const { id: matchId } of staleMatches) {
     const predictors = await db.prediction.findMany({
