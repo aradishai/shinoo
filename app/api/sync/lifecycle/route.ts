@@ -140,6 +140,7 @@ async function recalculateMissingPoints() {
 
 export async function GET() {
   try {
+    await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "minuteAt" TIMESTAMP(3)`
     await lockExpiredMatches()
     await syncFootballData()
     await autoFinishStaleMatches()

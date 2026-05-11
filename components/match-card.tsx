@@ -65,9 +65,9 @@ interface MatchCardProps {
     homeScore?: number | null
     awayScore?: number | null
     minute?: number | null
+    minuteAt?: string | null
     homeRedCards?: number | null
     awayRedCards?: number | null
-    hasPenalty?: boolean | null
     round?: string | null
     tournament?: { type: string } | null
   }
@@ -111,29 +111,38 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
-function useLiveMinute(status: string, apiMinute?: number | null) {
+function useLiveMinute(status: string, apiMinute?: number | null, minuteAt?: string | null) {
   const [display, setDisplay] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'PAUSED') { setDisplay('מחצית'); return }
     if (status !== 'LIVE' || apiMinute == null) { setDisplay(null); return }
 
-    const effectStartMs = Date.now()
+    // Anchor: server timestamp of when this apiMinute reading was taken
+    const anchorMs = minuteAt ? new Date(minuteAt).getTime() : Date.now()
+    const inSecondHalf = apiMinute >= 46
 
     const tick = () => {
-      const elapsedMin = (Date.now() - effectStartMs) / 60_000
-      const m = Math.floor(apiMinute + elapsedMin)
-      if (m < 1) { setDisplay(null); return }
-      if (m <= 45) { setDisplay(`${m}'`); return }
-      if (m <= 48) { setDisplay(`45+${m - 45}'`); return }
-      if (m <= 90) { setDisplay(`${m}'`); return }
-      setDisplay(`90+${m - 90}'`)
+      const elapsedMin = (Date.now() - anchorMs) / 60_000
+      if (inSecondHalf) {
+        // Second half: cap at 90+3
+        const raw = Math.min(apiMinute + elapsedMin, 93)
+        const m = Math.floor(raw)
+        if (m <= 90) { setDisplay(`${m}'`); return }
+        setDisplay(`90+${m - 90}'`)
+      } else {
+        // First half: cap at 45+3
+        const raw = Math.min(apiMinute + elapsedMin, 48)
+        const m = Math.floor(raw)
+        if (m <= 45) { setDisplay(`${m}'`); return }
+        setDisplay(`45+${m - 45}'`)
+      }
     }
 
     tick()
     const id = setInterval(tick, 1_000)
     return () => clearInterval(id)
-  }, [status, apiMinute])
+  }, [status, apiMinute, minuteAt])
 
   return display
 }
@@ -157,7 +166,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   }, [status, lockAt.getTime()])
   const effectiveStatus = !isOpen && status === 'SCHEDULED' ? 'LOCKED' : status
   const badgeVariant = matchStatusToBadgeVariant(effectiveStatus)
-  const liveMinute = useLiveMinute(status, match.minute)
+  const liveMinute = useLiveMinute(status, match.minute, match.minuteAt)
 
   const anyApplied = !!powerup && (
     powerup.x2Applied || powerup.shinooApplied || powerup.x3Applied ||
@@ -221,20 +230,15 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
                   {isLive || status === 'PAUSED' ? (match.awayScore ?? 0) : match.awayScore}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5">
-                {(isLive || status === 'PAUSED') && liveMinute && (
-                  <span className={`text-xs font-bold ${
-                    status === 'PAUSED' ? 'text-yellow-400' :
-                    liveMinute.includes('+') ? 'text-red-400 animate-pulse' :
-                    'text-primary animate-pulse'
-                  }`}>
-                    {liveMinute}
-                  </span>
-                )}
-                {match.hasPenalty && (
-                  <span className="text-xs font-bold text-orange-400 border border-orange-400/40 bg-orange-400/10 px-1 rounded">P</span>
-                )}
-              </div>
+              {(isLive || status === 'PAUSED') && liveMinute && (
+                <span className={`text-xs font-bold ${
+                  status === 'PAUSED' ? 'text-yellow-400' :
+                  liveMinute.includes('+') ? 'text-red-400 animate-pulse' :
+                  'text-primary animate-pulse'
+                }`}>
+                  {liveMinute}
+                </span>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center">

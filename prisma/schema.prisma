@@ -72,6 +72,7 @@ model Match {
   homeScore       Int?
   awayScore       Int?
   minute          Int?
+  minuteAt        DateTime?
   homeRedCards    Int         @default(0)
   awayRedCards    Int         @default(0)
   hasPenalty      Boolean     @default(false)
