@@ -360,7 +360,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
 
       const showX2 = powerup.x2Stock > 0 && inHalftimeWindow
       const showShinoo = powerup.shinooStock > 0 && inHalftimeWindow
-      const showM90 = powerup.minute90Stock > 0 && before90
+      const showM90 = powerup.minute90Stock > 0 && before90 && !liveMinute?.startsWith('90+')
 
       if (!showX2 && !showShinoo && !showM90) return null
       return (

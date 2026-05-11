@@ -199,6 +199,7 @@ export default function HomePage() {
   const [inlineSaving, setInlineSaving] = useState<string | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const primaryLeagueRef = useRef<LeagueDetail | null>(null)
+  const userRef = useRef<User | null>(null)
 
   const isAdmin = user?.isAdmin ?? false
 
@@ -286,6 +287,7 @@ export default function HomePage() {
       ])
 
       setUser(meData.data)
+      userRef.current = meData.data
       const leagueList: LeagueSummary[] = leaguesData.data || []
       setLeagues(leagueList)
 
@@ -308,8 +310,24 @@ export default function HomePage() {
       const data = await res.json()
 
       if (data.synced) {
-        // Full reload: may include status transitions (LOCKED→LIVE, LIVE→FINISHED)
+        const prevCoins = userRef.current?.coins ?? -1
         await fetchPrimaryLeague(league.id)
+        const meRes = await fetch('/api/auth/me')
+        if (meRes.ok) {
+          const meData = await meRes.json()
+          const newCoins = meData.data?.coins ?? 0
+          if (prevCoins >= 0 && newCoins > prevCoins) {
+            const gained = newCoins - prevCoins
+            toast.custom((t) => (
+              <div className={`flex items-center gap-2 bg-gray-900 border border-yellow-500/40 rounded-xl px-4 py-3 shadow-xl transition-opacity ${t.visible ? 'opacity-100' : 'opacity-0'}`}>
+                <span className="text-xl">🪙</span>
+                <span className="text-white font-black text-sm">+{gained} מטבע{gained > 1 ? 'ות' : ''} על ניחוש שהסתיים!</span>
+              </div>
+            ), { duration: 4000 })
+          }
+          setUser(meData.data)
+          userRef.current = meData.data
+        }
       } else {
         const liveIds = new Set((data.liveMatchData ?? []).map((m: any) => m.id))
         const currentLive = primaryLeagueRef.current?.matches.filter(m => ['LIVE', 'PAUSED'].includes(m.status)) ?? []
