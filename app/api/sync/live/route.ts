@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { recalculatePoints } from '@/lib/sync-service'
 import { db } from '@/lib/db'
 import axios from 'axios'
+// v2
 
 export const dynamic = 'force-dynamic'
 
