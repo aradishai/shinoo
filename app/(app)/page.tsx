@@ -337,8 +337,8 @@ export default function HomePage() {
         if (lostMatch) {
           await fetchPrimaryLeague(league.id)
         } else if (data.liveMatchData?.length > 0) {
-          // Lightweight in-place patch: update score + minute for live matches
-          const liveMap = new Map<string, { status: string; homeScore: number | null; awayScore: number | null; minute: number | null; minuteAt: string | null; homeRedCards: number; awayRedCards: number }>(
+          // Lightweight in-place patch: update score + red cards for live matches
+          const liveMap = new Map<string, { status: string; homeScore: number | null; awayScore: number | null; homeRedCards: number; awayRedCards: number }>(
             data.liveMatchData.map((m: any) => [m.id, m])
           )
           setPrimaryLeague(prev => {
@@ -348,7 +348,7 @@ export default function HomePage() {
               matches: prev.matches.map(m => {
                 const u = liveMap.get(m.id)
                 if (!u) return m
-                return { ...m, status: u.status, homeScore: u.homeScore, awayScore: u.awayScore, minute: u.minute, minuteAt: u.minuteAt ? new Date(u.minuteAt).toISOString() : m.minuteAt, homeRedCards: u.homeRedCards, awayRedCards: u.awayRedCards }
+                return { ...m, status: u.status, homeScore: u.homeScore, awayScore: u.awayScore, homeRedCards: u.homeRedCards, awayRedCards: u.awayRedCards }
               }),
             }
             primaryLeagueRef.current = updated

@@ -111,50 +111,39 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
-function useLiveMinute(status: string, kickoffAt: Date | string, apiMinute?: number | null, minuteAt?: string | null) {
+function useLiveMinute(status: string, kickoffAt: Date | string) {
   const [display, setDisplay] = useState<string | null>(null)
 
   useEffect(() => {
-    if (status === 'PAUSED') { setDisplay('מחצית'); return }
-    if (status !== 'LIVE') { setDisplay(null); return }
+    if (status !== 'LIVE' && status !== 'PAUSED') { setDisplay(null); return }
 
     const kickoffMs = new Date(kickoffAt).getTime()
 
-    // If we have an API anchor, use dead-reckoning from it.
-    // Otherwise fall back to elapsed time since kickoff.
-    let anchorMs: number
-    let baseMinute: number
-    if (apiMinute != null && minuteAt) {
-      anchorMs = new Date(minuteAt).getTime()
-      baseMinute = apiMinute
-    } else {
-      anchorMs = kickoffMs
-      baseMinute = 0
-    }
-
     const tick = () => {
-      const elapsedMin = (Date.now() - anchorMs) / 60_000
-      const rawUncapped = baseMinute + elapsedMin
-      if (rawUncapped < 1) { setDisplay(null); return }
-      // inSecondHalf from raw so stale API data doesn't cap at 45+3'
-      const inSecondHalf = rawUncapped > 50 || (apiMinute ?? 0) >= 46
-      if (inSecondHalf) {
-        const raw = Math.min(rawUncapped, 93)
-        const m = Math.floor(raw)
-        if (m <= 90) { setDisplay(`${m}'`); return }
-        setDisplay(`90+${m - 90}'`)
+      const elapsed = (Date.now() - kickoffMs) / 60_000
+
+      if (elapsed < 1) { setDisplay(null); return }
+
+      if (elapsed <= 45) {
+        setDisplay(`${Math.floor(elapsed)}'`)
+      } else if (elapsed <= 60) {
+        // 15-minute halftime break
+        setDisplay('מחצית')
+      } else if (elapsed <= 105) {
+        // Second half: elapsed 60 → 46', elapsed 105 → 90'
+        const m = 46 + Math.floor(elapsed - 60)
+        setDisplay(m <= 90 ? `${m}'` : `90+${m - 90}'`)
       } else {
-        const raw = Math.min(rawUncapped, 48)
-        const m = Math.floor(raw)
-        if (m <= 45) { setDisplay(`${m}'`); return }
-        setDisplay(`45+${m - 45}'`)
+        // Extra time cap at 90+5'
+        const extra = Math.min(Math.floor(elapsed - 105), 5)
+        setDisplay(`90+${extra}'`)
       }
     }
 
     tick()
     const id = setInterval(tick, 1_000)
     return () => clearInterval(id)
-  }, [status, kickoffAt, apiMinute, minuteAt])
+  }, [status, kickoffAt])
 
   return display
 }
@@ -178,7 +167,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   }, [status, lockAt.getTime()])
   const effectiveStatus = !isOpen && status === 'SCHEDULED' ? 'LOCKED' : status
   const badgeVariant = matchStatusToBadgeVariant(effectiveStatus)
-  const liveMinute = useLiveMinute(status, match.kickoffAt, match.minute, match.minuteAt)
+  const liveMinute = useLiveMinute(status, match.kickoffAt)
 
   const anyApplied = !!powerup && (
     powerup.x2Applied || powerup.shinooApplied || powerup.x3Applied ||

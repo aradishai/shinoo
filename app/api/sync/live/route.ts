@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server'
 import { recalculatePoints } from '@/lib/sync-service'
 import { db } from '@/lib/db'
 import axios from 'axios'
-// v2
 
 export const dynamic = 'force-dynamic'
 
 let lastSyncTime = 0
+let lastRedCardSyncTime = 0
 const MIN_INTERVAL_LIVE = 30_000
 const MIN_INTERVAL_IDLE = 60_000
-
+const RED_CARD_SYNC_INTERVAL = 4 * 60_000
 
 const FD_API = 'https://api.football-data.org/v4'
 const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
@@ -114,6 +114,51 @@ async function syncFootballData() {
   }
 }
 
+async function syncRedCards() {
+  if (!AF_KEY) return
+  const now = Date.now()
+  if (now - lastRedCardSyncTime < RED_CARD_SYNC_INTERVAL) return
+  lastRedCardSyncTime = now
+
+  const liveMatches = await db.match.findMany({
+    where: { status: { in: ['LIVE', 'PAUSED'] } },
+    include: { homeTeam: true, awayTeam: true },
+  })
+  if (liveMatches.length === 0) return
+
+  const res = await axios.get(`${AF_API}/fixtures?live=all`, {
+    headers: { 'x-apisports-key': AF_KEY },
+    timeout: 8000,
+  })
+
+  const fixtures: any[] = res.data?.response ?? []
+
+  for (const match of liveMatches) {
+    const kickoffMs = new Date(match.kickoffAt).getTime()
+    const fixture = fixtures.find((f: any) => {
+      const diff = Math.abs(new Date(f.fixture.date).getTime() - kickoffMs)
+      if (diff > 2 * 60 * 60_000) return false
+      const hName = (f.teams.home.name ?? '').toLowerCase()
+      const aName = (f.teams.away.name ?? '').toLowerCase()
+      const hEn = (match.homeTeam.nameEn ?? '').toLowerCase()
+      const aEn = (match.awayTeam.nameEn ?? '').toLowerCase()
+      const hMatch = hName.includes(hEn.split(' ')[0]) || hEn.includes(hName.split(' ')[0])
+      const aMatch = aName.includes(aEn.split(' ')[0]) || aEn.includes(aName.split(' ')[0])
+      return hMatch && aMatch
+    })
+
+    if (!fixture) continue
+
+    const events: any[] = fixture.events ?? []
+    const homeId = fixture.teams?.home?.id
+    const awayId = fixture.teams?.away?.id
+    const homeRedCards = events.filter((e: any) => e.team?.id === homeId && e.type === 'Card' && e.detail === 'Red Card').length
+    const awayRedCards = events.filter((e: any) => e.team?.id === awayId && e.type === 'Card' && e.detail === 'Red Card').length
+
+    await db.match.update({ where: { id: match.id }, data: { homeRedCards, awayRedCards } })
+  }
+}
+
 async function lockExpiredMatches() {
   await db.match.updateMany({
     where: { status: 'SCHEDULED', lockAt: { lte: new Date() } },
@@ -154,96 +199,6 @@ async function autoFinishStaleMatches() {
   }
 }
 
-function matchNeedsMinuteUpdate(match: { kickoffAt: Date; minuteAt: Date | null; minute: number | null }): boolean {
-  const now = Date.now()
-  const kickoffMs = match.kickoffAt.getTime()
-  const minuteAtMs = match.minuteAt ? match.minuteAt.getTime() : null
-
-  // No previous reading — always fetch
-  if (minuteAtMs === null) return true
-
-  // Sanity check: if dead-reckoning is >20 min behind kickoff, anchor is stale → force refresh
-  const kickoffElapsed = (now - kickoffMs) / 60_000
-  const deadReckoning = (match.minute ?? 0) + (now - minuteAtMs) / 60_000
-  if (kickoffElapsed - deadReckoning > 20) return true
-
-  // Regular 4-min throttle anchored to last DB update (survives server restarts)
-  if (now - minuteAtMs >= 4 * 60_000) return true
-
-  // Trigger points: kickoff+45, kickoff+60, kickoff+108 min
-  const nowFromKickoff = (now - kickoffMs) / 60_000
-  const lastFromKickoff = (minuteAtMs - kickoffMs) / 60_000
-  for (const t of [45, 60, 108]) {
-    if (nowFromKickoff >= t && lastFromKickoff < t) return true
-  }
-
-  return false
-}
-
-async function syncLiveMinutes() {
-  if (!AF_KEY) return
-
-  const liveMatches = await db.match.findMany({
-    where: { status: { in: ['LIVE', 'PAUSED'] } },
-    include: { homeTeam: true, awayTeam: true },
-  })
-
-  if (liveMatches.length === 0) return
-
-  const toUpdate = liveMatches.filter(m => matchNeedsMinuteUpdate(m as any))
-  if (toUpdate.length === 0) return
-
-  const res = await axios.get(`${AF_API}/fixtures?live=all`, {
-    headers: { 'x-apisports-key': AF_KEY },
-    timeout: 8000,
-  })
-
-  const fixtures: any[] = res.data?.response ?? []
-
-  for (const match of toUpdate) {
-    const kickoffMs = new Date(match.kickoffAt).getTime()
-    const fixture = fixtures.find((f: any) => {
-      const diff = Math.abs(new Date(f.fixture.date).getTime() - kickoffMs)
-      if (diff > 2 * 60 * 60_000) return false
-      const hName = (f.teams.home.name ?? '').toLowerCase()
-      const aName = (f.teams.away.name ?? '').toLowerCase()
-      const hEn = (match.homeTeam.nameEn ?? '').toLowerCase()
-      const aEn = (match.awayTeam.nameEn ?? '').toLowerCase()
-      const hMatch = hName.includes(hEn.split(' ')[0]) || hEn.includes(hName.split(' ')[0])
-      const aMatch = aName.includes(aEn.split(' ')[0]) || aEn.includes(aName.split(' ')[0])
-      return hMatch && aMatch
-    })
-
-    if (!fixture) continue
-
-    const minute = fixture.fixture?.status?.elapsed ?? null
-    const events: any[] = fixture.events ?? []
-    const homeId = fixture.teams?.home?.id
-    const awayId = fixture.teams?.away?.id
-    const homeRedCards = events.filter((e: any) => e.team?.id === homeId && e.type === 'Card' && e.detail === 'Red Card').length
-    const awayRedCards = events.filter((e: any) => e.team?.id === awayId && e.type === 'Card' && e.detail === 'Red Card').length
-
-    const updateData: any = { homeRedCards, awayRedCards }
-
-    if (minute != null) {
-      const prevMinute = match.minute ?? -1
-      const isFirstReading = match.minuteAt == null
-
-      const kickoffMs = new Date(match.kickoffAt).getTime()
-      if (isFirstReading || minute > prevMinute) {
-        updateData.minute = minute
-        // Anchor minuteAt to the match-clock position, not wall-clock now.
-        // Dead-reckoning: minute + (now - minuteAt)/60000 = kickoffElapsed,
-        // so stale API data (minute=4 at 91' elapsed) still shows ~91'.
-        updateData.minuteAt = new Date(kickoffMs + minute * 60_000)
-      }
-      // If minute <= prevMinute: stale/no-progress API — don't touch minute or minuteAt
-    }
-
-    await db.match.update({ where: { id: match.id }, data: updateData })
-  }
-}
-
 async function recalculateMissingPoints() {
   const finished = await db.match.findMany({
     where: {
@@ -278,15 +233,14 @@ export async function GET() {
       synced = true
     }
 
-    // Minute sync: per-match scheduling via matchNeedsMinuteUpdate
     const liveCount = await db.match.count({ where: { status: { in: ['LIVE', 'PAUSED'] } } })
     if (liveCount > 0) {
-      await syncLiveMinutes()
+      await syncRedCards()
     }
 
     const liveMatchData = await db.match.findMany({
       where: { status: { in: ['LIVE', 'PAUSED'] } },
-      select: { id: true, status: true, homeScore: true, awayScore: true, minute: true, minuteAt: true, homeRedCards: true, awayRedCards: true },
+      select: { id: true, status: true, homeScore: true, awayScore: true, homeRedCards: true, awayRedCards: true },
     })
 
     return NextResponse.json({
