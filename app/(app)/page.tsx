@@ -328,6 +328,7 @@ export default function HomePage() {
           }
           setUser(meData.data)
           userRef.current = meData.data
+          window.dispatchEvent(new CustomEvent('coins-updated', { detail: { coins: meData.data?.coins } }))
         }
       } else {
         const liveIds = new Set((data.liveMatchData ?? []).map((m: any) => m.id))
@@ -461,6 +462,7 @@ export default function HomePage() {
       const meData = await meRes.json()
       setUser(meData.data)
       userRef.current = meData.data
+      window.dispatchEvent(new CustomEvent('coins-updated', { detail: { coins: meData.data?.coins } }))
     }
   }
 

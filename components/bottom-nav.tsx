@@ -14,6 +14,13 @@ export function BottomNav() {
     fetch('/api/auth/me')
       .then(r => r.json())
       .then(d => { if (d.data?.coins !== undefined) setCoins(d.data.coins) })
+
+    const handler = (e: Event) => {
+      const coins = (e as CustomEvent<{ coins: number }>).detail?.coins
+      if (coins !== undefined) setCoins(coins)
+    }
+    window.addEventListener('coins-updated', handler)
+    return () => window.removeEventListener('coins-updated', handler)
   }, [])
 
   const isActive = (href: string) => {
