@@ -455,6 +455,15 @@ export default function HomePage() {
     }
   }
 
+  const refreshUser = async () => {
+    const meRes = await fetch('/api/auth/me')
+    if (meRes.ok) {
+      const meData = await meRes.json()
+      setUser(meData.data)
+      userRef.current = meData.data
+    }
+  }
+
   const applyX2 = async (match: Match) => {
     if (!match.userPrediction) return
     setPowerupLoading(`x2-${match.id}`)
@@ -465,7 +474,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { powerupToast('/btn-x2.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-x2.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id); await refreshUser() }
     else toast.error(data.error || 'שגיאה')
   }
 
@@ -479,7 +488,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { powerupToast('/btn-shinoo.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-shinoo.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id); await refreshUser() }
     else toast.error(data.error || 'שגיאה')
   }
 
@@ -493,7 +502,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { powerupToast('/btn-x3.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-x3.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id); await refreshUser() }
     else toast.error(data.error || 'שגיאה')
   }
 
@@ -507,7 +516,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { powerupToast('/btn-goals.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-goals.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id); await refreshUser() }
     else toast.error(data.error || 'שגיאה')
   }
 
@@ -529,6 +538,7 @@ export default function HomePage() {
         newAway: data.newAway,
       })
       if (primaryLeague) fetchPrimaryLeague(primaryLeague.id)
+      await refreshUser()
     } else {
       setMinute90Reveal(null)
       toast.error(data.error || 'שגיאה')
@@ -545,7 +555,7 @@ export default function HomePage() {
     })
     setPowerupLoading(null)
     const data = await res.json()
-    if (res.ok) { powerupToast('/btn-split.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id) }
+    if (res.ok) { powerupToast('/btn-split.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id); await refreshUser() }
     else toast.error(data.error || 'שגיאה')
   }
 
