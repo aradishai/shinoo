@@ -126,16 +126,16 @@ function useLiveMinute(status: string, kickoffAt: Date | string) {
 
       if (elapsed <= 45) {
         setDisplay(`${Math.floor(elapsed)}'`)
-      } else if (elapsed <= 60) {
-        // 15-minute halftime break
+      } else if (elapsed <= 65) {
+        // Halftime window: covers first-half stoppage + 15-min break
         setDisplay('מחצית')
-      } else if (elapsed <= 105) {
-        // Second half: elapsed 60 → 46', elapsed 105 → 90'
-        const m = 46 + Math.floor(elapsed - 60)
+      } else if (elapsed <= 109) {
+        // Second half: elapsed 65 → 46', elapsed 109 → 90'
+        const m = 46 + Math.floor(elapsed - 65)
         setDisplay(m <= 90 ? `${m}'` : `90+${m - 90}'`)
       } else {
         // Extra time cap at 90+5'
-        const extra = Math.min(Math.floor(elapsed - 105), 5)
+        const extra = Math.min(Math.floor(elapsed - 109), 5)
         setDisplay(`90+${extra}'`)
       }
     }
