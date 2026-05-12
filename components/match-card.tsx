@@ -117,7 +117,7 @@ function useLiveMinute(status: string, kickoffAt: Date | string) {
   useEffect(() => {
     if (status !== 'LIVE' && status !== 'PAUSED') { setDisplay(null); return }
 
-    const kickoffMs = new Date(kickoffAt).getTime()
+    const kickoffMs = new Date(kickoffAt).getTime() + 2 * 60_000
 
     const tick = () => {
       const elapsed = (Date.now() - kickoffMs) / 60_000
