@@ -135,17 +135,16 @@ async function autoFinishStaleMatches() {
     data: { status: 'FINISHED' },
   })
 
-  let claimedIds: string[] = []
+  let grantIds: string[] = []
   try {
-    await db.$executeRawUnsafe(
-      `UPDATE "Match" SET "coinsGranted" = true WHERE id IN (${staleIds.map((_, i) => `$${i + 1}`).join(',')}) AND "coinsGranted" = false`,
+    const claimed = await db.$queryRawUnsafe<{ id: string }[]>(
+      `UPDATE "Match" SET "coinsGranted" = true WHERE id IN (${staleIds.map((_, i) => `$${i + 1}`).join(',')}) AND "coinsGranted" = false RETURNING id`,
       ...staleIds
     )
-    claimedIds = staleIds
+    grantIds = claimed.map(r => r.id)
   } catch { /* coinsGranted column not yet in DB */ }
 
-  for (const { id: matchId } of staleMatches) {
-    if (!claimedIds.includes(matchId)) continue
+  for (const matchId of grantIds) {
     const predictors = await db.prediction.findMany({
       where: { matchId }, select: { userId: true }, distinct: ['userId'],
     })
