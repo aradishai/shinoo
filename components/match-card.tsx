@@ -354,10 +354,10 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       )
     }
 
-    // Live buttons: X2/SHINOO only during halftime (status=PAUSED), 90' only when LIVE
+    // Live buttons: X2/SHINOO only during halftime, 90' only when LIVE (not halftime)
     if (isLive || match.status === 'PAUSED') {
-      const inHalftimeWindow = match.status === 'PAUSED'
-      const before90 = match.status === 'LIVE'
+      const inHalftimeWindow = match.status === 'PAUSED' || liveMinute === 'מחצית'
+      const before90 = (match.status === 'LIVE' || match.status === 'PAUSED') && liveMinute !== 'מחצית'
 
       const showX2 = powerup.x2Stock > 0 && inHalftimeWindow
       const showShinoo = powerup.shinooStock > 0 && inHalftimeWindow
