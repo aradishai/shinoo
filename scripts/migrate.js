@@ -66,8 +66,8 @@ async function main() {
     await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "interests" TEXT[] NOT NULL DEFAULT '{}'`)
     await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "minuteAt" TIMESTAMP(3)`)
     await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "coinsGranted" BOOLEAN NOT NULL DEFAULT false`)
-    // Prevent retroactive coin grants: mark all existing finished matches as already granted
-    await pool.query(`UPDATE "Match" SET "coinsGranted" = true WHERE status = 'FINISHED' AND "coinsGranted" = false`)
+    // Prevent retroactive coin grants only for matches older than 48h (recent ones still get distributed by sync)
+    await pool.query(`UPDATE "Match" SET "coinsGranted" = true WHERE status = 'FINISHED' AND "coinsGranted" = false AND "kickoffAt" < NOW() - INTERVAL '48 hours'`)
     console.log('Column check complete')
   } finally {
     await pool.end()
