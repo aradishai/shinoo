@@ -11,6 +11,7 @@ import { Onboarding } from '@/components/onboarding'
 interface User {
   id: string
   username: string
+  coins?: number
   isAdmin?: boolean
   x2Stock?: number
   shinooStock?: number
