@@ -256,7 +256,9 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
               />
             ) : (
               <span className="text-xs text-gray-500">
-                {format(kickoff, 'HH:mm', { locale: he })}
+                {kickoff.getUTCHours() === 0 && kickoff.getUTCMinutes() === 0
+                  ? '?'
+                  : format(kickoff, 'HH:mm', { locale: he })}
               </span>
             )}
             <div className="text-xs text-gray-600 mt-0.5">
