@@ -1,6 +1,31 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+async function copyOpenPredictionsToLeague(userId: string, leagueId: string) {
+  const openPredictions = await db.prediction.findMany({
+    where: {
+      userId,
+      leagueId: { not: leagueId },
+      match: { status: { notIn: ['FINISHED', 'CANCELLED', 'POSTPONED'] } },
+    },
+    distinct: ['matchId'],
+    orderBy: { createdAt: 'asc' },
+  })
+  for (const pred of openPredictions) {
+    await db.prediction.upsert({
+      where: { userId_leagueId_matchId: { userId, leagueId, matchId: pred.matchId } },
+      update: {},
+      create: {
+        userId,
+        leagueId,
+        matchId: pred.matchId,
+        predictedHomeScore: pred.predictedHomeScore,
+        predictedAwayScore: pred.predictedAwayScore,
+      },
+    }).catch(() => {})
+  }
+}
+
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
   if (!userId) {
@@ -31,6 +56,8 @@ export async function POST(request: Request) {
     await db.leagueMember.create({
       data: { leagueId: league.id, userId, role: 'MEMBER' },
     })
+
+    await copyOpenPredictionsToLeague(userId, league.id)
 
     return NextResponse.json(
       { data: { leagueId: league.id, leagueName: league.name }, message: 'הצטרפת לליגה בהצלחה!' },
