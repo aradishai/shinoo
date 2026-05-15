@@ -106,16 +106,11 @@ export async function GET(
 
     const matches = await db.match.findMany({
       where: {
-        AND: [
-          ...(league.tournamentId ? [{ tournamentId: league.tournamentId }] : []),
-          {
-            OR: [
-              { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
-              { status: 'SCHEDULED', kickoffAt: { gte: now } },
-              { status: 'SCHEDULED', lockAt: { gte: now } },
-              ...(userPredictedMatchIds.length > 0 ? [{ id: { in: userPredictedMatchIds } }] : []),
-            ],
-          },
+        OR: [
+          { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
+          { status: 'SCHEDULED', kickoffAt: { gte: now } },
+          { status: 'SCHEDULED', lockAt: { gte: now } },
+          ...(userPredictedMatchIds.length > 0 ? [{ id: { in: userPredictedMatchIds } }] : []),
         ],
       },
       include: {
