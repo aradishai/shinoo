@@ -7,9 +7,11 @@ export const dynamic = 'force-dynamic'
 
 let lastSyncTime = 0
 let lastRedCardSyncTime = 0
+let lastUpcomingSyncTime = 0
 const MIN_INTERVAL_LIVE = 30_000
 const MIN_INTERVAL_IDLE = 60_000
 const RED_CARD_SYNC_INTERVAL = 4 * 60_000
+const UPCOMING_SYNC_INTERVAL = 60 * 60_000
 
 const FD_API = 'https://api.football-data.org/v4'
 const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
@@ -159,6 +161,72 @@ async function syncRedCards() {
   }
 }
 
+async function syncUpcomingMatches() {
+  if (!FD_KEY) return
+  const now = Date.now()
+  if (now - lastUpcomingSyncTime < UPCOMING_SYNC_INTERVAL) return
+  lastUpcomingSyncTime = now
+
+  const tournament = await db.tournament.findFirst({
+    where: { isActive: true },
+    orderBy: { id: 'desc' },
+  })
+  if (!tournament) return
+
+  for (const comp of ['PD', 'CL']) {
+    try {
+      const res = await axios.get(`${FD_API}/competitions/${comp}/matches?status=SCHEDULED,TIMED`, {
+        headers: { 'X-Auth-Token': FD_KEY },
+        timeout: 8000,
+      })
+      const matches: any[] = res.data?.matches ?? []
+
+      for (const m of matches) {
+        const providerMatchId = `fd-${m.id}`
+        const existing = await db.match.findUnique({ where: { providerMatchId } })
+        if (existing) continue
+
+        const findTeam = async (apiTeam: any) => {
+          if (!apiTeam?.tla) return null
+          const byCode = await db.team.findFirst({ where: { code: apiTeam.tla } })
+          if (byCode) return byCode
+          return db.team.create({
+            data: {
+              nameEn: apiTeam.shortName ?? apiTeam.name ?? apiTeam.tla,
+              nameHe: apiTeam.shortName ?? apiTeam.name ?? apiTeam.tla,
+              code: apiTeam.tla,
+              flagUrl: apiTeam.crest ?? null,
+            },
+          })
+        }
+
+        const homeTeam = await findTeam(m.homeTeam)
+        const awayTeam = await findTeam(m.awayTeam)
+        if (!homeTeam || !awayTeam) continue
+
+        const kickoffAt = new Date(m.utcDate)
+        const idealLockAt = new Date(kickoffAt.getTime() - 60 * 60_000)
+        const lockAt = idealLockAt < new Date() ? kickoffAt : idealLockAt
+
+        await db.match.create({
+          data: {
+            tournamentId: tournament.id,
+            homeTeamId: homeTeam.id,
+            awayTeamId: awayTeam.id,
+            kickoffAt,
+            lockAt,
+            status: 'SCHEDULED',
+            providerMatchId,
+            round: m.matchday ? `מחזור ${m.matchday}` : null,
+          },
+        })
+      }
+    } catch (err) {
+      console.error(`[syncUpcoming] ${comp} error:`, err)
+    }
+  }
+}
+
 async function lockExpiredMatches() {
   await db.match.updateMany({
     where: { status: 'SCHEDULED', lockAt: { lte: new Date() } },
@@ -228,6 +296,7 @@ export async function GET() {
       lastSyncTime = now
       await lockExpiredMatches()
       await syncFootballData()
+      await syncUpcomingMatches()
       await autoFinishStaleMatches()
       await recalculateMissingPoints()
       synced = true
