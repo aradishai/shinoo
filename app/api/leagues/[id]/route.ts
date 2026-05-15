@@ -110,7 +110,7 @@ export async function GET(
           { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
           { status: 'SCHEDULED', kickoffAt: { gte: now } },
           { status: 'SCHEDULED', lockAt: { gte: now } },
-          ...(userPredictedMatchIds.length > 0 ? [{ id: { in: userPredictedMatchIds } }] : []),
+          ...(userPredictedMatchIds.length > 0 ? [{ id: { in: userPredictedMatchIds }, status: { not: 'FINISHED' } }] : []),
         ],
       },
       include: {
