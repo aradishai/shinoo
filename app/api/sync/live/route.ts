@@ -173,7 +173,7 @@ async function syncUpcomingMatches() {
   })
   if (!tournament) return
 
-  for (const comp of ['PD', 'CL']) {
+  for (const comp of ['PD']) {
     try {
       const res = await axios.get(`${FD_API}/competitions/${comp}/matches?status=SCHEDULED,TIMED`, {
         headers: { 'X-Auth-Token': FD_KEY },
