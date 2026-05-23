@@ -103,12 +103,6 @@ export async function GET() {
       },
     })
 
-    // Deactivate La Liga
-    await db.tournament.updateMany({
-      where: { slug: { not: 'world-cup-2026' } },
-      data: { isActive: false },
-    })
-
     let inserted = 0
     for (const m of matches) {
       const homeData = m.homeTeam

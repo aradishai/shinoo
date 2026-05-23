@@ -34,9 +34,13 @@ const FD_STATUS_MAP: Record<string, string> = {
 async function syncFootballData() {
   if (!FD_KEY) return
 
-  const activeTournament = await db.tournament.findFirst({ where: { isActive: true }, orderBy: { id: 'desc' } })
-  const isWorldCup = activeTournament?.slug === 'world-cup-2026'
-  const competitions = isWorldCup ? ['WC'] : ['PD']
+  const activeTournaments = await db.tournament.findMany({ where: { isActive: true } })
+  const slugs = activeTournaments.map(t => t.slug)
+  const competitions = [
+    ...(slugs.includes('world-cup-2026') ? ['WC'] : []),
+    ...(slugs.some(s => s.includes('la-liga')) ? ['PD'] : []),
+  ]
+  if (competitions.length === 0) competitions.push('PD')
   const fetchResults = await Promise.allSettled(
     competitions.flatMap(comp => [
       axios.get(`${FD_API}/competitions/${comp}/matches?status=IN_PLAY,PAUSED`, {
@@ -175,9 +179,13 @@ async function syncUpcomingMatches() {
   })
   if (!tournament) return
 
-  const activeTournamentForUpcoming = await db.tournament.findFirst({ where: { isActive: true }, orderBy: { id: 'desc' } })
-  const upcomingComp = activeTournamentForUpcoming?.slug === 'world-cup-2026' ? 'WC' : 'PD'
-  for (const comp of [upcomingComp]) {
+  const activeTournamentsForUpcoming = await db.tournament.findMany({ where: { isActive: true } })
+  const upcomingComps = [
+    ...(activeTournamentsForUpcoming.some(t => t.slug === 'world-cup-2026') ? ['WC'] : []),
+    ...(activeTournamentsForUpcoming.some(t => t.slug.includes('la-liga')) ? ['PD'] : []),
+  ]
+  if (upcomingComps.length === 0) upcomingComps.push('PD')
+  for (const comp of upcomingComps) {
     try {
       const res = await axios.get(`${FD_API}/competitions/${comp}/matches?status=SCHEDULED,TIMED`, {
         headers: { 'X-Auth-Token': FD_KEY },
