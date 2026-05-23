@@ -34,7 +34,9 @@ const FD_STATUS_MAP: Record<string, string> = {
 async function syncFootballData() {
   if (!FD_KEY) return
 
-  const competitions = ['PD', 'CL']
+  const activeTournament = await db.tournament.findFirst({ where: { isActive: true }, orderBy: { id: 'desc' } })
+  const isWorldCup = activeTournament?.slug === 'world-cup-2026'
+  const competitions = isWorldCup ? ['WC'] : ['PD']
   const fetchResults = await Promise.allSettled(
     competitions.flatMap(comp => [
       axios.get(`${FD_API}/competitions/${comp}/matches?status=IN_PLAY,PAUSED`, {
@@ -173,7 +175,9 @@ async function syncUpcomingMatches() {
   })
   if (!tournament) return
 
-  for (const comp of ['PD']) {
+  const activeTournamentForUpcoming = await db.tournament.findFirst({ where: { isActive: true }, orderBy: { id: 'desc' } })
+  const upcomingComp = activeTournamentForUpcoming?.slug === 'world-cup-2026' ? 'WC' : 'PD'
+  for (const comp of [upcomingComp]) {
     try {
       const res = await axios.get(`${FD_API}/competitions/${comp}/matches?status=SCHEDULED,TIMED`, {
         headers: { 'X-Auth-Token': FD_KEY },
