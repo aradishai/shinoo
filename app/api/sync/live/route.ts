@@ -179,12 +179,9 @@ async function syncUpcomingMatches() {
   })
   if (!tournament) return
 
+  // Only sync upcoming La Liga matches — WC matches are managed by migrate-worldcup
   const activeTournamentsForUpcoming = await db.tournament.findMany({ where: { isActive: true } })
-  const upcomingComps = [
-    ...(activeTournamentsForUpcoming.some(t => t.slug === 'world-cup-2026') ? ['WC'] : []),
-    ...(activeTournamentsForUpcoming.some(t => t.slug.includes('la-liga')) ? ['PD'] : []),
-  ]
-  if (upcomingComps.length === 0) upcomingComps.push('PD')
+  const upcomingComps = activeTournamentsForUpcoming.some(t => t.slug.includes('la-liga')) ? ['PD'] : []
   for (const comp of upcomingComps) {
     try {
       const res = await axios.get(`${FD_API}/competitions/${comp}/matches?status=SCHEDULED,TIMED`, {
