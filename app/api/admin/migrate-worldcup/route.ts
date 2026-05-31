@@ -113,8 +113,9 @@ export async function GET() {
       const awayData = m.awayTeam
       if (!homeData?.tla || !awayData?.tla) continue
 
-      const homeCode = homeData.tla === 'ESP' ? 'ESP-NT' : homeData.tla
-      const awayCode = awayData.tla === 'ESP' ? 'ESP-NT' : awayData.tla
+      const NORM: Record<string, string> = { ESP: 'ESP-NT', KSA: 'SAU', URY: 'URU', CUR: 'CUW', HTI: 'HAI' }
+      const homeCode = NORM[homeData.tla] ?? homeData.tla
+      const awayCode = NORM[awayData.tla] ?? awayData.tla
 
       const homeTeam = await db.team.upsert({
         where: { code: homeCode },

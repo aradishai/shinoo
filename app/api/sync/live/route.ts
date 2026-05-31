@@ -198,15 +198,17 @@ async function syncUpcomingMatches() {
         const existing = await db.match.findUnique({ where: { providerMatchId } })
         if (existing) continue
 
+        const CODE_NORM: Record<string, string> = { ESP: 'ESP-NT', KSA: 'SAU', URY: 'URU', CUR: 'CUW', HTI: 'HAI' }
         const findTeam = async (apiTeam: any) => {
           if (!apiTeam?.tla) return null
-          const byCode = await db.team.findFirst({ where: { code: apiTeam.tla } })
+          const code = CODE_NORM[apiTeam.tla] ?? apiTeam.tla
+          const byCode = await db.team.findFirst({ where: { code } })
           if (byCode) return byCode
           return db.team.create({
             data: {
               nameEn: apiTeam.shortName ?? apiTeam.name ?? apiTeam.tla,
               nameHe: apiTeam.shortName ?? apiTeam.name ?? apiTeam.tla,
-              code: apiTeam.tla,
+              code,
               flagUrl: apiTeam.crest ?? null,
             },
           })
