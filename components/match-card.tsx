@@ -142,8 +142,11 @@ function useLiveMinute(status: string, kickoffAt: Date | string) {
       } else if (elapsed < 66) {
         // Halftime: 16 minutes
         setDisplay('מחצית')
+      } else if (elapsed < 90) {
+        setDisplay(`${46 + Math.floor(elapsed - 66)}'`)
+      } else if (elapsed < 91) {
+        setDisplay('Water Break')
       } else if (elapsed < 110) {
-        // Second half: elapsed 66 → 46', elapsed 110 → 90'
         setDisplay(`${46 + Math.floor(elapsed - 66)}'`)
       } else {
         // Second-half stoppage: 90+1' to 90+5'
