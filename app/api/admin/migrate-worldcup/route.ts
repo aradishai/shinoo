@@ -102,6 +102,11 @@ export async function GET() {
       },
     })
 
+    // Remove old WC matches without providerMatchId (created by sync before proper import)
+    await db.match.deleteMany({
+      where: { tournamentId: tournament.id, providerMatchId: null },
+    })
+
     let inserted = 0
     for (const m of matches) {
       const homeData = m.homeTeam
