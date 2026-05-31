@@ -87,6 +87,12 @@ const FIFA_TO_ISO: Record<string, string> = {
   SAU: 'sa', QAT: 'qa', UZB: 'uz', IRQ: 'iq', MAR: 'ma', SEN: 'sn', EGY: 'eg',
   TUN: 'tn', RSA: 'za', GHA: 'gh', CIV: 'ci', COD: 'cd', NZL: 'nz', HAI: 'ht',
   CUW: 'cw', SWE: 'se', CPV: 'cv', NOR: 'no', ALG: 'dz', JOR: 'jo',
+  'ESP-NT': 'es', KSA: 'sa', URY: 'uy', HTI: 'ht', TRI: 'tt', JAM: 'jm',
+  SLV: 'sv', HON: 'hn', CRC: 'cr', DEN: 'dk', POL: 'pl', HUN: 'hu',
+  ROU: 'ro', UKR: 'ua', GRE: 'gr', SVK: 'sk', SVN: 'si', WAL: 'gb-wls',
+  IRL: 'ie', SRB: 'rs', CMR: 'cm', NGA: 'ng', MLI: 'ml', KEN: 'ke',
+  CHN: 'cn', IND: 'in', VEN: 've', BOL: 'bo', CHL: 'cl', PER: 'pe',
+  CHI: 'cl', CAN: 'ca', PAR: 'py',
 }
 
 function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) {
