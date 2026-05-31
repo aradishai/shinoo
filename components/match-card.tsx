@@ -92,7 +92,7 @@ const FIFA_TO_ISO: Record<string, string> = {
   ROU: 'ro', UKR: 'ua', GRE: 'gr', SVK: 'sk', SVN: 'si', WAL: 'gb-wls',
   IRL: 'ie', SRB: 'rs', CMR: 'cm', NGA: 'ng', MLI: 'ml', KEN: 'ke',
   CHN: 'cn', IND: 'in', VEN: 've', BOL: 'bo', CHL: 'cl', PER: 'pe',
-  CHI: 'cl', CAN: 'ca', PAR: 'py',
+  CHI: 'cl',
 }
 
 function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) {
