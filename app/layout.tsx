@@ -1,17 +1,18 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#FFFFFF',
+}
 
 export const metadata: Metadata = {
   title: 'SHINOO! | ניחושי כדורגל',
   description: 'תחרות ניחושי כדורגל עם חברים — מונדיאל 2026',
   manifest: '/manifest.json',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
-  themeColor: '#FFFFFF',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
