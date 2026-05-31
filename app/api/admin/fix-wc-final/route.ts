@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
   let fixed = 0
 
-  for (const [, group] of groups) {
+  for (const group of Array.from(groups.values())) {
     if (group.length < 2) continue
 
     const withProvider = group.filter(m => m.providerMatchId)
