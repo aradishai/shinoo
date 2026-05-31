@@ -102,9 +102,9 @@ export async function GET() {
       },
     })
 
-    // Remove old WC matches without providerMatchId (created by sync before proper import)
+    // Remove all June 2026+ matches without providerMatchId (created by sync before proper import)
     await db.match.deleteMany({
-      where: { tournamentId: tournament.id, providerMatchId: null },
+      where: { kickoffAt: { gte: new Date('2026-06-01') }, providerMatchId: null },
     })
 
     let inserted = 0
