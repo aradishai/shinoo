@@ -19,7 +19,6 @@ const HEBREW_NAMES: Record<string, string> = {
   BEL: 'בלגיה',
   ITA: 'איטליה',
   URU: 'אורוגוואי',
-  COL: 'קולומביה',
   MEX: 'מקסיקו',
   USA: 'ארה"ב',
   CAN: 'קנדה',
