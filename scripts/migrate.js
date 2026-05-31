@@ -62,7 +62,7 @@ async function main() {
     `)
     await pool.query(`DROP TABLE IF EXISTS "PushSubscription"`)
     await pool.query(`ALTER TABLE "User" DROP COLUMN IF EXISTS "notifyTournamentIds"`)
-    await pool.query(`UPDATE "Team" SET code = 'ESP-NT' WHERE code = 'ESP' AND "nameEn" = 'Spain'`)
+    await pool.query(`UPDATE "Team" SET code = 'ESP-NT' WHERE code = 'ESP' AND "nameEn" = 'Spain' AND NOT EXISTS (SELECT 1 FROM "Team" WHERE code = 'ESP-NT')`)
     await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "interests" TEXT[] NOT NULL DEFAULT '{}'`)
     await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "minuteAt" TIMESTAMP(3)`)
     await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "coinsGranted" BOOLEAN NOT NULL DEFAULT false`)

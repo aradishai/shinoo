@@ -113,24 +113,27 @@ export async function GET() {
       const awayData = m.awayTeam
       if (!homeData?.tla || !awayData?.tla) continue
 
+      const homeCode = homeData.tla === 'ESP' ? 'ESP-NT' : homeData.tla
+      const awayCode = awayData.tla === 'ESP' ? 'ESP-NT' : awayData.tla
+
       const homeTeam = await db.team.upsert({
-        where: { code: homeData.tla },
+        where: { code: homeCode },
         update: { nameEn: homeData.shortName || homeData.name, nameHe: HEBREW_NAMES[homeData.tla] || homeData.shortName || homeData.name, flagUrl: homeData.crest },
         create: {
           nameEn: homeData.shortName || homeData.name,
           nameHe: HEBREW_NAMES[homeData.tla] || homeData.shortName || homeData.name,
-          code: homeData.tla,
+          code: homeCode,
           flagUrl: homeData.crest,
         },
       })
 
       const awayTeam = await db.team.upsert({
-        where: { code: awayData.tla },
+        where: { code: awayCode },
         update: { nameEn: awayData.shortName || awayData.name, nameHe: HEBREW_NAMES[awayData.tla] || awayData.shortName || awayData.name, flagUrl: awayData.crest },
         create: {
           nameEn: awayData.shortName || awayData.name,
           nameHe: HEBREW_NAMES[awayData.tla] || awayData.shortName || awayData.name,
-          code: awayData.tla,
+          code: awayCode,
           flagUrl: awayData.crest,
         },
       })
