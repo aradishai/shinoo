@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { registerPush } from '@/components/push-register'
 
 interface Message {
   id: string
@@ -20,22 +21,6 @@ interface Member {
   username: string
 }
 
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const rawData = atob(base64)
-  const arr = new Uint8Array(rawData.length)
-  for (let i = 0; i < rawData.length; i++) arr[i] = rawData.charCodeAt(i)
-  return arr
-}
-
-function uint8ToBase64(buf: ArrayBuffer) {
-  const arr = new Uint8Array(buf)
-  let str = ''
-  for (let i = 0; i < arr.length; i++) str += String.fromCharCode(arr[i])
-  return btoa(str)
-}
-
 export default function ChatPage() {
   const [leagues, setLeagues] = useState<LeagueChat[]>([])
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null)
@@ -53,34 +38,19 @@ export default function ChatPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    if (typeof Notification !== 'undefined') {
-      setNotifStatus(Notification.permission === 'granted' ? 'granted' : Notification.permission === 'denied' ? 'denied' : 'unknown')
+    if (typeof Notification === 'undefined') return
+    const perm = Notification.permission
+    if (perm === 'denied') { setNotifStatus('denied'); return }
+    if (perm === 'granted') {
+      // Auto-register silently in case subscription was lost
+      registerPush().then(ok => setNotifStatus(ok ? 'granted' : 'unknown'))
     }
   }, [])
 
   const enableNotifications = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
     setNotifStatus('loading')
-    try {
-      const reg = await navigator.serviceWorker.register('/sw.js')
-      await navigator.serviceWorker.ready
-      const perm = await Notification.requestPermission()
-      if (perm !== 'granted') { setNotifStatus('denied'); return }
-
-      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-      if (!vapidKey) { setNotifStatus('granted'); return }
-
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
-      })
-      await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endpoint: sub.endpoint, keys: { p256dh: uint8ToBase64(sub.getKey('p256dh')!), auth: uint8ToBase64(sub.getKey('auth')!) } }),
-      })
-      setNotifStatus('granted')
-    } catch { setNotifStatus('unknown') }
+    const ok = await registerPush()
+    setNotifStatus(ok ? 'granted' : (typeof Notification !== 'undefined' && Notification.permission === 'denied') ? 'denied' : 'unknown')
   }
 
   useEffect(() => {

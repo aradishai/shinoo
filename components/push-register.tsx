@@ -2,8 +2,6 @@
 
 import { useEffect } from 'react'
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
@@ -20,49 +18,51 @@ function uint8ToBase64(buf: ArrayBuffer) {
   return btoa(str)
 }
 
-export function PushRegister() {
-  useEffect(() => {
-    if (!VAPID_PUBLIC_KEY || !('serviceWorker' in navigator) || !('PushManager' in window)) return
+export async function registerPush(): Promise<boolean> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false
+  if (Notification.permission === 'denied') return false
 
-    const register = async () => {
-      try {
-        const reg = await navigator.serviceWorker.register('/sw.js')
-        await navigator.serviceWorker.ready
+  try {
+    const { key } = await fetch('/api/push/vapid-public-key').then(r => r.json())
+    if (!key) return false
 
-        if (Notification.permission === 'denied') return
+    const reg = await navigator.serviceWorker.register('/sw.js')
+    await navigator.serviceWorker.ready
 
-        const existing = await reg.pushManager.getSubscription()
-        if (existing) {
-          await fetch('/api/push/subscribe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ endpoint: existing.endpoint, keys: { p256dh: uint8ToBase64(existing.getKey('p256dh')!), auth: uint8ToBase64(existing.getKey('auth')!) } }),
-          })
-          return
-        }
-
-        if (Notification.permission !== 'granted') {
-          const perm = await Notification.requestPermission()
-          if (perm !== 'granted') return
-        }
-
-        const sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-        })
-
-        const p256dh = uint8ToBase64(sub.getKey('p256dh')!)
-        const auth = uint8ToBase64(sub.getKey('auth')!)
-
-        await fetch('/api/push/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ endpoint: sub.endpoint, keys: { p256dh, auth } }),
-        })
-      } catch { /* silent */ }
+    if (Notification.permission !== 'granted') {
+      const perm = await Notification.requestPermission()
+      if (perm !== 'granted') return false
     }
 
-    register()
+    const existing = await reg.pushManager.getSubscription()
+    const sub = existing ?? await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(key),
+    })
+
+    await fetch('/api/push/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoint: sub.endpoint,
+        keys: {
+          p256dh: uint8ToBase64(sub.getKey('p256dh')!),
+          auth: uint8ToBase64(sub.getKey('auth')!),
+        },
+      }),
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function PushRegister() {
+  useEffect(() => {
+    // Auto-register silently if permission already granted
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      registerPush()
+    }
   }, [])
 
   return null
