@@ -48,7 +48,7 @@ export default function ChatPage() {
     const perm = Notification.permission
     if (perm === 'denied') { setNotifStatus('denied'); return }
     if (perm === 'granted') {
-      registerPush().then(ok => setNotifStatus(ok ? 'granted' : 'unknown'))
+      setNotifStatus('granted')
     }
   }, [])
 
@@ -169,7 +169,7 @@ export default function ChatPage() {
   return (
     <div
       className="fixed inset-x-0 top-0 flex flex-col overflow-hidden"
-      style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+      style={{ bottom: 'calc(98px + env(safe-area-inset-bottom, 16px))' }}
       dir="rtl"
     >
 
