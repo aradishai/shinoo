@@ -56,14 +56,19 @@ export default function LeagueDetailPage() {
   const [loading, setLoading] = useState(true)
   const [addMemberUsername, setAddMemberUsername] = useState('')
   const [addingMember, setAddingMember] = useState(false)
-  const [activeTab, setActiveTab] = useState<'standings' | 'matches' | 'members'>('standings')
+  const [activeTab, setActiveTab] = useState<'standings' | 'matches' | 'members' | 'chat'>('standings')
   const [copiedCode, setCopiedCode] = useState(false)
+  const [messages, setMessages] = useState<{ id: string; content: string; createdAt: string; user: { id: string; username: string } }[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [sendingChat, setSendingChat] = useState(false)
+  const chatBottomRef = useRef<HTMLDivElement>(null)
   const [editingName, setEditingName] = useState(false)
   const [newName, setNewName] = useState('')
   const [removingMember, setRemovingMember] = useState<string | null>(null)
   const [selectedRound, setSelectedRound] = useState<string | null>(null)
   const [allRounds, setAllRounds] = useState<string[]>([])
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const chatPollRef = useRef<NodeJS.Timeout | null>(null)
 
   const fetchData = useCallback(async (round?: string | null) => {
     try {
@@ -115,6 +120,49 @@ export default function LeagueDetailPage() {
     syncIntervalRef.current = setInterval(poll, 10_000)
     return () => { if (syncIntervalRef.current) clearInterval(syncIntervalRef.current) }
   }, [fetchData])
+
+  const fetchChat = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/leagues/${leagueId}/chat`)
+      if (!res.ok) return
+      const data = await res.json()
+      setMessages(data.messages)
+    } catch { /* silent */ }
+  }, [leagueId])
+
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      fetchChat()
+      chatPollRef.current = setInterval(fetchChat, 5000)
+      setTimeout(() => chatBottomRef.current?.scrollIntoView(), 100)
+    } else {
+      if (chatPollRef.current) clearInterval(chatPollRef.current)
+    }
+    return () => { if (chatPollRef.current) clearInterval(chatPollRef.current) }
+  }, [activeTab, fetchChat])
+
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const handleSendChat = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!chatInput.trim() || sendingChat) return
+    setSendingChat(true)
+    try {
+      const res = await fetch(`/api/leagues/${leagueId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: chatInput.trim() }),
+      })
+      if (res.ok) {
+        setChatInput('')
+        fetchChat()
+      }
+    } finally {
+      setSendingChat(false)
+    }
+  }
 
   const handleRoundSelect = (round: string | null) => {
     setSelectedRound(round)
@@ -267,6 +315,7 @@ export default function LeagueDetailPage() {
         {[
           { id: 'standings', label: 'טבלה' },
           { id: 'matches', label: 'משחקים' },
+          { id: 'chat', label: 'צ\'אט' },
           { id: 'members', label: 'חברים' },
         ].map((tab) => (
           <button
@@ -345,6 +394,58 @@ export default function LeagueDetailPage() {
               />
             ))
           )}
+        </div>
+      )}
+
+      {/* Chat Tab */}
+      {activeTab === 'chat' && (
+        <div className="flex flex-col h-[calc(100vh-280px)]">
+          <div className="flex-1 overflow-y-auto space-y-2 pb-2">
+            {messages.length === 0 && (
+              <div className="text-center py-10 text-gray-500">
+                <div className="text-4xl mb-3">💬</div>
+                <p>אין הודעות עדיין - היה הראשון!</p>
+              </div>
+            )}
+            {messages.map((msg) => {
+              const isMe = msg.user.id === currentUserId
+              return (
+                <div key={msg.id} className={`flex ${isMe ? 'justify-start' : 'justify-end'}`}>
+                  <div className={`max-w-[75%] ${isMe ? 'items-start' : 'items-end'} flex flex-col gap-0.5`}>
+                    {!isMe && (
+                      <span className="text-xs text-gray-500 px-1">{msg.user.username}</span>
+                    )}
+                    <div className={`px-3 py-2 rounded-2xl text-sm ${
+                      isMe
+                        ? 'bg-primary text-black font-medium rounded-tr-sm'
+                        : 'bg-dark-card border border-dark-border text-white rounded-tl-sm'
+                    }`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+            <div ref={chatBottomRef} />
+          </div>
+
+          <form onSubmit={handleSendChat} className="flex gap-2 pt-3 border-t border-dark-border">
+            <button
+              type="submit"
+              disabled={sendingChat || !chatInput.trim()}
+              className="bg-primary text-black font-black px-4 py-3 rounded-xl disabled:opacity-40 active:scale-95 transition-all flex-shrink-0"
+            >
+              {sendingChat ? '...' : 'שלח'}
+            </button>
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="כתוב הודעה..."
+              maxLength={300}
+              className="flex-1 bg-dark-card border border-dark-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-primary focus:outline-none text-right"
+            />
+          </form>
         </div>
       )}
 

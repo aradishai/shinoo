@@ -24,6 +24,7 @@ model User {
   predictions       Prediction[]
   createdLeagues    League[]
   coinBets          CoinBet[]
+  messages          Message[]
 }
 
 model Tournament {
@@ -110,6 +111,20 @@ model League {
   createdBy   User           @relation(fields: [createdByUserId], references: [id])
   members     LeagueMember[]
   predictions Prediction[]
+  messages    Message[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  leagueId  String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([leagueId, createdAt])
 }
 
 model LeagueMember {
