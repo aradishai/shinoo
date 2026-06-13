@@ -29,7 +29,8 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
-  const [notifStatus, setNotifStatus] = useState<'unknown' | 'granted' | 'denied' | 'loading' | 'ios-browser'>('unknown')
+  const [notifStatus, setNotifStatus] = useState<'unknown' | 'granted' | 'denied' | 'loading' | 'ios-browser' | 'error'>('unknown')
+  const [notifError, setNotifError] = useState<string | null>(null)
   const [loadingLeagues, setLoadingLeagues] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
@@ -53,12 +54,14 @@ export default function ChatPage() {
 
   const enableNotifications = async () => {
     setNotifStatus('loading')
-    const ok = await registerPush()
-    if (ok) {
+    setNotifError(null)
+    const result = await registerPush()
+    if (result.ok) {
       setNotifStatus('granted')
     } else {
+      setNotifError(result.error ?? null)
       const perm = typeof Notification !== 'undefined' ? Notification.permission : 'unknown'
-      setNotifStatus(perm === 'denied' ? 'denied' : 'unknown')
+      setNotifStatus(perm === 'denied' ? 'denied' : 'error')
     }
   }
 
@@ -172,7 +175,7 @@ export default function ChatPage() {
 
       {/* WhatsApp-style header */}
       <div className="flex-shrink-0 bg-[#1f2c34] px-4 pt-5 pb-3">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-2 relative">
           {leagues.length > 1 ? (
             <div className="flex gap-2 overflow-x-auto flex-1">
               {leagues.map(l => (
@@ -199,7 +202,7 @@ export default function ChatPage() {
           {notifStatus === 'denied' && (
             <span className="flex-shrink-0 mr-2 text-xs text-gray-500">🔕 חסום</span>
           )}
-          {(notifStatus === 'unknown' || notifStatus === 'granted' || notifStatus === 'loading') && (
+          {(notifStatus === 'unknown' || notifStatus === 'granted' || notifStatus === 'loading' || notifStatus === 'error') && (
             <button
               onClick={enableNotifications}
               disabled={notifStatus === 'loading'}
@@ -209,6 +212,11 @@ export default function ChatPage() {
             >
               {notifStatus === 'loading' ? '...' : notifStatus === 'granted' ? '🔔 פעיל' : '🔔 הפעל התראות'}
             </button>
+          )}
+          {notifError && (
+            <span className="absolute top-full right-0 mt-1 text-[10px] text-red-400 bg-[#0b141a] px-2 py-1 rounded max-w-[200px] text-right z-10">
+              {notifError}
+            </span>
           )}
         </div>
       </div>
