@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react'
 export function BottomNav() {
   const pathname = usePathname()
   const [coins, setCoins] = useState<number | null>(null)
+  const [chatUnread, setChatUnread] = useState(0)
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -22,6 +23,33 @@ export function BottomNav() {
     window.addEventListener('coins-updated', handler)
     return () => window.removeEventListener('coins-updated', handler)
   }, [])
+
+  useEffect(() => {
+    if (pathname === '/chat') {
+      setChatUnread(0)
+      return
+    }
+
+    const checkUnread = async () => {
+      try {
+        const data = await fetch('/api/chat/leagues').then(r => r.json())
+        const leagues: { id: string; lastMessage?: { createdAt: string } | null }[] = data.leagues ?? []
+        let unread = 0
+        for (const league of leagues) {
+          if (!league.lastMessage) continue
+          const lastRead = localStorage.getItem(`shinoo_chat_read_${league.id}`)
+          if (!lastRead || new Date(league.lastMessage.createdAt) > new Date(lastRead)) {
+            unread++
+          }
+        }
+        setChatUnread(unread)
+      } catch {}
+    }
+
+    checkUnread()
+    const interval = setInterval(checkUnread, 30000)
+    return () => clearInterval(interval)
+  }, [pathname])
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
@@ -58,6 +86,11 @@ export function BottomNav() {
                     >
                       <Image src={item.icon!} alt={item.label} fill className="object-contain" />
                     </div>
+                    {chatUnread > 0 && (
+                      <span className="absolute top-1 right-1 bg-[#00a884] text-white text-[10px] font-black rounded-full min-w-[17px] h-[17px] flex items-center justify-center px-1 leading-none">
+                        {chatUnread}
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <div className="relative w-14 h-14 flex items-center justify-center">

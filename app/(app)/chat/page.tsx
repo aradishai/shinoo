@@ -116,6 +116,9 @@ export default function ChatPage() {
         setMessages(prev => {
           const incoming: Message[] = d.messages ?? []
           if (incoming.length === prev.length && incoming[incoming.length - 1]?.id === prev[prev.length - 1]?.id) return prev
+          if (incoming.length > 0) {
+            localStorage.setItem(`shinoo_chat_read_${selectedLeagueId}`, incoming[incoming.length - 1].createdAt)
+          }
           return incoming
         })
       })
@@ -308,7 +311,7 @@ export default function ChatPage() {
       )}
 
       {/* WhatsApp-style input bar */}
-      <form onSubmit={handleSend} className="flex items-center gap-2 px-3 py-2 pb-safe bg-[#1f2c34] flex-shrink-0" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
+      <form onSubmit={handleSend} className="flex items-center gap-2 px-3 py-2 bg-[#1f2c34] flex-shrink-0 overflow-hidden" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 0px))' }}>
         <button
           type="submit"
           disabled={sending || !input.trim()}
@@ -324,7 +327,8 @@ export default function ChatPage() {
           value={input}
           onChange={handleInput}
           maxLength={300}
-          className="flex-1 bg-[#2a3942] rounded-full px-4 py-2.5 text-white text-sm focus:outline-none text-right"
+          style={{ fontSize: '16px' }}
+          className="flex-1 bg-[#2a3942] rounded-full px-4 py-2.5 text-white focus:outline-none text-right min-w-0"
         />
       </form>
     </div>
