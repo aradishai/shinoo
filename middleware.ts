@@ -8,6 +8,7 @@ const PUBLIC_PATHS = [
   '/api/auth/register',
   '/api/admin',
   '/api/sync',
+  '/api/push/vapid-public-key',
   '/_next',
   '/favicon',
 ]
