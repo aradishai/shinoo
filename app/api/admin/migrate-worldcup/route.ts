@@ -161,15 +161,18 @@ export async function GET() {
       const lockAt = idealLockAt < new Date() ? kickoffAt : idealLockAt
       const providerMatchId = `fd-${m.id}`
 
-      // Dedup: delete any match with same teams + time window but a different providerMatchId
-      const kickoffFrom = new Date(kickoffAt.getTime() - 2 * 60 * 60_000)
-      const kickoffTo = new Date(kickoffAt.getTime() + 2 * 60 * 60_000)
+      // Dedup: delete any match involving these two teams on the same day, regardless of home/away order
+      const kickoffFrom = new Date(kickoffAt.getTime() - 24 * 60 * 60_000)
+      const kickoffTo = new Date(kickoffAt.getTime() + 24 * 60 * 60_000)
       const dups = await db.match.findMany({
         where: {
-          homeTeamId: homeTeam.id,
-          awayTeamId: awayTeam.id,
+          tournamentId: tournament.id,
           kickoffAt: { gte: kickoffFrom, lte: kickoffTo },
           NOT: { providerMatchId },
+          OR: [
+            { homeTeamId: homeTeam.id, awayTeamId: awayTeam.id },
+            { homeTeamId: awayTeam.id, awayTeamId: homeTeam.id },
+          ],
         },
       })
       for (const dup of dups) {
