@@ -21,7 +21,6 @@ export function uint8ToBase64(buf: ArrayBuffer) {
 async function getVapidKey(): Promise<string | null> {
   try {
     const { key } = await fetch('/api/push/vapid-public-key').then(r => r.json())
-    // Remove all whitespace in case of copy-paste artifacts
     return key ? String(key).replace(/\s/g, '') : null
   } catch { return null }
 }
@@ -40,7 +39,7 @@ async function saveSubscription(sub: PushSubscription) {
   })
 }
 
-// Called from button click - requests permission + creates fresh subscription
+// Called ONLY from button click - always creates fresh subscription with current VAPID key
 export async function registerPush(): Promise<boolean> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false
   if (Notification.permission === 'denied') return false
@@ -57,23 +56,26 @@ export async function registerPush(): Promise<boolean> {
       if (perm !== 'granted') return false
     }
 
-    // Try to reuse existing subscription, only create new if none exists
-    let sub = await reg.pushManager.getSubscription()
-    if (!sub) {
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(key),
-      })
-    }
+    // Always unsubscribe old and create fresh - ensures VAPID key match
+    const existing = await reg.pushManager.getSubscription()
+    if (existing) await existing.unsubscribe()
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(key),
+    })
 
     await saveSubscription(sub)
     return true
-  } catch { return false }
+  } catch (err) {
+    console.error('registerPush failed:', err)
+    return false
+  }
 }
 
 export function PushRegister() {
   useEffect(() => {
-    // Only silently save existing subscription - never unsubscribe or create new one
+    // Only silently save subscription that ALREADY EXISTS in browser - never create new ones
     if (typeof Notification === 'undefined') return
     if (Notification.permission !== 'granted') return
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
