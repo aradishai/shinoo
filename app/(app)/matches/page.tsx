@@ -303,9 +303,9 @@ export default function MatchesPage() {
 
                 {/* Row 2: Stepper (only when open) */}
                 {isOpen && (
-                  <div className="flex items-center justify-between px-4 pb-4 gap-2 border-t border-dark-border/40 pt-3">
+                  <div className="flex items-center px-4 pb-4 gap-2 border-t border-dark-border/40 pt-3">
                     {/* Home stepper */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex-1 flex items-center justify-center gap-2">
                       <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, home: String(Math.max(0, parseInt(s.home||'0') - 1)) } }))}
                         className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
                       <span className="w-7 text-center text-2xl font-black text-white">{s.home || '0'}</span>
@@ -317,7 +317,7 @@ export default function MatchesPage() {
                     <button
                       onClick={() => save(match)}
                       disabled={saving === match.id}
-                      className={`px-5 h-9 rounded-xl font-black text-sm flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all ${
+                      className={`flex-shrink-0 px-5 h-9 rounded-xl font-black text-sm flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all ${
                         hasPrediction ? 'bg-green-500 text-white' : 'bg-white text-black'
                       }`}
                     >
@@ -325,7 +325,7 @@ export default function MatchesPage() {
                     </button>
 
                     {/* Away stepper */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex-1 flex items-center justify-center gap-2">
                       <button type="button" onClick={() => setScores(prev => ({ ...prev, [match.id]: { ...s, away: String(Math.max(0, parseInt(s.away||'0') - 1)) } }))}
                         className="w-9 h-9 rounded-full bg-dark-50 border border-dark-border text-white font-bold text-lg active:scale-95 transition-all">−</button>
                       <span className="w-7 text-center text-2xl font-black text-white">{s.away || '0'}</span>
