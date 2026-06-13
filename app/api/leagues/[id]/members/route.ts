@@ -1,6 +1,26 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const userId = request.headers.get('x-user-id')
+  if (!userId) return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
+
+  const membership = await db.leagueMember.findUnique({
+    where: { leagueId_userId: { leagueId: params.id, userId } },
+  })
+  if (!membership) return NextResponse.json({ error: 'לא חבר בליגה' }, { status: 403 })
+
+  const members = await db.leagueMember.findMany({
+    where: { leagueId: params.id },
+    include: { user: { select: { id: true, username: true } } },
+  })
+
+  return NextResponse.json({ members: members.map(m => ({ userId: m.user.id, username: m.user.username })) })
+}
+
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }

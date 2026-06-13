@@ -29,5 +29,5 @@ export async function GET(request: Request) {
     lastMessage: m.league.messages[0] ?? null,
   }))
 
-  return NextResponse.json({ leagues })
+  return NextResponse.json({ leagues, currentUserId: userId })
 }
