@@ -30,7 +30,6 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false)
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [notifStatus, setNotifStatus] = useState<'unknown' | 'granted' | 'denied' | 'loading'>('unknown')
-  const [debugInfo, setDebugInfo] = useState<string | null>(null)
   const [loadingLeagues, setLoadingLeagues] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
@@ -50,25 +49,13 @@ export default function ChatPage() {
 
   const enableNotifications = async () => {
     setNotifStatus('loading')
-    setDebugInfo('מנסה להירשם...')
     const ok = await registerPush()
     if (ok) {
       setNotifStatus('granted')
-      setDebugInfo('✅ נרשמת! שולח התראת בדיקה...')
-      const res = await fetch('/api/push/test', { method: 'POST' })
-      const data = await res.json()
-      setDebugInfo(JSON.stringify(data, null, 2))
     } else {
       const perm = typeof Notification !== 'undefined' ? Notification.permission : 'unknown'
       setNotifStatus(perm === 'denied' ? 'denied' : 'unknown')
-      setDebugInfo(`❌ נכשל. הרשאה: ${perm}`)
     }
-  }
-
-  const checkStatus = async () => {
-    const res = await fetch('/api/push/test')
-    const data = await res.json()
-    setDebugInfo(JSON.stringify(data, null, 2))
   }
 
   useEffect(() => {
@@ -198,26 +185,21 @@ export default function ChatPage() {
             <h1 className="text-white font-bold text-lg flex-1">{leagues[0]?.name}</h1>
           )}
 
-          {notifStatus === 'granted' ? (
-            <button onClick={checkStatus} className="flex-shrink-0 mr-2 text-xs px-3 py-1.5 rounded-full font-bold bg-[#2a3942] text-gray-400 active:scale-95 transition-all">
-              🔔 בדוק
-            </button>
-          ) : (
+          {notifStatus !== 'denied' && (
             <button
               onClick={enableNotifications}
-              disabled={notifStatus === 'loading' || notifStatus === 'denied'}
-              className="flex-shrink-0 mr-2 text-xs px-3 py-1.5 rounded-full font-bold transition-all active:scale-95 bg-[#00a884] text-white disabled:opacity-50"
+              disabled={notifStatus === 'loading'}
+              className={`flex-shrink-0 mr-2 text-xs px-3 py-1.5 rounded-full font-bold transition-all active:scale-95 disabled:opacity-50 ${
+                notifStatus === 'granted' ? 'bg-[#2a3942] text-[#00a884]' : 'bg-[#00a884] text-white'
+              }`}
             >
-              {notifStatus === 'loading' ? '...' : notifStatus === 'denied' ? '🔕 חסום' : '🔔 הפעל התראות'}
+              {notifStatus === 'loading' ? '...' : notifStatus === 'granted' ? '🔔 פעיל' : '🔔 הפעל התראות'}
             </button>
           )}
+          {notifStatus === 'denied' && (
+            <span className="flex-shrink-0 mr-2 text-xs text-gray-500">🔕 חסום בדפדפן</span>
+          )}
         </div>
-
-        {debugInfo && (
-          <pre className="mt-2 text-[10px] text-gray-400 bg-[#0b141a] rounded-lg p-2 overflow-x-auto whitespace-pre-wrap text-right">
-            {debugInfo}
-          </pre>
-        )}
       </div>
 
       {/* Messages area */}
