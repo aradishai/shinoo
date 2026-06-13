@@ -93,6 +93,7 @@ async function main() {
         CONSTRAINT "PushSubscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
       )
     `)
+    await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "reminderSent" BOOLEAN NOT NULL DEFAULT false`)
     console.log('Column check complete')
   } finally {
     await pool.end()
