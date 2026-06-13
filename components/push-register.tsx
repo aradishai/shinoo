@@ -48,10 +48,22 @@ export async function registerPush(): Promise<{ ok: boolean; error?: string }> {
     return { ok: false, error: 'חסמת התראות בהגדרות הדפדפן' }
 
   try {
-    // Use env var baked at build time first, fallback to API
     let key: string | null = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? '').replace(/\s/g, '') || null
-    if (!key) key = await getVapidKey()
-    if (!key) return { ok: false, error: 'מפתח VAPID חסר בשרת' }
+    if (!key) {
+      try {
+        const r = await fetch('/api/push/vapid-public-key')
+        const text = await r.text()
+        try {
+          const json = JSON.parse(text)
+          key = json.key ? String(json.key).replace(/\s/g, '') || null : null
+          if (!key) return { ok: false, error: `VAPID null (${r.status})` }
+        } catch {
+          return { ok: false, error: `VAPID JSON err: ${text.slice(0, 60)}` }
+        }
+      } catch (err) {
+        return { ok: false, error: `VAPID fetch err: ${String(err)}` }
+      }
+    }
 
     const reg = await navigator.serviceWorker.register('/sw.js')
     await navigator.serviceWorker.ready
