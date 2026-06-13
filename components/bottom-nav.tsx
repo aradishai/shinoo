@@ -29,10 +29,11 @@ export function BottomNav() {
   }
 
   const navItems = [
-    { href: '/shop', label: 'מרקט', icon: '/icons/market.png' },
-    { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png' },
-    { href: '/matches', label: 'ניחושים', icon: '/icons/money.png' },
-    { href: '/', label: 'בית', icon: '/icons/home.png' },
+    { href: '/shop', label: 'מרקט', icon: '/icons/market.png' as string | null },
+    { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png' as string | null },
+    { href: '/chat', label: 'צ\'אט', icon: null },
+    { href: '/matches', label: 'ניחושים', icon: '/icons/money.png' as string | null },
+    { href: '/', label: 'בית', icon: '/icons/home.png' as string | null },
   ]
 
   return (
@@ -42,20 +43,26 @@ export function BottomNav() {
           {navItems.map((item) => {
             const active = isActive(item.href)
             const isShop = item.href === '/shop'
+            const isChat = item.href === '/chat'
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className="flex flex-col items-center gap-1"
               >
-                {/* Icon — fixed 56×56 container for all items */}
                 <div className="relative w-14 h-14 flex items-center justify-center">
-                  <div
-                    style={{ mixBlendMode: 'lighten' }}
-                    className={clsx('relative', isShop ? 'w-9 h-9' : 'w-14 h-14', !active && 'opacity-40')}
-                  >
-                    <Image src={item.icon} alt={item.label} fill className="object-contain" />
-                  </div>
+                  {isChat ? (
+                    <span className={clsx('text-3xl transition-all', active ? 'opacity-100' : 'opacity-40')}>
+                      💬
+                    </span>
+                  ) : (
+                    <div
+                      style={{ mixBlendMode: 'lighten' }}
+                      className={clsx('relative', isShop ? 'w-9 h-9' : 'w-14 h-14', !active && 'opacity-40')}
+                    >
+                      <Image src={item.icon!} alt={item.label} fill className="object-contain" />
+                    </div>
+                  )}
                   {isShop && coins !== null && (
                     <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-[10px] font-black rounded-full px-1 min-w-[18px] text-center leading-[18px] z-10">
                       {coins}
@@ -63,12 +70,10 @@ export function BottomNav() {
                   )}
                 </div>
 
-                {/* Label */}
                 <span className={clsx('text-[11px] font-medium transition-colors', active ? 'text-primary' : 'text-gray-500')}>
                   {item.label}
                 </span>
 
-                {/* Active dot */}
                 {active && <span className="w-1 h-1 rounded-full bg-primary" />}
               </Link>
             )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { LeagueTable } from '@/components/league-table'
@@ -49,6 +49,7 @@ interface LeagueDetail {
 export default function LeagueDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const leagueId = params.id as string
 
   const [league, setLeague] = useState<LeagueDetail | null>(null)
@@ -56,12 +57,16 @@ export default function LeagueDetailPage() {
   const [loading, setLoading] = useState(true)
   const [addMemberUsername, setAddMemberUsername] = useState('')
   const [addingMember, setAddingMember] = useState(false)
-  const [activeTab, setActiveTab] = useState<'standings' | 'matches' | 'members' | 'chat'>('standings')
+  const [activeTab, setActiveTab] = useState<'standings' | 'matches' | 'members' | 'chat'>(
+    searchParams.get('tab') === 'chat' ? 'chat' : 'standings'
+  )
   const [copiedCode, setCopiedCode] = useState(false)
   const [messages, setMessages] = useState<{ id: string; content: string; createdAt: string; user: { id: string; username: string } }[]>([])
   const [chatInput, setChatInput] = useState('')
   const [sendingChat, setSendingChat] = useState(false)
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const chatBottomRef = useRef<HTMLDivElement>(null)
+  const chatInputRef = useRef<HTMLInputElement>(null)
   const [editingName, setEditingName] = useState(false)
   const [newName, setNewName] = useState('')
   const [removingMember, setRemovingMember] = useState<string | null>(null)
@@ -145,6 +150,27 @@ export default function LeagueDetailPage() {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  const handleChatInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setChatInput(val)
+    const atIdx = val.lastIndexOf('@')
+    if (atIdx !== -1 && atIdx === val.length - 1) {
+      setMentionQuery('')
+    } else if (atIdx !== -1 && val.slice(atIdx + 1).match(/^\w+$/)) {
+      setMentionQuery(val.slice(atIdx + 1).toLowerCase())
+    } else {
+      setMentionQuery(null)
+    }
+  }
+
+  const insertMention = (username: string) => {
+    const atIdx = chatInput.lastIndexOf('@')
+    const newVal = chatInput.slice(0, atIdx) + `@${username} `
+    setChatInput(newVal)
+    setMentionQuery(null)
+    chatInputRef.current?.focus()
+  }
+
   const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!chatInput.trim() || sendingChat) return
@@ -157,12 +183,19 @@ export default function LeagueDetailPage() {
       })
       if (res.ok) {
         setChatInput('')
+        setMentionQuery(null)
         fetchChat()
       }
     } finally {
       setSendingChat(false)
     }
   }
+
+  const mentionSuggestions = mentionQuery !== null && league
+    ? league.standings
+        .filter(m => m.userId !== currentUserId && m.username.toLowerCase().includes(mentionQuery))
+        .slice(0, 4)
+    : []
 
   const handleRoundSelect = (round: string | null) => {
     setSelectedRound(round)
@@ -420,7 +453,11 @@ export default function LeagueDetailPage() {
                         ? 'bg-primary text-black font-medium rounded-tr-sm'
                         : 'bg-dark-card border border-dark-border text-white rounded-tl-sm'
                     }`}>
-                      {msg.content}
+                      {msg.content.split(/(@\w+)/g).map((part, i) =>
+                        part.startsWith('@')
+                          ? <span key={i} className={`font-bold ${isMe ? 'text-black/70' : 'text-primary'}`}>{part}</span>
+                          : part
+                      )}
                     </div>
                   </div>
                 </div>
@@ -428,6 +465,22 @@ export default function LeagueDetailPage() {
             })}
             <div ref={chatBottomRef} />
           </div>
+
+          {/* @mention suggestions */}
+          {mentionSuggestions.length > 0 && (
+            <div className="flex gap-2 pb-2 flex-wrap">
+              {mentionSuggestions.map(m => (
+                <button
+                  key={m.userId}
+                  type="button"
+                  onClick={() => insertMention(m.username)}
+                  className="bg-dark-card border border-primary/40 text-primary text-sm px-3 py-1 rounded-full active:scale-95 transition-all"
+                >
+                  @{m.username}
+                </button>
+              ))}
+            </div>
+          )}
 
           <form onSubmit={handleSendChat} className="flex gap-2 pt-3 border-t border-dark-border">
             <button
@@ -438,10 +491,11 @@ export default function LeagueDetailPage() {
               {sendingChat ? '...' : 'שלח'}
             </button>
             <input
+              ref={chatInputRef}
               type="text"
               value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              placeholder="כתוב הודעה..."
+              onChange={handleChatInput}
+              placeholder="כתוב הודעה... (@ לתיוג)"
               maxLength={300}
               className="flex-1 bg-dark-card border border-dark-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-primary focus:outline-none text-right"
             />
