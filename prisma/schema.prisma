@@ -20,6 +20,7 @@ model User {
   minute90Stock     Int                @default(0)
   splitStock        Int                @default(0)
   interests         String[]           @default([])
+  avatar            String             @default("⚽")
   leagueMembers     LeagueMember[]
   predictions       Prediction[]
   createdLeagues    League[]

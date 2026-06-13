@@ -45,7 +45,7 @@ export async function GET(
 
   const messages = await db.message.findMany({
     where: { leagueId: params.id },
-    include: { user: { select: { id: true, username: true } } },
+    include: { user: { select: { id: true, username: true, avatar: true } } },
     orderBy: { createdAt: 'asc' },
     take: 100,
   })

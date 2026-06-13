@@ -3,11 +3,21 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { registerPush } from '@/components/push-register'
 
+const AVATARS = ['⚽','🏆','🦁','🐯','🦅','🐲','🔥','⚡','👑','💎','🦸','🦈','🤖','👻','🐼','🐻','🦊','🐺','🎯','🌟','🎭','🤴','🏴‍☠️','🦄','💫']
+
+const USER_COLORS = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff9f43','#a29bfe','#fd79a8','#00cec9','#e17055','#55efc4','#74b9ff','#fdcb6e']
+
+function getUserColor(userId: string): string {
+  let hash = 0
+  for (let i = 0; i < userId.length; i++) { hash = userId.charCodeAt(i) + ((hash << 5) - hash); hash |= 0 }
+  return USER_COLORS[Math.abs(hash) % USER_COLORS.length]
+}
+
 interface Message {
   id: string
   content: string
   createdAt: string
-  user: { id: string; username: string }
+  user: { id: string; username: string; avatar: string }
 }
 
 interface LeagueChat {
@@ -33,6 +43,8 @@ export default function ChatPage() {
   const [notifError, setNotifError] = useState<string | null>(null)
   const [loadingLeagues, setLoadingLeagues] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [myAvatar, setMyAvatar] = useState('⚽')
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -98,7 +110,14 @@ export default function ChatPage() {
         setCurrentUserId(d.currentUserId ?? null)
       })
       .catch(() => setLoadingLeagues(false))
+    fetch('/api/auth/me').then(r => r.json()).then(d => { if (d.data?.avatar) setMyAvatar(d.data.avatar) }).catch(() => {})
   }, [])
+
+  const saveAvatar = async (emoji: string) => {
+    setMyAvatar(emoji)
+    setShowAvatarPicker(false)
+    await fetch('/api/user/avatar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar: emoji }) })
+  }
 
   useEffect(() => {
     if (!selectedLeagueId) return
@@ -222,29 +241,55 @@ export default function ChatPage() {
             <h1 className="text-white font-bold text-lg flex-1">{leagues[0]?.name}</h1>
           )}
 
-          {notifStatus === 'ios-browser' && (
-            <span className="flex-shrink-0 mr-2 text-[10px] text-gray-400 text-right leading-tight max-w-[120px]">הוסף למסך הבית לקבלת התראות</span>
-          )}
-          {notifStatus === 'denied' && (
-            <span className="flex-shrink-0 mr-2 text-xs text-gray-500">🔕 חסום</span>
-          )}
-          {(notifStatus === 'unknown' || notifStatus === 'granted' || notifStatus === 'loading' || notifStatus === 'error') && (
+          <div className="flex items-center gap-2 flex-shrink-0 mr-2">
+            {/* Avatar picker button */}
             <button
-              onClick={enableNotifications}
-              disabled={notifStatus === 'loading'}
-              className={`flex-shrink-0 mr-2 text-xs px-3 py-1.5 rounded-full font-bold transition-all active:scale-95 disabled:opacity-50 ${
-                notifStatus === 'granted' ? 'bg-[#2a3942] text-[#00a884]' : 'bg-[#00a884] text-white'
-              }`}
+              onClick={() => setShowAvatarPicker(p => !p)}
+              className="text-2xl w-9 h-9 rounded-full bg-[#2a3942] flex items-center justify-center active:scale-90 transition-all"
+              title="שנה אייקון"
             >
-              {notifStatus === 'loading' ? '...' : notifStatus === 'granted' ? '🔔 פעיל' : '🔔 הפעל התראות'}
+              {myAvatar}
             </button>
-          )}
+
+            {notifStatus === 'ios-browser' && (
+              <span className="text-[10px] text-gray-400 text-right leading-tight max-w-[90px]">הוסף למסך הבית לקבלת התראות</span>
+            )}
+            {notifStatus === 'denied' && (
+              <span className="text-xs text-gray-500">🔕</span>
+            )}
+            {(notifStatus === 'unknown' || notifStatus === 'granted' || notifStatus === 'loading' || notifStatus === 'error') && (
+              <button
+                onClick={enableNotifications}
+                disabled={notifStatus === 'loading'}
+                className={`text-xs px-3 py-1.5 rounded-full font-bold transition-all active:scale-95 disabled:opacity-50 ${
+                  notifStatus === 'granted' ? 'bg-[#2a3942] text-[#00a884]' : 'bg-[#00a884] text-white'
+                }`}
+              >
+                {notifStatus === 'loading' ? '...' : notifStatus === 'granted' ? '🔔' : '🔔 הפעל'}
+              </button>
+            )}
+          </div>
           {notifError && (
             <span className="absolute top-full right-0 mt-1 text-[10px] text-red-400 bg-[#0b141a] px-2 py-1 rounded max-w-[200px] text-right z-10">
               {notifError}
             </span>
           )}
         </div>
+
+        {/* Avatar picker panel */}
+        {showAvatarPicker && (
+          <div className="bg-[#2a3942] rounded-2xl p-3 grid grid-cols-5 gap-2 mt-1">
+            {AVATARS.map(emoji => (
+              <button
+                key={emoji}
+                onClick={() => saveAvatar(emoji)}
+                className={`text-2xl w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90 ${myAvatar === emoji ? 'bg-[#00a884]' : 'hover:bg-[#3d4a52]'}`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Messages area */}
@@ -263,18 +308,29 @@ export default function ChatPage() {
         {messages.map((msg, i) => {
           const isMe = msg.user.id === currentUserId
           const prevMsg = messages[i - 1]
-          const showName = !isMe && prevMsg?.user.id !== msg.user.id
+          const sameAuthor = prevMsg?.user.id === msg.user.id
+          const showAvatar = !isMe && !sameAuthor
+          const showName = !isMe && !sameAuthor
+          const userColor = getUserColor(msg.user.id)
 
           return (
-            <div key={msg.id} className={`flex w-full ${isMe ? 'justify-start' : 'justify-end'}`}>
-              <div className={`max-w-[78%] min-w-0 ${isMe ? 'items-start' : 'items-end'} flex flex-col`}>
+            <div key={msg.id} className={`flex w-full items-end gap-2 ${isMe ? 'justify-start' : 'justify-end'}`}>
+              {/* Avatar for other users */}
+              {!isMe && (
+                <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-base">
+                  {showAvatar ? msg.user.avatar || '⚽' : ''}
+                </div>
+              )}
+              <div className={`max-w-[75%] min-w-0 ${isMe ? 'items-start' : 'items-end'} flex flex-col`}>
                 <div className={`relative px-3 pt-1.5 pb-5 rounded-2xl text-sm leading-relaxed min-w-[80px] ${
                   isMe
                     ? 'bg-[#1f2c34] text-white rounded-tr-sm'
                     : 'bg-[#005c4b] text-white rounded-tl-sm'
                 }`}>
                   {showName && (
-                    <span className="block text-xs font-semibold text-[#00a884] mb-0.5">{msg.user.username}</span>
+                    <span className="block text-xs font-semibold mb-0.5" style={{ color: userColor }}>
+                      {msg.user.username}
+                    </span>
                   )}
                   <span>
                     {msg.content.split(/(@\w+)/g).map((part, j) =>
