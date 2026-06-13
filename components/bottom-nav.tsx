@@ -31,7 +31,7 @@ export function BottomNav() {
   const navItems = [
     { href: '/shop', label: 'מרקט', icon: '/icons/market.png' as string | null },
     { href: '/leagues', label: 'ליגות', icon: '/icons/trophy.png' as string | null },
-    { href: '/chat', label: 'צ\'אט', icon: null },
+    { href: '/chat', label: 'צ\'אט', icon: '/icons/chat.png' as string | null },
     { href: '/matches', label: 'ניחושים', icon: '/icons/money.png' as string | null },
     { href: '/', label: 'בית', icon: '/icons/home.png' as string | null },
   ]
@@ -43,7 +43,6 @@ export function BottomNav() {
           {navItems.map((item) => {
             const active = isActive(item.href)
             const isShop = item.href === '/shop'
-            const isChat = item.href === '/chat'
             return (
               <Link
                 key={item.href}
@@ -51,18 +50,12 @@ export function BottomNav() {
                 className="flex flex-col items-center gap-1"
               >
                 <div className="relative w-14 h-14 flex items-center justify-center">
-                  {isChat ? (
-                    <span className={clsx('text-3xl transition-all', active ? 'opacity-100' : 'opacity-40')}>
-                      💬
-                    </span>
-                  ) : (
-                    <div
-                      style={{ mixBlendMode: 'lighten' }}
-                      className={clsx('relative', isShop ? 'w-9 h-9' : 'w-14 h-14', !active && 'opacity-40')}
-                    >
-                      <Image src={item.icon!} alt={item.label} fill className="object-contain" />
-                    </div>
-                  )}
+                  <div
+                    style={{ mixBlendMode: 'lighten' }}
+                    className={clsx('relative', isShop ? 'w-9 h-9' : 'w-14 h-14', !active && 'opacity-40')}
+                  >
+                    <Image src={item.icon!} alt={item.label} fill className="object-contain" />
+                  </div>
                   {isShop && coins !== null && (
                     <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-[10px] font-black rounded-full px-1 min-w-[18px] text-center leading-[18px] z-10">
                       {coins}
