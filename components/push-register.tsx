@@ -8,7 +8,16 @@ function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
   const rawData = atob(base64)
-  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)))
+  const arr = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; i++) arr[i] = rawData.charCodeAt(i)
+  return arr
+}
+
+function uint8ToBase64(buf: ArrayBuffer) {
+  const arr = new Uint8Array(buf)
+  let str = ''
+  for (let i = 0; i < arr.length; i++) str += String.fromCharCode(arr[i])
+  return btoa(str)
 }
 
 export function PushRegister() {
@@ -27,7 +36,7 @@ export function PushRegister() {
           await fetch('/api/push/subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ endpoint: existing.endpoint, keys: { p256dh: btoa(String.fromCharCode(...new Uint8Array(existing.getKey('p256dh')!))), auth: btoa(String.fromCharCode(...new Uint8Array(existing.getKey('auth')!))) } }),
+            body: JSON.stringify({ endpoint: existing.endpoint, keys: { p256dh: uint8ToBase64(existing.getKey('p256dh')!), auth: uint8ToBase64(existing.getKey('auth')!) } }),
           })
           return
         }
@@ -42,8 +51,8 @@ export function PushRegister() {
           applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
         })
 
-        const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')!)))
-        const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')!)))
+        const p256dh = uint8ToBase64(sub.getKey('p256dh')!)
+        const auth = uint8ToBase64(sub.getKey('auth')!)
 
         await fetch('/api/push/subscribe', {
           method: 'POST',
