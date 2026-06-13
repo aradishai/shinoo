@@ -190,7 +190,7 @@ export default function MatchDetailPage() {
   const matchTopScorers = topScorers.filter((s) => s.goals === maxGoals)
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 overflow-x-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Link href="/matches" className="text-sm font-medium text-gray-300 bg-dark-card border border-dark-border px-3 py-1.5 rounded-xl hover:border-primary/40 hover:text-white transition-all">בית</Link>
