@@ -110,37 +110,12 @@ export async function GET() {
       },
     })
 
-    // Remove June 2026+ matches without providerMatchId (unlinked cleanup matches)
+    // Remove unlinked matches (no providerMatchId) from June 2026+
     await db.match.deleteMany({
       where: { kickoffAt: { gte: new Date('2026-06-01') }, providerMatchId: null },
     })
 
-    // SQL dedup: remove matches where same two teams play on the same UTC date,
-    // keeping the one with a providerMatchId (or the newest if both have one)
-    await db.$executeRawUnsafe(`
-      DELETE FROM "Match"
-      WHERE id IN (
-        SELECT id FROM (
-          SELECT
-            m.id,
-            ROW_NUMBER() OVER (
-              PARTITION BY
-                LEAST(ht.code, at.code),
-                GREATEST(ht.code, at.code),
-                DATE(m."kickoffAt")
-              ORDER BY
-                (m."providerMatchId" IS NOT NULL) DESC,
-                m.id DESC
-            ) AS rn
-          FROM "Match" m
-          JOIN "Team" ht ON ht.id = m."homeTeamId"
-          JOIN "Team" at ON at.id = m."awayTeamId"
-          WHERE m."tournamentId" = '${tournament.id}'
-        ) sub
-        WHERE rn > 1
-      )
-    `)
-
+    const apiProviderIds: string[] = []
     let inserted = 0
     let deduped = 0
 
@@ -186,14 +161,15 @@ export async function GET() {
       const idealLockAt = new Date(kickoffAt.getTime() - 60 * 60_000)
       const lockAt = idealLockAt < new Date() ? kickoffAt : idealLockAt
       const providerMatchId = `fd-${m.id}`
+      apiProviderIds.push(providerMatchId)
 
-      // Dedup: delete any match involving these two teams on the same day, regardless of home/away order
-      const kickoffFrom = new Date(kickoffAt.getTime() - 24 * 60 * 60_000)
-      const kickoffTo = new Date(kickoffAt.getTime() + 24 * 60 * 60_000)
+      // In-loop dedup: delete any match with same two teams (any order) within 48h
+      const from = new Date(kickoffAt.getTime() - 48 * 60 * 60_000)
+      const to = new Date(kickoffAt.getTime() + 48 * 60 * 60_000)
       const dups = await db.match.findMany({
         where: {
           tournamentId: tournament.id,
-          kickoffAt: { gte: kickoffFrom, lte: kickoffTo },
+          kickoffAt: { gte: from, lte: to },
           NOT: { providerMatchId },
           OR: [
             { homeTeamId: homeTeam.id, awayTeamId: awayTeam.id },
@@ -223,6 +199,27 @@ export async function GET() {
         },
       })
       inserted++
+    }
+
+    // Final cleanup: after all upserts, delete any WC match that is NOT from the
+    // current API response but shares teams+date with one that IS.
+    // This catches duplicates that slipped through the in-loop dedup.
+    if (apiProviderIds.length > 0) {
+      const idList = apiProviderIds.map(id => `'${id}'`).join(',')
+      await db.$executeRawUnsafe(`
+        DELETE FROM "Match" AS stale
+        USING "Match" AS valid
+        WHERE valid."tournamentId" = '${tournament.id}'
+          AND valid."providerMatchId" IN (${idList})
+          AND stale."tournamentId" = '${tournament.id}'
+          AND (stale."providerMatchId" IS NULL OR stale."providerMatchId" NOT IN (${idList}))
+          AND stale.id <> valid.id
+          AND ABS(EXTRACT(EPOCH FROM (stale."kickoffAt" - valid."kickoffAt"))) < 172800
+          AND (
+            (stale."homeTeamId" = valid."homeTeamId" AND stale."awayTeamId" = valid."awayTeamId")
+            OR (stale."homeTeamId" = valid."awayTeamId" AND stale."awayTeamId" = valid."homeTeamId")
+          )
+      `)
     }
 
     return NextResponse.json({
