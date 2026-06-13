@@ -7,6 +7,8 @@ export const dynamic = 'force-dynamic'
 const FD_API = 'https://api.football-data.org/v4'
 const FD_KEY = process.env.FOOTBALL_DATA_API_KEY!
 
+const NORM: Record<string, string> = { ESP: 'ESP-NT', KSA: 'SAU', URY: 'URU', CUR: 'CUW', HTI: 'HAI' }
+
 const HEBREW_NAMES: Record<string, string> = {
   ARG: 'ארגנטינה',
   BRA: 'ברזיל',
@@ -76,6 +78,12 @@ const HEBREW_NAMES: Record<string, string> = {
   HON: 'הונדורס',
   JAM: 'ג\'מייקה',
   TRI: 'טרינידד וטובגו',
+  HTI: 'האיטי',
+  CUW: 'קורסאו',
+  SLV: 'אל סלבדור',
+  CPV: 'כף ורדה',
+  NZL: 'ניו זילנד',
+  COD: 'קונגו',
 }
 
 export async function GET() {
@@ -102,24 +110,29 @@ export async function GET() {
       },
     })
 
-    // Remove all June 2026+ matches without providerMatchId (created by sync before proper import)
+    // Remove June 2026+ matches without providerMatchId (unlinked cleanup matches)
     await db.match.deleteMany({
       where: { kickoffAt: { gte: new Date('2026-06-01') }, providerMatchId: null },
     })
 
     let inserted = 0
+    let deduped = 0
+
     for (const m of matches) {
       const homeData = m.homeTeam
       const awayData = m.awayTeam
       if (!homeData?.tla || !awayData?.tla) continue
 
-      const NORM: Record<string, string> = { ESP: 'ESP-NT', KSA: 'SAU', URY: 'URU', CUR: 'CUW', HTI: 'HAI' }
       const homeCode = NORM[homeData.tla] ?? homeData.tla
       const awayCode = NORM[awayData.tla] ?? awayData.tla
 
       const homeTeam = await db.team.upsert({
         where: { code: homeCode },
-        update: { nameEn: homeData.shortName || homeData.name, nameHe: HEBREW_NAMES[homeData.tla] || homeData.shortName || homeData.name, flagUrl: homeData.crest },
+        update: {
+          nameEn: homeData.shortName || homeData.name,
+          nameHe: HEBREW_NAMES[homeData.tla] || homeData.shortName || homeData.name,
+          flagUrl: homeData.crest,
+        },
         create: {
           nameEn: homeData.shortName || homeData.name,
           nameHe: HEBREW_NAMES[homeData.tla] || homeData.shortName || homeData.name,
@@ -130,7 +143,11 @@ export async function GET() {
 
       const awayTeam = await db.team.upsert({
         where: { code: awayCode },
-        update: { nameEn: awayData.shortName || awayData.name, nameHe: HEBREW_NAMES[awayData.tla] || awayData.shortName || awayData.name, flagUrl: awayData.crest },
+        update: {
+          nameEn: awayData.shortName || awayData.name,
+          nameHe: HEBREW_NAMES[awayData.tla] || awayData.shortName || awayData.name,
+          flagUrl: awayData.crest,
+        },
         create: {
           nameEn: awayData.shortName || awayData.name,
           nameHe: HEBREW_NAMES[awayData.tla] || awayData.shortName || awayData.name,
@@ -142,9 +159,26 @@ export async function GET() {
       const kickoffAt = new Date(m.utcDate)
       const idealLockAt = new Date(kickoffAt.getTime() - 60 * 60_000)
       const lockAt = idealLockAt < new Date() ? kickoffAt : idealLockAt
+      const providerMatchId = `fd-${m.id}`
+
+      // Dedup: delete any match with same teams + time window but a different providerMatchId
+      const kickoffFrom = new Date(kickoffAt.getTime() - 2 * 60 * 60_000)
+      const kickoffTo = new Date(kickoffAt.getTime() + 2 * 60 * 60_000)
+      const dups = await db.match.findMany({
+        where: {
+          homeTeamId: homeTeam.id,
+          awayTeamId: awayTeam.id,
+          kickoffAt: { gte: kickoffFrom, lte: kickoffTo },
+          NOT: { providerMatchId },
+        },
+      })
+      for (const dup of dups) {
+        await db.match.delete({ where: { id: dup.id } })
+        deduped++
+      }
 
       await db.match.upsert({
-        where: { providerMatchId: `fd-${m.id}` },
+        where: { providerMatchId },
         update: { status: 'SCHEDULED', kickoffAt, lockAt },
         create: {
           tournamentId: tournament.id,
@@ -153,14 +187,21 @@ export async function GET() {
           kickoffAt,
           lockAt,
           status: 'SCHEDULED',
-          providerMatchId: `fd-${m.id}`,
-          round: m.stage === 'GROUP_STAGE' ? `בית ${m.group?.replace('GROUP_', '') || ''}` : m.stage,
+          providerMatchId,
+          round: m.stage === 'GROUP_STAGE'
+            ? `בית ${m.group?.replace('GROUP_', '') || ''}`
+            : m.stage,
         },
       })
       inserted++
     }
 
-    return NextResponse.json({ success: true, inserted, tournament: tournament.name })
+    return NextResponse.json({
+      success: true,
+      inserted,
+      deduped,
+      tournament: tournament.name,
+    })
   } catch (error: any) {
     console.error('WC migration error:', error?.response?.data || error.message)
     return NextResponse.json({ error: error.message }, { status: 500 })
