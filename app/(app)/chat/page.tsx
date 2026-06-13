@@ -164,7 +164,11 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col overflow-x-hidden" style={{ height: 'calc(100dvh - 80px)' }} dir="rtl">
+    <div
+      className="fixed inset-x-0 top-0 flex flex-col overflow-hidden"
+      style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+      dir="rtl"
+    >
 
       {/* WhatsApp-style header */}
       <div className="flex-shrink-0 bg-[#1f2c34] px-4 pt-5 pb-3">
