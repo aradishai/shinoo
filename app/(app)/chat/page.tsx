@@ -20,6 +20,22 @@ interface Member {
   username: string
 }
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = atob(base64)
+  const arr = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; i++) arr[i] = rawData.charCodeAt(i)
+  return arr
+}
+
+function uint8ToBase64(buf: ArrayBuffer) {
+  const arr = new Uint8Array(buf)
+  let str = ''
+  for (let i = 0; i < arr.length; i++) str += String.fromCharCode(arr[i])
+  return btoa(str)
+}
+
 export default function ChatPage() {
   const [leagues, setLeagues] = useState<LeagueChat[]>([])
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null)
@@ -28,12 +44,44 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
+  const [notifStatus, setNotifStatus] = useState<'unknown' | 'granted' | 'denied' | 'loading'>('unknown')
   const [loadingLeagues, setLoadingLeagues] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    if (typeof Notification !== 'undefined') {
+      setNotifStatus(Notification.permission === 'granted' ? 'granted' : Notification.permission === 'denied' ? 'denied' : 'unknown')
+    }
+  }, [])
+
+  const enableNotifications = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
+    setNotifStatus('loading')
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js')
+      await navigator.serviceWorker.ready
+      const perm = await Notification.requestPermission()
+      if (perm !== 'granted') { setNotifStatus('denied'); return }
+
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidKey) { setNotifStatus('granted'); return }
+
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      })
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: sub.endpoint, keys: { p256dh: uint8ToBase64(sub.getKey('p256dh')!), auth: uint8ToBase64(sub.getKey('auth')!) } }),
+      })
+      setNotifStatus('granted')
+    } catch { setNotifStatus('unknown') }
+  }
 
   useEffect(() => {
     fetch('/api/chat/leagues')
@@ -141,25 +189,37 @@ export default function ChatPage() {
 
       {/* WhatsApp-style header */}
       <div className="flex-shrink-0 bg-[#1f2c34] px-4 pt-5 pb-3">
-        {leagues.length > 1 ? (
-          <div className="flex gap-2 overflow-x-auto">
-            {leagues.map(l => (
-              <button
-                key={l.id}
-                onClick={() => { setSelectedLeagueId(l.id); setMessages([]) }}
-                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-bold transition-all active:scale-95 ${
-                  selectedLeagueId === l.id
-                    ? 'bg-[#00a884] text-white'
-                    : 'bg-[#2a3942] text-gray-400'
-                }`}
-              >
-                {l.name}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <h1 className="text-white font-bold text-lg">{leagues[0]?.name}</h1>
-        )}
+        <div className="flex items-center justify-between mb-2">
+          {leagues.length > 1 ? (
+            <div className="flex gap-2 overflow-x-auto flex-1">
+              {leagues.map(l => (
+                <button
+                  key={l.id}
+                  onClick={() => { setSelectedLeagueId(l.id); setMessages([]) }}
+                  className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-bold transition-all active:scale-95 ${
+                    selectedLeagueId === l.id
+                      ? 'bg-[#00a884] text-white'
+                      : 'bg-[#2a3942] text-gray-400'
+                  }`}
+                >
+                  {l.name}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <h1 className="text-white font-bold text-lg flex-1">{leagues[0]?.name}</h1>
+          )}
+
+          {notifStatus !== 'granted' && (
+            <button
+              onClick={enableNotifications}
+              disabled={notifStatus === 'loading' || notifStatus === 'denied'}
+              className="flex-shrink-0 mr-2 text-xs px-3 py-1.5 rounded-full font-bold transition-all active:scale-95 bg-[#00a884] text-white disabled:opacity-50"
+            >
+              {notifStatus === 'loading' ? '...' : notifStatus === 'denied' ? '🔕 חסום' : '🔔 הפעל התראות'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages area */}
