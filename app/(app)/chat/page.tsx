@@ -200,7 +200,7 @@ export default function ChatPage() {
     >
 
       {/* WhatsApp-style header */}
-      <div className="flex-shrink-0 bg-[#1f2c34] px-4 pt-5 pb-3">
+      <div className="flex-shrink-0 bg-[#1f2c34] px-4 pb-3" style={{ paddingTop: 'max(20px, env(safe-area-inset-top, 20px))' }}>
         <div className="flex items-center justify-between mb-2 relative">
           {leagues.length > 1 ? (
             <div className="flex gap-2 overflow-x-auto flex-1">
