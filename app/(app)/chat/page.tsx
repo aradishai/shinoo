@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { registerPush } from '@/components/push-register'
 
-const AVATARS = ['⚽','🏆','🦁','🐯','🦅','🐲','🔥','⚡','👑','💎','🦸','🦈','🤖','👻','🐼','🐻','🦊','🐺','🎯','🌟','🎭','🤴','🏴‍☠️','🦄','💫']
-
 const USER_COLORS = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff9f43','#a29bfe','#fd79a8','#00cec9','#e17055','#55efc4','#74b9ff','#fdcb6e']
 
 function getUserColor(userId: string): string {
@@ -43,8 +41,6 @@ export default function ChatPage() {
   const [notifError, setNotifError] = useState<string | null>(null)
   const [loadingLeagues, setLoadingLeagues] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
-  const [myAvatar, setMyAvatar] = useState('⚽')
-  const [showAvatarPicker, setShowAvatarPicker] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -110,14 +106,7 @@ export default function ChatPage() {
         setCurrentUserId(d.currentUserId ?? null)
       })
       .catch(() => setLoadingLeagues(false))
-    fetch('/api/auth/me').then(r => r.json()).then(d => { if (d.data?.avatar) setMyAvatar(d.data.avatar) }).catch(() => {})
   }, [])
-
-  const saveAvatar = async (emoji: string) => {
-    setMyAvatar(emoji)
-    setShowAvatarPicker(false)
-    await fetch('/api/user/avatar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar: emoji }) })
-  }
 
   useEffect(() => {
     if (!selectedLeagueId) return
@@ -243,14 +232,6 @@ export default function ChatPage() {
 
           <div className="flex items-center gap-2 flex-shrink-0 mr-2">
             {/* Avatar picker button */}
-            <button
-              onClick={() => setShowAvatarPicker(p => !p)}
-              className="text-2xl w-9 h-9 rounded-full bg-[#2a3942] flex items-center justify-center active:scale-90 transition-all"
-              title="שנה אייקון"
-            >
-              {myAvatar}
-            </button>
-
             {notifStatus === 'ios-browser' && (
               <span className="text-[10px] text-gray-400 text-right leading-tight max-w-[90px]">הוסף למסך הבית לקבלת התראות</span>
             )}
@@ -275,21 +256,6 @@ export default function ChatPage() {
             </span>
           )}
         </div>
-
-        {/* Avatar picker panel */}
-        {showAvatarPicker && (
-          <div className="bg-[#2a3942] rounded-2xl p-3 grid grid-cols-5 gap-2 mt-1">
-            {AVATARS.map(emoji => (
-              <button
-                key={emoji}
-                onClick={() => saveAvatar(emoji)}
-                className={`text-2xl w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90 ${myAvatar === emoji ? 'bg-[#00a884]' : 'hover:bg-[#3d4a52]'}`}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Messages area */}
@@ -308,20 +274,12 @@ export default function ChatPage() {
         {messages.map((msg, i) => {
           const isMe = msg.user.id === currentUserId
           const prevMsg = messages[i - 1]
-          const sameAuthor = prevMsg?.user.id === msg.user.id
-          const showAvatar = !isMe && !sameAuthor
-          const showName = !isMe && !sameAuthor
+          const showName = !isMe && prevMsg?.user.id !== msg.user.id
           const userColor = getUserColor(msg.user.id)
 
           return (
-            <div key={msg.id} className={`flex w-full items-end gap-2 ${isMe ? 'justify-start' : 'justify-end'}`}>
-              {/* Avatar for other users */}
-              {!isMe && (
-                <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-base">
-                  {showAvatar ? msg.user.avatar || '⚽' : ''}
-                </div>
-              )}
-              <div className={`max-w-[75%] min-w-0 ${isMe ? 'items-start' : 'items-end'} flex flex-col`}>
+            <div key={msg.id} className={`flex w-full ${isMe ? 'justify-start' : 'justify-end'}`}>
+              <div className={`max-w-[78%] min-w-0 ${isMe ? 'items-start' : 'items-end'} flex flex-col`}>
                 <div className={`relative px-3 pt-1.5 pb-5 rounded-2xl text-sm leading-relaxed min-w-[80px] ${
                   isMe
                     ? 'bg-[#1f2c34] text-white rounded-tr-sm'
