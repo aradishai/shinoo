@@ -43,16 +43,21 @@ export function BottomNav() {
           {navItems.map((item) => {
             const active = isActive(item.href)
             const isShop = item.href === '/shop'
+            const isChat = item.href === '/chat'
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className="flex flex-col items-center gap-1"
               >
-                <div className="relative w-14 h-14 flex items-center justify-center">
+                <div className={clsx('relative flex items-center justify-center', isChat ? 'w-[168px] h-[168px] -mt-16' : 'w-14 h-14')}>
                   <div
-                    style={{ mixBlendMode: 'lighten' }}
-                    className={clsx('relative', isShop ? 'w-9 h-9' : 'w-14 h-14', !active && 'opacity-40')}
+                    style={{ mixBlendMode: isChat ? undefined : 'lighten' }}
+                    className={clsx(
+                      'relative',
+                      isChat ? 'w-[168px] h-[168px]' : isShop ? 'w-9 h-9' : 'w-14 h-14',
+                      !active && 'opacity-40'
+                    )}
                   >
                     <Image src={item.icon!} alt={item.label} fill className="object-contain" />
                   </div>
