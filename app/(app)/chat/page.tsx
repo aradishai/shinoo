@@ -35,7 +35,6 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Load leagues + current user once
   useEffect(() => {
     fetch('/api/chat/leagues')
       .then(r => r.json())
@@ -44,13 +43,11 @@ export default function ChatPage() {
         setLeagues(list)
         setLoadingLeagues(false)
         if (list.length === 1) setSelectedLeagueId(list[0].id)
-        const uid = d.currentUserId ?? null
-        setCurrentUserId(uid)
+        setCurrentUserId(d.currentUserId ?? null)
       })
       .catch(() => setLoadingLeagues(false))
   }, [])
 
-  // Load members when league selected
   useEffect(() => {
     if (!selectedLeagueId) return
     fetch(`/api/leagues/${selectedLeagueId}/members`)
@@ -73,17 +70,13 @@ export default function ChatPage() {
       .catch(() => {})
   }, [selectedLeagueId])
 
-  // Poll every 5s
   useEffect(() => {
     if (!selectedLeagueId) return
     fetchMessages()
     pollRef.current = setInterval(fetchMessages, 5000)
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current)
-    }
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
   }, [selectedLeagueId, fetchMessages])
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -94,10 +87,7 @@ export default function ChatPage() {
     const atIdx = val.lastIndexOf('@')
     if (atIdx !== -1) {
       const query = val.slice(atIdx + 1)
-      if (query.length >= 0 && !query.includes(' ')) {
-        setMentionQuery(query)
-        return
-      }
+      if (!query.includes(' ')) { setMentionQuery(query); return }
     }
     setMentionQuery(null)
   }
@@ -123,15 +113,11 @@ export default function ChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: input.trim() }),
       })
-      if (res.ok) {
-        setInput('')
-        setMentionQuery(null)
-        await fetchMessages()
-      }
-    } finally {
-      setSending(false)
-    }
+      if (res.ok) { setInput(''); setMentionQuery(null); await fetchMessages() }
+    } finally { setSending(false) }
   }
+
+  const selectedLeague = leagues.find(l => l.id === selectedLeagueId)
 
   if (loadingLeagues) {
     return (
@@ -152,117 +138,113 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)]" dir="rtl">
-      {/* Header */}
-      <div className="px-4 pt-6 pb-3 flex-shrink-0">
-        <h1 className="text-white font-black text-2xl mb-3">צ&apos;אט</h1>
 
-        {/* League selector (only shown if multiple leagues) */}
-        {leagues.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-1">
+      {/* WhatsApp-style header */}
+      <div className="flex-shrink-0 bg-[#1f2c34] px-4 pt-5 pb-3">
+        {leagues.length > 1 ? (
+          <div className="flex gap-2 overflow-x-auto">
             {leagues.map(l => (
               <button
                 key={l.id}
                 onClick={() => { setSelectedLeagueId(l.id); setMessages([]) }}
-                className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 ${
+                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-bold transition-all active:scale-95 ${
                   selectedLeagueId === l.id
-                    ? 'bg-primary text-black'
-                    : 'bg-dark-card border border-dark-border text-gray-400'
+                    ? 'bg-[#00a884] text-white'
+                    : 'bg-[#2a3942] text-gray-400'
                 }`}
               >
                 {l.name}
               </button>
             ))}
           </div>
-        )}
-
-        {leagues.length === 1 && (
-          <p className="text-gray-400 text-sm">{leagues[0].name}</p>
+        ) : (
+          <h1 className="text-white font-bold text-lg">{leagues[0]?.name}</h1>
         )}
       </div>
 
-      {/* Messages */}
-      {!selectedLeagueId ? (
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-gray-500 text-sm">בחר ליגה כדי לפתוח את הצ&apos;אט</p>
-        </div>
-      ) : (
-        <>
-          <div className="flex-1 overflow-y-auto px-4 space-y-2 pb-2">
-            {messages.length === 0 && (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center text-gray-500">
-                  <div className="text-4xl mb-3">💬</div>
-                  <p>אין הודעות עדיין - היה הראשון!</p>
+      {/* Messages area */}
+      <div
+        className="flex-1 overflow-y-auto px-3 py-3 space-y-1"
+        style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #ffffff08 1px, transparent 0)', backgroundSize: '24px 24px', backgroundColor: '#0b141a' }}
+      >
+        {messages.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <div className="bg-[#1f2c34] rounded-xl px-4 py-2 text-gray-400 text-sm">
+              אין הודעות עדיין
+            </div>
+          </div>
+        )}
+
+        {messages.map((msg, i) => {
+          const isMe = msg.user.id === currentUserId
+          const prevMsg = messages[i - 1]
+          const showName = !isMe && prevMsg?.user.id !== msg.user.id
+
+          return (
+            <div key={msg.id} className={`flex ${isMe ? 'justify-start' : 'justify-end'}`}>
+              <div className={`max-w-[78%] ${isMe ? 'items-start' : 'items-end'} flex flex-col`}>
+                <div className={`relative px-3 pt-1.5 pb-5 rounded-2xl text-sm leading-relaxed min-w-[80px] ${
+                  isMe
+                    ? 'bg-[#1f2c34] text-white rounded-tr-sm'
+                    : 'bg-[#005c4b] text-white rounded-tl-sm'
+                }`}>
+                  {showName && (
+                    <span className="block text-xs font-semibold text-[#00a884] mb-0.5">{msg.user.username}</span>
+                  )}
+                  <span>
+                    {msg.content.split(/(@\w+)/g).map((part, j) =>
+                      part.startsWith('@')
+                        ? <span key={j} className="font-bold text-[#53bdeb]">{part}</span>
+                        : part
+                    )}
+                  </span>
+                  <span className="absolute bottom-1 left-2 text-[10px] text-white/40">
+                    {new Date(msg.createdAt).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
               </div>
-            )}
-
-            {messages.map((msg) => {
-              const isMe = msg.user.id === currentUserId
-              return (
-                <div key={msg.id} className={`flex ${isMe ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`max-w-[75%] flex flex-col gap-0.5 ${isMe ? 'items-start' : 'items-end'}`}>
-                    {!isMe && (
-                      <span className="text-xs text-gray-500 px-1">{msg.user.username}</span>
-                    )}
-                    <div className={`px-3 py-2 rounded-2xl text-sm leading-relaxed ${
-                      isMe
-                        ? 'bg-primary text-black font-medium rounded-tr-sm'
-                        : 'bg-dark-card border border-dark-border text-white rounded-tl-sm'
-                    }`}>
-                      {msg.content.split(/(@\w+)/g).map((part, i) =>
-                        part.startsWith('@')
-                          ? <span key={i} className={`font-bold ${isMe ? 'text-black/70' : 'text-primary'}`}>{part}</span>
-                          : part
-                      )}
-                    </div>
-                    <span className="text-[10px] text-gray-600 px-1">
-                      {new Date(msg.createdAt).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
-            <div ref={bottomRef} />
-          </div>
-
-          {/* @mention suggestions */}
-          {mentionSuggestions.length > 0 && (
-            <div className="flex gap-2 px-4 pb-2 flex-wrap flex-shrink-0">
-              {mentionSuggestions.map(m => (
-                <button
-                  key={m.userId}
-                  type="button"
-                  onClick={() => insertMention(m.username)}
-                  className="bg-dark-card border border-primary/40 text-primary text-sm px-3 py-1 rounded-full active:scale-95 transition-all"
-                >
-                  @{m.username}
-                </button>
-              ))}
             </div>
-          )}
+          )
+        })}
+        <div ref={bottomRef} />
+      </div>
 
-          {/* Input */}
-          <form onSubmit={handleSend} className="flex gap-2 px-4 pb-4 pt-2 border-t border-dark-border flex-shrink-0">
+      {/* @mention suggestions */}
+      {mentionSuggestions.length > 0 && (
+        <div className="flex gap-2 px-3 py-2 bg-[#1f2c34] flex-wrap flex-shrink-0">
+          {mentionSuggestions.map(m => (
             <button
-              type="submit"
-              disabled={sending || !input.trim()}
-              className="bg-primary text-black font-black px-4 py-3 rounded-xl disabled:opacity-40 active:scale-95 transition-all flex-shrink-0"
+              key={m.userId}
+              type="button"
+              onClick={() => insertMention(m.username)}
+              className="bg-[#2a3942] text-[#00a884] text-sm px-3 py-1 rounded-full active:scale-95 transition-all"
             >
-              {sending ? '...' : 'שלח'}
+              @{m.username}
             </button>
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={handleInput}
-              placeholder="כתוב הודעה... (@ לתיוג)"
-              maxLength={300}
-              className="flex-1 bg-dark-card border border-dark-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-primary focus:outline-none text-right"
-            />
-          </form>
-        </>
+          ))}
+        </div>
       )}
+
+      {/* WhatsApp-style input bar */}
+      <form onSubmit={handleSend} className="flex items-center gap-2 px-3 py-2 bg-[#1f2c34] flex-shrink-0">
+        <button
+          type="submit"
+          disabled={sending || !input.trim()}
+          className="w-10 h-10 rounded-full bg-[#00a884] flex items-center justify-center disabled:opacity-40 active:scale-95 transition-all flex-shrink-0"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={handleInput}
+          maxLength={300}
+          className="flex-1 bg-[#2a3942] rounded-full px-4 py-2.5 text-white text-sm focus:outline-none text-right"
+        />
+      </form>
     </div>
   )
 }
