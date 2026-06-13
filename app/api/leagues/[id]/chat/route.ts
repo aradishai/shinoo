@@ -4,12 +4,31 @@ import webpush from 'web-push'
 
 export const dynamic = 'force-dynamic'
 
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    'mailto:aradishai10@gmail.com',
-    process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
-  )
+function initVapid() {
+  const pub = process.env.VAPID_PUBLIC_KEY?.trim()
+  const priv = process.env.VAPID_PRIVATE_KEY?.trim()
+  const subject = process.env.VAPID_SUBJECT?.trim() || 'mailto:aradishai10@gmail.com'
+  if (pub && priv) {
+    webpush.setVapidDetails(subject, pub, priv)
+    return true
+  }
+  return false
+}
+
+async function sendPush(endpoint: string, p256dh: string, auth: string, payload: object) {
+  try {
+    await webpush.sendNotification(
+      { endpoint, keys: { p256dh, auth } },
+      JSON.stringify(payload)
+    )
+  } catch (err: unknown) {
+    const status = (err as { statusCode?: number })?.statusCode
+    console.error(`webpush failed (${status}):`, String(err))
+    // Only remove subscription if push service says it's expired/invalid
+    if (status === 404 || status === 410) {
+      await db.pushSubscription.delete({ where: { endpoint } }).catch(() => {})
+    }
+  }
 }
 
 export async function GET(
@@ -55,30 +74,25 @@ export async function POST(
     include: { user: { select: { id: true, username: true } } },
   })
 
-  if (process.env.VAPID_PUBLIC_KEY) {
+  const vapidReady = initVapid()
+  if (vapidReady) {
     const league = await db.league.findUnique({ where: { id: params.id }, select: { name: true } })
     const mentions = [...content.matchAll(/@(\w+)/g)].map((m: RegExpMatchArray) => m[1].toLowerCase())
 
-    // Get all league members except sender, with their push subscriptions
     const allMembers = await db.leagueMember.findMany({
       where: { leagueId: params.id, userId: { not: userId } },
       include: { user: { include: { pushSubscriptions: true } } },
     })
 
-    for (const member of allMembers) {
-      const isMentioned = mentions.includes(member.user.username.toLowerCase())
+    for (const m of allMembers) {
+      const isMentioned = mentions.includes(m.user.username.toLowerCase())
       const title = isMentioned
         ? `${message.user.username} תייג אותך ב-${league?.name}`
         : `${league?.name} - הודעה חדשה`
       const body = `${isMentioned ? '' : message.user.username + ': '}${content.trim()}`
 
-      for (const sub of member.user.pushSubscriptions) {
-        webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          JSON.stringify({ title, body, url: `/chat` })
-        ).catch(() => {
-          db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {})
-        })
+      for (const sub of m.user.pushSubscriptions) {
+        sendPush(sub.endpoint, sub.p256dh, sub.auth, { title, body, url: '/chat' })
       }
     }
   }

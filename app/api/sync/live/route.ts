@@ -311,8 +311,12 @@ async function sendMatchReminders() {
       webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         JSON.stringify({ title, body, url: '/matches' })
-      ).catch(() => {
-        db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {})
+      ).catch((err: unknown) => {
+        const status = (err as { statusCode?: number })?.statusCode
+        console.error(`match reminder push failed (${status}):`, String(err))
+        if (status === 404 || status === 410) {
+          db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {})
+        }
       })
     }
 

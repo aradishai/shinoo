@@ -21,7 +21,8 @@ export function uint8ToBase64(buf: ArrayBuffer) {
 async function getVapidKey(): Promise<string | null> {
   try {
     const { key } = await fetch('/api/push/vapid-public-key').then(r => r.json())
-    return key?.trim() ?? null
+    // Remove all whitespace in case of copy-paste artifacts
+    return key ? String(key).replace(/\s/g, '') : null
   } catch { return null }
 }
 
@@ -56,14 +57,14 @@ export async function registerPush(): Promise<boolean> {
       if (perm !== 'granted') return false
     }
 
-    // Unsubscribe old only during explicit user action, to force fresh subscription
-    const existing = await reg.pushManager.getSubscription()
-    if (existing) await existing.unsubscribe()
-
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(key),
-    })
+    // Try to reuse existing subscription, only create new if none exists
+    let sub = await reg.pushManager.getSubscription()
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(key),
+      })
+    }
 
     await saveSubscription(sub)
     return true
