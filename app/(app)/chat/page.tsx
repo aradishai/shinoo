@@ -29,7 +29,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
-  const [notifStatus, setNotifStatus] = useState<'unknown' | 'granted' | 'denied' | 'loading'>('unknown')
+  const [notifStatus, setNotifStatus] = useState<'unknown' | 'granted' | 'denied' | 'loading' | 'ios-browser'>('unknown')
   const [loadingLeagues, setLoadingLeagues] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
@@ -38,11 +38,15 @@ export default function ChatPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
+    // Detect iOS Safari (not installed as PWA) - push not supported
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && (navigator as {standalone?: boolean}).standalone === true)
+    if (isIOS && !isPWA) { setNotifStatus('ios-browser'); return }
+
     if (typeof Notification === 'undefined') return
     const perm = Notification.permission
     if (perm === 'denied') { setNotifStatus('denied'); return }
     if (perm === 'granted') {
-      // Auto-register silently in case subscription was lost
       registerPush().then(ok => setNotifStatus(ok ? 'granted' : 'unknown'))
     }
   }, [])
@@ -160,7 +164,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)]" dir="rtl">
+    <div className="flex flex-col overflow-x-hidden" style={{ height: 'calc(100dvh - 80px)' }} dir="rtl">
 
       {/* WhatsApp-style header */}
       <div className="flex-shrink-0 bg-[#1f2c34] px-4 pt-5 pb-3">
@@ -185,7 +189,13 @@ export default function ChatPage() {
             <h1 className="text-white font-bold text-lg flex-1">{leagues[0]?.name}</h1>
           )}
 
-          {notifStatus !== 'denied' && (
+          {notifStatus === 'ios-browser' && (
+            <span className="flex-shrink-0 mr-2 text-[10px] text-gray-400 text-right leading-tight max-w-[120px]">הוסף למסך הבית לקבלת התראות</span>
+          )}
+          {notifStatus === 'denied' && (
+            <span className="flex-shrink-0 mr-2 text-xs text-gray-500">🔕 חסום</span>
+          )}
+          {(notifStatus === 'unknown' || notifStatus === 'granted' || notifStatus === 'loading') && (
             <button
               onClick={enableNotifications}
               disabled={notifStatus === 'loading'}
@@ -196,15 +206,12 @@ export default function ChatPage() {
               {notifStatus === 'loading' ? '...' : notifStatus === 'granted' ? '🔔 פעיל' : '🔔 הפעל התראות'}
             </button>
           )}
-          {notifStatus === 'denied' && (
-            <span className="flex-shrink-0 mr-2 text-xs text-gray-500">🔕 חסום בדפדפן</span>
-          )}
         </div>
       </div>
 
       {/* Messages area */}
       <div
-        className="flex-1 overflow-y-auto px-3 py-3 space-y-1"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-1"
         style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #ffffff08 1px, transparent 0)', backgroundSize: '24px 24px', backgroundColor: '#0b141a' }}
       >
         {messages.length === 0 && (
@@ -221,8 +228,8 @@ export default function ChatPage() {
           const showName = !isMe && prevMsg?.user.id !== msg.user.id
 
           return (
-            <div key={msg.id} className={`flex ${isMe ? 'justify-start' : 'justify-end'}`}>
-              <div className={`max-w-[78%] ${isMe ? 'items-start' : 'items-end'} flex flex-col`}>
+            <div key={msg.id} className={`flex w-full ${isMe ? 'justify-start' : 'justify-end'}`}>
+              <div className={`max-w-[78%] min-w-0 ${isMe ? 'items-start' : 'items-end'} flex flex-col`}>
                 <div className={`relative px-3 pt-1.5 pb-5 rounded-2xl text-sm leading-relaxed min-w-[80px] ${
                   isMe
                     ? 'bg-[#1f2c34] text-white rounded-tr-sm'
@@ -266,7 +273,7 @@ export default function ChatPage() {
       )}
 
       {/* WhatsApp-style input bar */}
-      <form onSubmit={handleSend} className="flex items-center gap-2 px-3 py-2 bg-[#1f2c34] flex-shrink-0">
+      <form onSubmit={handleSend} className="flex items-center gap-2 px-3 py-2 pb-safe bg-[#1f2c34] flex-shrink-0" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
         <button
           type="submit"
           disabled={sending || !input.trim()}
