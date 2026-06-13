@@ -51,12 +51,12 @@ export function BottomNav() {
                 className="flex flex-col items-center gap-1"
               >
                 {isChat ? (
-                  <div className={clsx(
-                    'w-16 h-16 rounded-full flex items-center justify-center -mt-6 border-4 border-dark-100',
-                    active ? 'bg-primary' : 'bg-dark-card'
-                  )}>
-                    <div className="relative w-9 h-9">
-                      <Image src={item.icon!} alt={item.label} fill className="object-contain" style={{ mixBlendMode: 'lighten' }} />
+                  <div className="relative w-14 h-14 flex items-center justify-center">
+                    <div
+                      style={{ mixBlendMode: 'lighten' }}
+                      className={clsx('relative w-14 h-14', !active && 'opacity-40')}
+                    >
+                      <Image src={item.icon!} alt={item.label} fill className="object-contain" />
                     </div>
                   </div>
                 ) : (
