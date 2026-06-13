@@ -50,23 +50,30 @@ export function BottomNav() {
                 href={item.href}
                 className="flex flex-col items-center gap-1"
               >
-                <div className={clsx('relative flex items-center justify-center', isChat ? 'w-[168px] h-[168px] -mt-16' : 'w-14 h-14')}>
-                  <div
-                    style={{ mixBlendMode: isChat ? undefined : 'lighten' }}
-                    className={clsx(
-                      'relative',
-                      isChat ? 'w-[168px] h-[168px]' : isShop ? 'w-9 h-9' : 'w-14 h-14',
-                      !active && 'opacity-40'
-                    )}
-                  >
-                    <Image src={item.icon!} alt={item.label} fill className="object-contain" />
+                {isChat ? (
+                  <div className={clsx(
+                    'w-16 h-16 rounded-full flex items-center justify-center -mt-6 border-4 border-dark-100',
+                    active ? 'bg-primary' : 'bg-dark-card'
+                  )}>
+                    <div className="relative w-9 h-9">
+                      <Image src={item.icon!} alt={item.label} fill className="object-contain" style={{ mixBlendMode: 'lighten' }} />
+                    </div>
                   </div>
-                  {isShop && coins !== null && (
-                    <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-[10px] font-black rounded-full px-1 min-w-[18px] text-center leading-[18px] z-10">
-                      {coins}
-                    </span>
-                  )}
-                </div>
+                ) : (
+                  <div className="relative w-14 h-14 flex items-center justify-center">
+                    <div
+                      style={{ mixBlendMode: 'lighten' }}
+                      className={clsx('relative', isShop ? 'w-9 h-9' : 'w-14 h-14', !active && 'opacity-40')}
+                    >
+                      <Image src={item.icon!} alt={item.label} fill className="object-contain" />
+                    </div>
+                    {isShop && coins !== null && (
+                      <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-[10px] font-black rounded-full px-1 min-w-[18px] text-center leading-[18px] z-10">
+                        {coins}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <span className={clsx('text-[11px] font-medium transition-colors', active ? 'text-primary' : 'text-gray-500')}>
                   {item.label}
