@@ -81,6 +81,19 @@ async function main() {
       )
     `)
     await pool.query(`CREATE INDEX IF NOT EXISTS "Message_leagueId_createdAt_idx" ON "Message"("leagueId", "createdAt")`)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "PushSubscription" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "endpoint" TEXT NOT NULL,
+        "p256dh" TEXT NOT NULL,
+        "auth" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "PushSubscription_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "PushSubscription_endpoint_key" UNIQUE ("endpoint"),
+        CONSTRAINT "PushSubscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+      )
+    `)
     console.log('Column check complete')
   } finally {
     await pool.end()
