@@ -195,6 +195,9 @@ export default function HomePage() {
   const [resetLeagueName, setResetLeagueName] = useState('')
   const [resetLeagueLoading, setResetLeagueLoading] = useState(false)
   const [interestCounts, setInterestCounts] = useState<{ league: string; count: number }[]>([])
+  const [adminResetTarget, setAdminResetTarget] = useState<string | null>(null)
+  const [adminResetPassword, setAdminResetPassword] = useState('')
+  const [adminResetLoading, setAdminResetLoading] = useState(false)
   const [openPredictId, setOpenPredictId] = useState<string | null>(null)
   const [inlineScores, setInlineScores] = useState<Record<string, { home: string; away: string }>>({})
   const [inlineSaving, setInlineSaving] = useState<string | null>(null)
@@ -218,6 +221,28 @@ export default function HomePage() {
       setInterestCounts(data.interests)
     }
     setShowAdminPanel(true)
+  }
+
+  const handleAdminResetPassword = async () => {
+    if (!adminResetTarget || adminResetPassword.trim().length < 4) return
+    setAdminResetLoading(true)
+    try {
+      const res = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: adminResetTarget, newPassword: adminResetPassword.trim() }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        alert(`סיסמה של ${adminResetTarget} אופסה!`)
+        setAdminResetTarget(null)
+        setAdminResetPassword('')
+      } else {
+        alert(data.error || 'שגיאה')
+      }
+    } finally {
+      setAdminResetLoading(false)
+    }
   }
 
   const resetLeague = async () => {
@@ -706,6 +731,33 @@ export default function HomePage() {
                 </button>
               </div>
             </div>
+            {/* Reset password inline */}
+            {adminResetTarget && (
+              <div className="px-4 py-3 border-b border-dark-border/50 bg-yellow-900/10">
+                <p className="text-yellow-400 font-black text-xs mb-2">איפוס סיסמה — {adminResetTarget}</p>
+                <div className="flex gap-2">
+                  <input
+                    value={adminResetPassword}
+                    onChange={e => setAdminResetPassword(e.target.value)}
+                    placeholder="סיסמה חדשה (לפחות 4 תווים)"
+                    className="flex-1 bg-dark-50 border border-dark-border rounded-lg px-3 py-1.5 text-white text-xs placeholder-gray-600 text-right"
+                    dir="rtl"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleAdminResetPassword}
+                    disabled={adminResetLoading || adminResetPassword.trim().length < 4}
+                    className="bg-yellow-500 text-black text-xs font-black px-3 py-1.5 rounded-lg disabled:opacity-40 active:scale-95 transition-all"
+                  >
+                    {adminResetLoading ? '...' : 'אפס'}
+                  </button>
+                  <button
+                    onClick={() => { setAdminResetTarget(null); setAdminResetPassword('') }}
+                    className="text-gray-500 text-xs px-2"
+                  >✕</button>
+                </div>
+              </div>
+            )}
             <div className="overflow-y-auto flex-1">
               {adminUsers
                 .filter(u => adminFilter === 'all' || u.managedLeagues.length > 0)
@@ -718,10 +770,16 @@ export default function HomePage() {
                         <span className="text-[10px] font-black text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-md">מנהל</span>
                       )}
                     </div>
-                    <button
-                      onClick={() => deleteUser(u.id)}
-                      className="text-red-400 text-xs font-bold border border-red-400/30 px-2.5 py-1 rounded-lg active:scale-95 transition-all"
-                    >מחק</button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => { setAdminResetTarget(u.username); setAdminResetPassword('') }}
+                        className="text-yellow-400 text-xs font-bold border border-yellow-400/30 px-2.5 py-1 rounded-lg active:scale-95 transition-all"
+                      >🔑</button>
+                      <button
+                        onClick={() => deleteUser(u.id)}
+                        className="text-red-400 text-xs font-bold border border-red-400/30 px-2.5 py-1 rounded-lg active:scale-95 transition-all"
+                      >מחק</button>
+                    </div>
                   </div>
                   <p className="text-gray-500 text-xs mb-1">{u.coins} מטבעות · {u.joinedLeaguesCount} ליגות</p>
                   {u.managedLeagues.map(l => (
