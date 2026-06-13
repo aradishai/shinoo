@@ -115,6 +115,32 @@ export async function GET() {
       where: { kickoffAt: { gte: new Date('2026-06-01') }, providerMatchId: null },
     })
 
+    // SQL dedup: remove matches where same two teams play on the same UTC date,
+    // keeping the one with a providerMatchId (or the newest if both have one)
+    await db.$executeRawUnsafe(`
+      DELETE FROM "Match"
+      WHERE id IN (
+        SELECT id FROM (
+          SELECT
+            m.id,
+            ROW_NUMBER() OVER (
+              PARTITION BY
+                LEAST(ht.code, at.code),
+                GREATEST(ht.code, at.code),
+                DATE(m."kickoffAt")
+              ORDER BY
+                (m."providerMatchId" IS NOT NULL) DESC,
+                m.id DESC
+            ) AS rn
+          FROM "Match" m
+          JOIN "Team" ht ON ht.id = m."homeTeamId"
+          JOIN "Team" at ON at.id = m."awayTeamId"
+          WHERE m."tournamentId" = '${tournament.id}'
+        ) sub
+        WHERE rn > 1
+      )
+    `)
+
     let inserted = 0
     let deduped = 0
 
