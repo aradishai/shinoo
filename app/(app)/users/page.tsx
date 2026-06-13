@@ -35,6 +35,10 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false)
   const [inviteModal, setInviteModal] = useState<{ userId: string; username: string } | null>(null)
   const [inviting, setInviting] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [resetModal, setResetModal] = useState<{ username: string } | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [resetting, setResetting] = useState(false)
 
   const debouncedQuery = useSimpleDebounce(query, 350)
 
@@ -48,6 +52,10 @@ export default function UsersPage() {
             .map((l: League) => ({ id: l.id, name: l.name, role: l.role }))
         )
       )
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => setIsAdmin(d.data?.isAdmin === true))
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -63,6 +71,27 @@ export default function UsersPage() {
       .catch(() => setUsers([]))
       .finally(() => setLoading(false))
   }, [debouncedQuery])
+
+  const handleResetPassword = async () => {
+    if (!resetModal || !newPassword.trim()) return
+    setResetting(true)
+    try {
+      const res = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: resetModal.username, newPassword: newPassword.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || 'שגיאה'); return }
+      toast.success(`סיסמה של ${resetModal.username} אופסה!`)
+      setResetModal(null)
+      setNewPassword('')
+    } catch {
+      toast.error('שגיאת חיבור')
+    } finally {
+      setResetting(false)
+    }
+  }
 
   const handleInvite = async (leagueId: string) => {
     if (!inviteModal) return
@@ -134,6 +163,14 @@ export default function UsersPage() {
               className="bg-dark-card border border-dark-border rounded-xl p-4 flex items-center justify-between"
             >
               <div className="flex items-center gap-2">
+                {isAdmin && (
+                  <button
+                    onClick={() => { setResetModal({ username: user.username }); setNewPassword('') }}
+                    className="bg-red-500/20 border border-red-500/30 text-red-400 text-sm font-medium px-3 py-1.5 rounded-xl hover:bg-red-500/30 transition-colors"
+                  >
+                    🔑
+                  </button>
+                )}
                 {leagues.length > 0 && (
                   <button
                     onClick={() => setInviteModal({ userId: user.id, username: user.username })}
@@ -160,6 +197,41 @@ export default function UsersPage() {
           <div className="text-6xl mb-4">⚽</div>
           <p className="text-gray-500 text-lg">חפש חברים לליגה</p>
           <p className="text-gray-600 text-sm mt-2">הקלד לפחות תו אחד לחיפוש</p>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end">
+          <div className="bg-dark-card border-t border-dark-border w-full rounded-t-3xl p-6">
+            <h3 className="text-white font-bold text-lg mb-1 text-center">
+              איפוס סיסמה
+            </h3>
+            <p className="text-gray-500 text-sm text-center mb-6">{resetModal.username}</p>
+
+            <input
+              type="text"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="סיסמה חדשה (לפחות 4 תווים)"
+              autoFocus
+              className="w-full bg-dark-50 border border-dark-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-red-400 focus:outline-none text-right mb-4"
+            />
+
+            <button
+              onClick={handleResetPassword}
+              disabled={resetting || newPassword.trim().length < 4}
+              className="w-full bg-red-500 text-white font-bold py-3 rounded-xl mb-3 disabled:opacity-40 active:scale-95 transition-all"
+            >
+              {resetting ? 'מאפס...' : 'אפס סיסמה'}
+            </button>
+            <button
+              onClick={() => { setResetModal(null); setNewPassword('') }}
+              className="w-full text-gray-400 py-3 text-center"
+            >
+              ביטול
+            </button>
+          </div>
         </div>
       )}
 
