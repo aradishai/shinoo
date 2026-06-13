@@ -279,27 +279,32 @@ async function autoFinishStaleMatches() {
 }
 
 async function deduplicateMatches() {
-  // Find matches that share the same two teams on the same day (in either order)
-  const dupes = await db.$queryRaw<{ keep_id: string; dup_id: string }[]>`
-    SELECT DISTINCT
-      LEAST(a.id, b.id) AS keep_id,
-      GREATEST(a.id, b.id) AS dup_id
-    FROM "Match" a
-    JOIN "Match" b ON (
-      a.id <> b.id
-      AND a."tournamentId" = b."tournamentId"
-      AND ABS(EXTRACT(EPOCH FROM (a."kickoffAt" - b."kickoffAt"))) < 86400
-      AND (
-        (a."homeTeamId" = b."homeTeamId" AND a."awayTeamId" = b."awayTeamId")
-        OR
-        (a."homeTeamId" = b."awayTeamId" AND a."awayTeamId" = b."homeTeamId")
-      )
-    )
-    WHERE a."tournamentId" IS NOT NULL
-  `
-  if (dupes.length === 0) return
-  const toDelete = dupes.map(d => d.dup_id)
-  await db.match.deleteMany({ where: { id: { in: toDelete } } })
+  const tournaments = await db.tournament.findMany({ where: { isActive: true } })
+  for (const tournament of tournaments) {
+    const allMatches = await db.match.findMany({
+      where: { tournamentId: tournament.id },
+      include: { homeTeam: true, awayTeam: true },
+      orderBy: { id: 'asc' },
+    })
+
+    const seen = new Map<string, string>()
+    const toDelete: string[] = []
+
+    for (const m of allMatches) {
+      const codes = [m.homeTeam.code, m.awayTeam.code].sort().join('-')
+      const date = new Date(m.kickoffAt).toISOString().slice(0, 10)
+      const key = `${codes}-${date}`
+      if (seen.has(key)) {
+        toDelete.push(m.id)
+      } else {
+        seen.set(key, m.id)
+      }
+    }
+
+    if (toDelete.length > 0) {
+      await db.match.deleteMany({ where: { id: { in: toDelete } } })
+    }
+  }
 }
 
 async function recalculateMissingPoints() {
