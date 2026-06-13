@@ -66,6 +66,11 @@ input[type='number'] {
   padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 
+/* Hide bottom nav when keyboard open on chat page */
+body.chat-keyboard-open nav {
+  display: none !important;
+}
+
 /* Gradient text */
 .gradient-text {
   background: linear-gradient(135deg, #00C853 0%, #FFD600 100%);

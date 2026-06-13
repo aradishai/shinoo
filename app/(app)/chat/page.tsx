@@ -37,6 +37,28 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const NORMAL = 'calc(98px + env(safe-area-inset-bottom, 16px))'
+    const el = containerRef.current
+    const update = () => {
+      const keyboardH = window.innerHeight - vv.offsetTop - vv.height
+      const open = keyboardH > 80
+      if (el) el.style.bottom = open ? '0px' : NORMAL
+      document.body.classList.toggle('chat-keyboard-open', open)
+    }
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
+      if (el) el.style.bottom = NORMAL
+      document.body.classList.remove('chat-keyboard-open')
+    }
+  }, [])
 
   useEffect(() => {
     // Detect iOS Safari (not installed as PWA) - push not supported
@@ -168,6 +190,7 @@ export default function ChatPage() {
 
   return (
     <div
+      ref={containerRef}
       className="fixed inset-x-0 top-0 flex flex-col overflow-hidden"
       style={{ bottom: 'calc(98px + env(safe-area-inset-bottom, 16px))' }}
       dir="rtl"
