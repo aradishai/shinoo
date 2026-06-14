@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { postSystemMessage } from '@/lib/system-message'
 
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
 
   const prediction = await db.prediction.findUnique({
     where: { id: predictionId },
-    include: { match: { include: { tournament: true } } },
+    include: { match: { include: { tournament: true, homeTeam: true, awayTeam: true } } },
   })
 
   if (!prediction || prediction.userId !== userId)
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
   if (prediction.x2Applied)
     return NextResponse.json({ error: 'X2 כבר הופעל על משחק זה' }, { status: 400 })
 
-  const user = await db.user.findUnique({ where: { id: userId }, select: { x2Stock: true } })
+  const user = await db.user.findUnique({ where: { id: userId }, select: { x2Stock: true, username: true } })
   if (!user || user.x2Stock < 1)
     return NextResponse.json({ error: 'אין לך X2 — קנה בחנות' }, { status: 400 })
 
@@ -52,6 +53,12 @@ export async function POST(request: Request) {
   await db.user.update({ where: { id: userId }, data: { x2Stock: { decrement: 1 } } })
   await db.prediction.updateMany({ where: { userId, matchId: prediction.matchId }, data: { x2Applied: true } })
   await db.powerupUsage.create({ data: { id: `x2-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'X2' } })
+
+  await postSystemMessage(
+    prediction.leagueId,
+    userId,
+    `⚡ ${user.username} הפעיל X2 על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
+  )
 
   const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { x2Stock: true, shinooStock: true } })
   return NextResponse.json({ success: true, x2Stock: updatedUser?.x2Stock, shinooStock: updatedUser?.shinooStock })

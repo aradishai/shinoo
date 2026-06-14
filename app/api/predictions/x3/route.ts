@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { postSystemMessage } from '@/lib/system-message'
 
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
 
   const prediction = await db.prediction.findUnique({
     where: { id: predictionId },
-    include: { match: true },
+    include: { match: { include: { homeTeam: true, awayTeam: true } } },
   })
 
   if (!prediction || prediction.userId !== userId)
@@ -25,12 +26,18 @@ export async function POST(request: Request) {
   if (prediction.x2Applied)
     return NextResponse.json({ error: 'לא ניתן לשלב X2 ו-X3' }, { status: 400 })
 
-  const user = await db.user.findUnique({ where: { id: userId }, select: { x3Stock: true } })
+  const user = await db.user.findUnique({ where: { id: userId }, select: { x3Stock: true, username: true } })
   if (!user || user.x3Stock < 1)
     return NextResponse.json({ error: 'אין לך X3 — קנה בחנות' }, { status: 400 })
 
   await db.user.update({ where: { id: userId }, data: { x3Stock: { decrement: 1 } } })
   await db.prediction.updateMany({ where: { userId, matchId: prediction.matchId }, data: { x3Applied: true } as any })
+
+  await postSystemMessage(
+    prediction.leagueId,
+    userId,
+    `⚡ ${user.username} הפעיל X3 על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
+  )
 
   const updatedUser = await db.user.findUnique({
     where: { id: userId },

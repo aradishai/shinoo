@@ -133,6 +133,7 @@ model Message {
   leagueId  String
   userId    String
   content   String
+  isSystem  Boolean  @default(false)
   createdAt DateTime @default(now())
 
   league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)

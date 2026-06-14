@@ -37,7 +37,7 @@ interface Match {
   awayScore?: number | null
   round?: string | null
   userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; predictedTopScorerPlayerId?: string | null; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; splitApplied?: boolean } | null
-  memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; user: { id: string; username: string } }[]
+  memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; user: { id: string; username: string } }[]
   powerupUsage?: { x2Used: number; shinooUsed: number } | null
 }
 
@@ -365,12 +365,18 @@ export default function MatchesPage() {
                 {/* Member predictions for finished/live/locked matches */}
                 {(isFinished || isLive || isPaused || match.status === 'LOCKED') && match.memberPredictions && match.memberPredictions.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-dark-border/50 space-y-1 px-4 pb-3">
-                    {match.memberPredictions.map((mp: any) => (
-                      <div key={mp.id} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500 truncate max-w-[60%]">{mp.user.username}</span>
-                        <span className="text-primary font-bold">{mp.predictedAwayScore}-{mp.predictedHomeScore}</span>
-                      </div>
-                    ))}
+                    {match.memberPredictions.map((mp: any) => {
+                      const powerupTag = mp.x3Applied ? '⚡X3' : mp.x2Applied ? '⚡X2' : mp.minute90Applied ? "⚡90'" : mp.shinooApplied ? '⚡שינוי' : mp.splitApplied ? '⚡ספליט' : mp.goalsApplied ? '⚡G+' : null
+                      return (
+                        <div key={mp.id} className="flex items-center justify-between text-xs">
+                          <span className="text-gray-500 truncate max-w-[60%]">{mp.user.username}</span>
+                          <div className="flex items-center gap-1.5">
+                            {powerupTag && <span className="text-[10px] font-bold text-yellow-400">{powerupTag}</span>}
+                            <span className="text-primary font-bold">{mp.predictedAwayScore}-{mp.predictedHomeScore}</span>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>

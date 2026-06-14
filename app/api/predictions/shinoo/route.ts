@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { postSystemMessage } from '@/lib/system-message'
 
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
 
   const prediction = await db.prediction.findUnique({
     where: { id: predictionId },
-    include: { match: { include: { tournament: true } } },
+    include: { match: { include: { tournament: true, homeTeam: true, awayTeam: true } } },
   })
 
   if (!prediction || prediction.userId !== userId)
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
   if (newHome < 0 || newAway < 0)
     return NextResponse.json({ error: 'לא ניתן להוריד מתחת ל-0' }, { status: 400 })
 
-  const user = await db.user.findUnique({ where: { id: userId }, select: { shinooStock: true } })
+  const user = await db.user.findUnique({ where: { id: userId }, select: { shinooStock: true, username: true } })
   if (!user || user.shinooStock < 1)
     return NextResponse.json({ error: 'אין לך שינוי — קנה בחנות' }, { status: 400 })
 
@@ -64,6 +65,13 @@ export async function POST(request: Request) {
     data: { predictedHomeScore: newHome, predictedAwayScore: newAway, shinooApplied: true },
   })
   await db.powerupUsage.create({ data: { id: `shinoo-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'SHINOO' } })
+
+  const changedTeam = team === 'home' ? prediction.match.homeTeam.nameHe : prediction.match.awayTeam.nameHe
+  await postSystemMessage(
+    prediction.leagueId,
+    userId,
+    `⚡ ${user.username} שינה ניחוש על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe} (${changedTeam} ${delta > 0 ? '+1' : '-1'})`
+  )
 
   const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { x2Stock: true, shinooStock: true } })
   return NextResponse.json({ success: true, newHome, newAway, x2Stock: updatedUser?.x2Stock, shinooStock: updatedUser?.shinooStock })

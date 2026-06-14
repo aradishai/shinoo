@@ -1,0 +1,5 @@
+const { Pool } = require('pg')
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+pool.query('ALTER TABLE "Message" ADD COLUMN IF NOT EXISTS "isSystem" BOOLEAN NOT NULL DEFAULT false')
+  .then(() => { console.log('Done! isSystem column added.'); pool.end() })
+  .catch(e => { console.error(e.message); pool.end() })

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { postSystemMessage } from '@/lib/system-message'
 
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
 
   const prediction = await db.prediction.findUnique({
     where: { id: predictionId },
-    include: { match: { include: { tournament: true } } },
+    include: { match: { include: { tournament: true, homeTeam: true, awayTeam: true } } },
   })
 
   if (!prediction || prediction.userId !== userId)
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
   if ((prediction as any).minute90Applied)
     return NextResponse.json({ error: 'דקה 90 כבר הופעל על משחק זה' }, { status: 400 })
 
-  const user = await db.user.findUnique({ where: { id: userId }, select: { minute90Stock: true } })
+  const user = await db.user.findUnique({ where: { id: userId }, select: { minute90Stock: true, username: true } })
   if (!user || user.minute90Stock < 1)
     return NextResponse.json({ error: 'אין לך דקה 90 — קנה בחנות' }, { status: 400 })
 
@@ -56,6 +57,12 @@ export async function POST(request: Request) {
       create: { id: `90-${predictionId}`, userId, leagueId: prediction.leagueId, matchday, type: 'MINUTE90' },
     })
   }
+
+  await postSystemMessage(
+    prediction.leagueId,
+    userId,
+    `⚡ ${user.username} הפעיל דקה 90' על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
+  )
 
   const updatedUser = await db.user.findUnique({
     where: { id: userId },

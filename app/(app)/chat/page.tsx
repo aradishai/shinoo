@@ -15,6 +15,7 @@ interface Message {
   id: string
   content: string
   createdAt: string
+  isSystem: boolean
   user: { id: string; username: string; avatar: string }
 }
 
@@ -272,9 +273,19 @@ export default function ChatPage() {
         )}
 
         {messages.map((msg, i) => {
+          if (msg.isSystem) {
+            return (
+              <div key={msg.id} className="flex justify-center my-1">
+                <div className="bg-[#1a2e35] border border-[#d4a847]/30 text-[#d4a847] text-xs px-4 py-1.5 rounded-full text-center max-w-[90%]">
+                  {msg.content}
+                </div>
+              </div>
+            )
+          }
+
           const isMe = msg.user.id === currentUserId
           const prevMsg = messages[i - 1]
-          const showName = !isMe && prevMsg?.user.id !== msg.user.id
+          const showName = !isMe && !prevMsg?.isSystem && prevMsg?.user.id !== msg.user.id
           const userColor = getUserColor(msg.user.id)
 
           return (

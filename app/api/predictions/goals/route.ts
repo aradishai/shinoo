@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { postSystemMessage } from '@/lib/system-message'
 
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
 
   const prediction = await db.prediction.findUnique({
     where: { id: predictionId },
-    include: { match: true },
+    include: { match: { include: { homeTeam: true, awayTeam: true } } },
   })
 
   if (!prediction || prediction.userId !== userId)
@@ -22,12 +23,18 @@ export async function POST(request: Request) {
   if ((prediction as any).goalsApplied)
     return NextResponse.json({ error: 'גולס+ כבר הופעל על משחק זה' }, { status: 400 })
 
-  const user = await db.user.findUnique({ where: { id: userId }, select: { goalsStock: true } })
+  const user = await db.user.findUnique({ where: { id: userId }, select: { goalsStock: true, username: true } })
   if (!user || user.goalsStock < 1)
     return NextResponse.json({ error: 'אין לך גולס+ — קנה בחנות' }, { status: 400 })
 
   await db.user.update({ where: { id: userId }, data: { goalsStock: { decrement: 1 } } })
   await db.prediction.updateMany({ where: { userId, matchId: prediction.matchId }, data: { goalsApplied: true } as any })
+
+  await postSystemMessage(
+    prediction.leagueId,
+    userId,
+    `⚡ ${user.username} הפעיל גולס+ על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
+  )
 
   const updatedUser = await db.user.findUnique({
     where: { id: userId },
