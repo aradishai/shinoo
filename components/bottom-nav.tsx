@@ -84,7 +84,7 @@ export function BottomNav() {
                       style={{ mixBlendMode: 'lighten' }}
                       className={clsx('relative w-14 h-14', !active && 'opacity-40')}
                     >
-                      <Image src={item.icon!} alt={item.label} fill className="object-contain" />
+                      <Image src={item.icon!} alt={item.label} fill className="object-contain" style={{ filter: 'invert(1) hue-rotate(180deg)' }} />
                     </div>
                     {chatUnread > 0 && (
                       <span className="absolute top-1 right-1 bg-[#00a884] text-white text-[10px] font-black rounded-full min-w-[17px] h-[17px] flex items-center justify-center px-1 leading-none">
