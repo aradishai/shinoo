@@ -368,7 +368,7 @@ export default function MatchesPage() {
                     {match.memberPredictions.map((mp: any) => (
                       <div key={mp.id} className="flex items-center justify-between text-xs">
                         <span className="text-gray-500 truncate max-w-[60%]">{mp.user.username}</span>
-                        <span className="text-primary font-bold">{mp.predictedHomeScore}-{mp.predictedAwayScore}</span>
+                        <span className="text-primary font-bold">{mp.predictedAwayScore}-{mp.predictedHomeScore}</span>
                       </div>
                     ))}
                   </div>
