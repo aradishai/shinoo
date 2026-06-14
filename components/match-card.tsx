@@ -27,6 +27,12 @@ interface MemberPrediction {
   id: string
   predictedHomeScore: number
   predictedAwayScore: number
+  x2Applied?: boolean
+  shinooApplied?: boolean
+  x3Applied?: boolean
+  goalsApplied?: boolean
+  minute90Applied?: boolean
+  splitApplied?: boolean
   user: { id: string; username: string }
 }
 
@@ -310,12 +316,18 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
               )}
             </>
           )}
-          {memberPredictions.map((mp) => (
-            <div key={mp.id} className="flex items-center justify-between">
-              <span className="text-white font-bold text-sm">{mp.predictedHomeScore} - {mp.predictedAwayScore}</span>
-              <span className="text-xs text-gray-500">{mp.user.username}</span>
-            </div>
-          ))}
+          {memberPredictions.map((mp) => {
+            const powerupTag = mp.x3Applied ? 'X3' : mp.x2Applied ? 'X2' : mp.minute90Applied ? "90'" : mp.shinooApplied ? 'שינו' : mp.splitApplied ? 'ספליט' : mp.goalsApplied ? 'G+' : null
+            return (
+              <div key={mp.id} className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-white font-bold text-sm">{mp.predictedAwayScore} - {mp.predictedHomeScore}</span>
+                  {powerupTag && <span className="text-[10px] font-bold text-yellow-400">{powerupTag}</span>}
+                </div>
+                <span className="text-xs text-gray-500">{mp.user.username}</span>
+              </div>
+            )
+          })}
         </div>
       )}
 
