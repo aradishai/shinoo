@@ -56,6 +56,28 @@ export function calculatePoints(
   }
 }
 
+export function calculateGoalsPoints(
+  predictedHome: number,
+  predictedAway: number,
+  actualHome: number,
+  actualAway: number,
+): ScoringResult {
+  const predictedOutcome = getMatchOutcome(predictedHome, predictedAway)
+  const actualOutcome = getMatchOutcome(actualHome, actualAway)
+
+  if (predictedOutcome !== actualOutcome) {
+    return { resultPoints: 0, topScorerPoints: 0, totalPoints: 0, explanation: 'גולס+ — מגמה שגויה: 0 נקודות' }
+  }
+
+  let pts = 0
+  const parts: string[] = ['גולס+ — מגמה נכונה']
+  if (predictedHome === actualHome) { pts += 2; parts.push('שערי בית נכונים: +2') }
+  if (predictedAway === actualAway) { pts += 2; parts.push('שערי חוץ נכונים: +2') }
+  if (pts === 0) parts.push('0 נקודות')
+
+  return { resultPoints: pts, topScorerPoints: 0, totalPoints: pts, explanation: parts.join(' | ') }
+}
+
 export function getOutcomeLabel(home: number, away: number): string {
   if (home > away) return 'ניצחון ביתי'
   if (home < away) return 'ניצחון אורחים'
