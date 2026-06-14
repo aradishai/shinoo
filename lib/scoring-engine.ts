@@ -69,13 +69,13 @@ export function calculateGoalsPoints(
     return { resultPoints: 0, topScorerPoints: 0, totalPoints: 0, explanation: 'גולס+ — מגמה שגויה: 0 נקודות' }
   }
 
-  let pts = 0
-  const parts: string[] = ['גולס+ — מגמה נכונה']
-  if (predictedHome === actualHome) { pts += 2; parts.push('שערי בית נכונים: +2') }
-  if (predictedAway === actualAway) { pts += 2; parts.push('שערי חוץ נכונים: +2') }
-  if (pts === 0) parts.push('0 נקודות')
-
-  return { resultPoints: pts, topScorerPoints: 0, totalPoints: pts, explanation: parts.join(' | ') }
+  const totalGoals = actualHome + actualAway
+  return {
+    resultPoints: totalGoals,
+    topScorerPoints: 0,
+    totalPoints: totalGoals,
+    explanation: `גולס+ — מגמה נכונה: ${totalGoals} גולים = ${totalGoals} נקודות`,
+  }
 }
 
 export function getOutcomeLabel(home: number, away: number): string {
