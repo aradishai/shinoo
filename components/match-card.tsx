@@ -321,7 +321,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
             return (
               <div key={mp.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-white font-bold text-sm">{mp.predictedAwayScore} - {mp.predictedHomeScore}</span>
+                  <span className="text-white font-bold text-sm">{mp.predictedHomeScore} - {mp.predictedAwayScore}</span>
                   {powerupTag && <span className="text-[10px] font-bold text-yellow-400">{powerupTag}</span>}
                 </div>
                 <span className="text-xs text-gray-500">{mp.user.username}</span>
