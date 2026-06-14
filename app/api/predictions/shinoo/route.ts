@@ -70,7 +70,7 @@ export async function POST(request: Request) {
   await postSystemMessage(
     prediction.leagueId,
     userId,
-    `⚡ ${user.username} שינה ניחוש על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe} (${changedTeam} ${delta > 0 ? '+1' : '-1'})`
+    `${user.username} שינו ניחוש על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe} (${changedTeam} ${delta > 0 ? '+1' : '-1'})`
   )
 
   const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { x2Stock: true, shinooStock: true } })

@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   await postSystemMessage(
     prediction.leagueId,
     userId,
-    `⚡ ${user.username} הפעיל גולס+ על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
+    `${user.username} הפעיל גולס+ על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
   )
 
   const updatedUser = await db.user.findUnique({

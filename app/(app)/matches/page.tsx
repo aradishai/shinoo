@@ -366,7 +366,7 @@ export default function MatchesPage() {
                 {(isFinished || isLive || isPaused || match.status === 'LOCKED') && match.memberPredictions && match.memberPredictions.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-dark-border/50 space-y-1 px-4 pb-3">
                     {match.memberPredictions.map((mp: any) => {
-                      const powerupTag = mp.x3Applied ? 'X3' : mp.x2Applied ? 'X2' : mp.minute90Applied ? "90'" : mp.shinooApplied ? 'שינוי' : mp.splitApplied ? 'ספליט' : mp.goalsApplied ? 'G+' : null
+                      const powerupTag = mp.x3Applied ? 'X3' : mp.x2Applied ? 'X2' : mp.minute90Applied ? "90'" : mp.shinooApplied ? 'שינו' : mp.splitApplied ? 'ספליט' : mp.goalsApplied ? 'G+' : null
                       return (
                         <div key={mp.id} className="flex items-center justify-between text-xs">
                           <span className="text-gray-500 truncate max-w-[60%]">{mp.user.username}</span>
