@@ -168,7 +168,19 @@ async function syncRedCards() {
     const homeRedCards = events.filter((e: any) => e.team?.id === homeId && e.type === 'Card' && e.detail === 'Red Card').length
     const awayRedCards = events.filter((e: any) => e.team?.id === awayId && e.type === 'Card' && e.detail === 'Red Card').length
 
-    await db.match.update({ where: { id: match.id }, data: { homeRedCards, awayRedCards } })
+    const homeScore = fixture.goals?.home ?? null
+    const awayScore = fixture.goals?.away ?? null
+
+    await db.match.update({
+      where: { id: match.id },
+      data: {
+        homeRedCards, awayRedCards,
+        ...(homeScore !== null ? { homeScore } : {}),
+        ...(awayScore !== null ? { awayScore } : {}),
+      },
+    })
+
+    if (homeScore !== null && awayScore !== null) await recalculatePoints(match.id)
   }
 }
 
