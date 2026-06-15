@@ -2,11 +2,6 @@ import { NextResponse } from 'next/server'
 import { recalculatePoints } from '@/lib/sync-service'
 import { db } from '@/lib/db'
 import axios from 'axios'
-import webpush from 'web-push'
-
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails('mailto:aradishai10@gmail.com', process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY)
-}
 
 export const dynamic = 'force-dynamic'
 
@@ -298,46 +293,6 @@ async function autoFinishStaleMatches() {
   }
 }
 
-async function sendMatchReminders() {
-  if (!process.env.VAPID_PUBLIC_KEY) return
-
-  const now = new Date()
-  const windowStart = new Date(now.getTime() + 110 * 60 * 1000) // 1h50m from now
-  const windowEnd = new Date(now.getTime() + 125 * 60 * 1000)   // 2h05m from now
-
-  const matches = await db.match.findMany({
-    where: {
-      status: { in: ['SCHEDULED', 'TIMED'] },
-      kickoffAt: { gte: windowStart, lte: windowEnd },
-      reminderSent: false,
-    },
-    include: { homeTeam: true, awayTeam: true },
-  })
-
-  if (matches.length === 0) return
-
-  const allSubs = await db.pushSubscription.findMany()
-
-  for (const match of matches) {
-    const title = `⚽ משחק בעוד שעתיים!`
-    const body = `${match.homeTeam.nameHe} נגד ${match.awayTeam.nameHe}`
-
-    for (const sub of allSubs) {
-      webpush.sendNotification(
-        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-        JSON.stringify({ title, body, url: '/matches' })
-      ).catch((err: unknown) => {
-        const status = (err as { statusCode?: number })?.statusCode
-        console.error(`match reminder push failed (${status}):`, String(err))
-        if (status === 404 || status === 410) {
-          db.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {})
-        }
-      })
-    }
-
-    await db.match.update({ where: { id: match.id }, data: { reminderSent: true } })
-  }
-}
 
 async function deduplicateMatches() {
   const tournaments = await db.tournament.findMany({ where: { isActive: true } })
@@ -400,7 +355,6 @@ export async function GET() {
       await syncUpcomingMatches()
       await autoFinishStaleMatches()
       await recalculateMissingPoints()
-      await sendMatchReminders()
       await deduplicateMatches()
       synced = true
     }
