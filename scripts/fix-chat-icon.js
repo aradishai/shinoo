@@ -22,7 +22,7 @@ sharp(input)
         buf[i] = 0
         buf[i + 1] = 0
         buf[i + 2] = 0
-        buf[i + 3] = 255 // fully opaque black (lighten will remove it)
+        buf[i + 3] = 0 // fully transparent
       }
     }
 

@@ -285,7 +285,7 @@ export default function ChatPage() {
 
           const isMe = msg.user.id === currentUserId
           const prevMsg = messages[i - 1]
-          const showName = !isMe && !prevMsg?.isSystem && prevMsg?.user.id !== msg.user.id
+          const showName = !isMe && (i === 0 || prevMsg?.isSystem || prevMsg?.user.id !== msg.user.id)
           const userColor = getUserColor(msg.user.id)
 
           return (

@@ -81,7 +81,6 @@ export function BottomNav() {
                 {isChat ? (
                   <div className="relative w-14 h-14 flex items-center justify-center">
                     <div
-                      style={{ mixBlendMode: 'lighten' }}
                       className={clsx('relative w-14 h-14', !active && 'opacity-40')}
                     >
                       <Image src={item.icon!} alt={item.label} fill className="object-contain" />
