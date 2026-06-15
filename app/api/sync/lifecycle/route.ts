@@ -7,6 +7,8 @@ export const dynamic = 'force-dynamic'
 
 const FD_API = 'https://api.football-data.org/v4'
 const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
+const AF_API = 'https://v3.football.api-sports.io'
+const AF_KEY = process.env.FOOTBALL_API_KEY
 
 const FD_STATUS_MAP: Record<string, string> = {
   'TIMED': 'SCHEDULED', 'SCHEDULED': 'SCHEDULED',
@@ -146,6 +148,58 @@ async function autoFinishStaleMatches() {
   }
 }
 
+async function syncMissingScoresFromApiSports() {
+  if (!AF_KEY) return
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+  const unscored = await db.match.findMany({
+    where: {
+      status: { in: ['FINISHED', 'LIVE'] },
+      homeScore: null,
+      kickoffAt: { gte: twoDaysAgo },
+    },
+    include: { homeTeam: true, awayTeam: true },
+  })
+  if (unscored.length === 0) return
+
+  for (const match of unscored) {
+    const dateStr = match.kickoffAt.toISOString().slice(0, 10)
+    try {
+      const res = await axios.get(`${AF_API}/fixtures`, {
+        params: { date: dateStr, league: 1, season: 2026 },
+        headers: { 'x-apisports-key': AF_KEY },
+        timeout: 8000,
+      })
+      const fixtures: any[] = res.data?.response ?? []
+      const kickoffMs = new Date(match.kickoffAt).getTime()
+      const fixture = fixtures.find((f: any) => {
+        const diff = Math.abs(new Date(f.fixture.date).getTime() - kickoffMs)
+        if (diff > 2 * 60 * 60_000) return false
+        const hName = (f.teams.home.name ?? '').toLowerCase()
+        const aName = (f.teams.away.name ?? '').toLowerCase()
+        const hEn = (match.homeTeam.nameEn ?? '').toLowerCase()
+        const aEn = (match.awayTeam.nameEn ?? '').toLowerCase()
+        return (hName.includes(hEn.split(' ')[0]) || hEn.includes(hName.split(' ')[0])) &&
+               (aName.includes(aEn.split(' ')[0]) || aEn.includes(aName.split(' ')[0]))
+      })
+      if (!fixture) continue
+      const homeScore = fixture.goals?.home
+      const awayScore = fixture.goals?.away
+      if (homeScore === null || homeScore === undefined) continue
+      const afStatus = fixture.fixture?.status?.short
+      const finishedStatuses = ['FT', 'AET', 'PEN', 'AWD', 'WO']
+      const status = finishedStatuses.includes(afStatus) ? 'FINISHED' : match.status
+      await db.match.update({
+        where: { id: match.id },
+        data: {
+          homeScore, awayScore, status,
+          providerMatchId: String(fixture.fixture.id),
+        },
+      })
+      await recalculatePoints(match.id)
+    } catch { /* silent */ }
+  }
+}
+
 async function recalculateMissingPoints() {
   const finished = await db.match.findMany({
     where: {
@@ -165,6 +219,7 @@ export async function GET() {
     await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "coinsGranted" BOOLEAN NOT NULL DEFAULT false`
     await lockExpiredMatches()
     await syncFootballData()
+    await syncMissingScoresFromApiSports()
     await autoFinishStaleMatches()
     await recalculateMissingPoints()
     return NextResponse.json({ ok: true, ts: new Date().toISOString() })
