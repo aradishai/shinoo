@@ -170,6 +170,7 @@ async function syncRedCards() {
 
     const homeScore = fixture.goals?.home ?? null
     const awayScore = fixture.goals?.away ?? null
+    const afId = String(fixture.fixture.id)
 
     await db.match.update({
       where: { id: match.id },
@@ -177,6 +178,8 @@ async function syncRedCards() {
         homeRedCards, awayRedCards,
         ...(homeScore !== null ? { homeScore } : {}),
         ...(awayScore !== null ? { awayScore } : {}),
+        // Fix providerMatchId to api-sports.io format so updateMatchStatuses works
+        ...(match.providerMatchId?.startsWith('fd-') ? { providerMatchId: afId } : {}),
       },
     })
 
