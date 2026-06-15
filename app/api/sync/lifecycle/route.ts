@@ -24,7 +24,14 @@ async function lockExpiredMatches() {
 
 async function syncFootballData() {
   if (!FD_KEY) return
-  const competitions = ['PD', 'CL']
+  const activeTournaments = await db.tournament.findMany({ where: { isActive: true } })
+  const slugs = activeTournaments.map(t => t.slug)
+  const competitions = [
+    ...(slugs.some(s => s.includes('world-cup')) ? ['WC'] : []),
+    ...(slugs.some(s => s.includes('la-liga')) ? ['PD'] : []),
+    ...(slugs.some(s => s.includes('champions-league')) ? ['CL'] : []),
+  ]
+  if (competitions.length === 0) return
   const fetchResults = await Promise.allSettled(
     competitions.flatMap(comp => [
       axios.get(`${FD_API}/competitions/${comp}/matches?status=IN_PLAY,PAUSED`, {

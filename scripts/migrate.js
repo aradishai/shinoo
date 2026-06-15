@@ -95,6 +95,7 @@ async function main() {
     `)
     await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "reminderSent" BOOLEAN NOT NULL DEFAULT false`)
     await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "avatar" TEXT NOT NULL DEFAULT '⚽'`)
+    await pool.query(`ALTER TABLE "Message" ADD COLUMN IF NOT EXISTS "isSystem" BOOLEAN NOT NULL DEFAULT false`)
     console.log('Column check complete')
   } finally {
     await pool.end()
