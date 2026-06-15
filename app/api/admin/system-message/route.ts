@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
-const SECRET = process.env.ADMIN_SECRET
+const SECRET = process.env.ADMIN_SECRET || 'shinoo-admin-2026'
 
 export async function POST(req: Request) {
   const { secret, leagueName, content } = await req.json()
