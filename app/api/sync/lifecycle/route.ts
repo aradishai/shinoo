@@ -265,6 +265,8 @@ export async function GET() {
     await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "coinsGranted" BOOLEAN NOT NULL DEFAULT false`
     // Fix matches that were created with 3-hour lockAt instead of 1-hour
     await db.$executeRaw`UPDATE "Match" SET "lockAt" = "kickoffAt" - INTERVAL '1 hour' WHERE status = 'SCHEDULED' AND "lockAt" < "kickoffAt" - INTERVAL '90 minutes'`
+    // Fix Saudi Arabia vs Uruguay wrong kickoff time (DB has 20:00 UTC, actual is 22:00 UTC = 01:00 IDT)
+    await db.$executeRaw`UPDATE "Match" SET "kickoffAt" = '2026-06-15T22:00:00.000Z', "lockAt" = '2026-06-15T21:00:00.000Z' WHERE id = 'cmobmm5br004k12r2sb1j3zyl' AND "kickoffAt" = '2026-06-15T20:00:00.000Z'`
     await lockExpiredMatches()
     await syncFootballData()
     await syncMissingScoresFromApiSports()
