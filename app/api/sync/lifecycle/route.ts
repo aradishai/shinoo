@@ -267,6 +267,11 @@ export async function GET() {
     await db.$executeRaw`UPDATE "Match" SET "lockAt" = "kickoffAt" - INTERVAL '1 hour' WHERE status = 'SCHEDULED' AND "lockAt" < "kickoffAt" - INTERVAL '90 minutes'`
     // Fix Saudi Arabia vs Uruguay wrong kickoff time (DB has 20:00 UTC, actual is 22:00 UTC = 01:00 IDT)
     await db.$executeRaw`UPDATE "Match" SET "kickoffAt" = '2026-06-15T22:00:00.000Z', "lockAt" = '2026-06-15T21:00:00.000Z' WHERE id = 'cmobmm5br004k12r2sb1j3zyl' AND "kickoffAt" = '2026-06-15T20:00:00.000Z'`
+    // Fix Uruguay vs Cape Verde wrong kickoff time (DB has 20:00 UTC, actual is 22:00 UTC = 01:00 IDT June 22)
+    await db.$executeRaw`UPDATE "Match" SET "kickoffAt" = '2026-06-21T22:00:00.000Z', "lockAt" = '2026-06-21T21:00:00.000Z' WHERE id = 'cmobmm5bx004m12r2ryl3w7x3' AND "kickoffAt" = '2026-06-21T20:00:00.000Z'`
+    // Delete duplicate matches (wrong home/away order + wrong time)
+    await db.$executeRaw`DELETE FROM "Prediction" WHERE "matchId" IN ('cmobmm5dg005512r2ygi95sho', 'cmobmm5cy004z12r288o12ocg')`
+    await db.$executeRaw`DELETE FROM "Match" WHERE id IN ('cmobmm5dg005512r2ygi95sho', 'cmobmm5cy004z12r288o12ocg')`
     await lockExpiredMatches()
     await syncFootballData()
     await syncMissingScoresFromApiSports()
