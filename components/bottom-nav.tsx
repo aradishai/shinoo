@@ -80,11 +80,15 @@ export function BottomNav() {
               >
                 {isChat ? (
                   <div className="relative w-14 h-14 flex items-center justify-center">
-                    <div
-                      className={clsx('relative w-14 h-14', !active && 'opacity-40')}
+                    <svg
+                      width="36" height="36" viewBox="0 0 24 24" fill="none"
+                      className={clsx('transition-opacity', !active && 'opacity-40')}
                     >
-                      <Image src={item.icon!} alt={item.label} fill className="object-contain" />
-                    </div>
+                      <path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" fill="#d4a847"/>
+                      <circle cx="8" cy="11" r="1.2" fill="#0A0A0A"/>
+                      <circle cx="12" cy="11" r="1.2" fill="#0A0A0A"/>
+                      <circle cx="16" cy="11" r="1.2" fill="#0A0A0A"/>
+                    </svg>
                     {chatUnread > 0 && (
                       <span className="absolute top-1 right-1 bg-[#00a884] text-white text-[10px] font-black rounded-full min-w-[17px] h-[17px] flex items-center justify-center px-1 leading-none">
                         {chatUnread}
