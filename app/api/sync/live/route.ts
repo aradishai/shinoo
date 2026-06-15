@@ -22,7 +22,7 @@ const FD_API = 'https://api.football-data.org/v4'
 const FD_KEY = process.env.FOOTBALL_DATA_API_KEY
 
 const AF_API = 'https://v3.football.api-sports.io'
-const AF_KEY = process.env.API_FOOTBALL_KEY
+const AF_KEY = process.env.FOOTBALL_API_KEY
 
 const FD_STATUS_MAP: Record<string, string> = {
   'TIMED': 'SCHEDULED',
