@@ -27,7 +27,7 @@ export async function syncFixtures(): Promise<void> {
         continue
       }
 
-      const lockAt = new Date(fixture.kickoffAt.getTime() - 3 * 60 * 60 * 1000)
+      const lockAt = new Date(fixture.kickoffAt.getTime() - 60 * 60 * 1000)
 
       const statusMap: Record<string, string> = {
         SCHEDULED: 'SCHEDULED',

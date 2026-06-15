@@ -325,7 +325,7 @@ async function main() {
     for (const m of MATCHES) {
       if (!teamMap[m.home] || !teamMap[m.away]) continue
       const kickoffAt = new Date(m.date)
-      const lockAt = new Date(kickoffAt.getTime() - 3 * 60 * 60 * 1000)
+      const lockAt = new Date(kickoffAt.getTime() - 60 * 60 * 1000)
       await db.match.create({
         data: { tournamentId: tournament.id, homeTeamId: teamMap[m.home], awayTeamId: teamMap[m.away], kickoffAt, lockAt, status: 'SCHEDULED', round: m.group },
       })

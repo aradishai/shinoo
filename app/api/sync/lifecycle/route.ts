@@ -263,6 +263,8 @@ export async function GET() {
   try {
     await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "minuteAt" TIMESTAMP(3)`
     await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "coinsGranted" BOOLEAN NOT NULL DEFAULT false`
+    // Fix matches that were created with 3-hour lockAt instead of 1-hour
+    await db.$executeRaw`UPDATE "Match" SET "lockAt" = "kickoffAt" - INTERVAL '1 hour' WHERE status = 'SCHEDULED' AND "lockAt" < "kickoffAt" - INTERVAL '90 minutes'`
     await lockExpiredMatches()
     await syncFootballData()
     await syncMissingScoresFromApiSports()
