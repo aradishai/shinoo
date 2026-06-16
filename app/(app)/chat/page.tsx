@@ -42,6 +42,9 @@ export default function ChatPage() {
   const [notifError, setNotifError] = useState<string | null>(null)
   const [loadingLeagues, setLoadingLeagues] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [pressedMsgId, setPressedMsgId] = useState<string | null>(null)
+  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -105,6 +108,7 @@ export default function ChatPage() {
         setLoadingLeagues(false)
         if (list.length === 1) setSelectedLeagueId(list[0].id)
         setCurrentUserId(d.currentUserId ?? null)
+        setIsAdmin(d.isAdmin ?? false)
       })
       .catch(() => setLoadingLeagues(false))
   }, [])
@@ -122,12 +126,12 @@ export default function ChatPage() {
     fetch(`/api/leagues/${selectedLeagueId}/chat`)
       .then(r => r.json())
       .then(d => {
+        const incoming: Message[] = d.messages ?? []
+        if (incoming.length > 0) {
+          localStorage.setItem(`shinoo_chat_read_${selectedLeagueId}`, incoming[incoming.length - 1].createdAt)
+        }
         setMessages(prev => {
-          const incoming: Message[] = d.messages ?? []
           if (incoming.length === prev.length && incoming[incoming.length - 1]?.id === prev[prev.length - 1]?.id) return prev
-          if (incoming.length > 0) {
-            localStorage.setItem(`shinoo_chat_read_${selectedLeagueId}`, incoming[incoming.length - 1].createdAt)
-          }
           return incoming
         })
       })
@@ -179,6 +183,21 @@ export default function ChatPage() {
       })
       if (res.ok) { setInput(''); setMentionQuery(null); await fetchMessages() }
     } finally { setSending(false) }
+  }
+
+  const handlePressStart = (msgId: string) => {
+    if (!isAdmin) return
+    pressTimerRef.current = setTimeout(() => setPressedMsgId(msgId), 500)
+  }
+  const handlePressEnd = () => {
+    if (pressTimerRef.current) clearTimeout(pressTimerRef.current)
+  }
+
+  const deleteMessage = async (msgId: string) => {
+    if (!selectedLeagueId) return
+    setPressedMsgId(null)
+    await fetch(`/api/leagues/${selectedLeagueId}/chat/${msgId}`, { method: 'DELETE' })
+    fetchMessages()
   }
 
   const selectedLeague = leagues.find(l => l.id === selectedLeagueId)
@@ -276,10 +295,21 @@ export default function ChatPage() {
           if (msg.isSystem) {
             const multiLine = msg.content.includes('\n')
             return (
-              <div key={msg.id} className="flex justify-center my-1">
+              <div key={msg.id} className="flex justify-center my-1 relative"
+                onTouchStart={() => handlePressStart(msg.id)}
+                onTouchEnd={handlePressEnd}
+                onTouchMove={handlePressEnd}
+                onContextMenu={e => { if (isAdmin) { e.preventDefault(); setPressedMsgId(msg.id) } }}
+              >
                 <div className={`bg-[#1a2e35] border border-[#d4a847]/30 text-[#d4a847] text-xs px-4 py-1.5 max-w-[90%] whitespace-pre-line ${multiLine ? 'rounded-2xl text-right' : 'rounded-full text-center'}`}>
                   {msg.content}
                 </div>
+                {pressedMsgId === msg.id && (
+                  <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/60 rounded-2xl z-10">
+                    <button onClick={() => deleteMessage(msg.id)} className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl active:scale-95">מחק</button>
+                    <button onClick={() => setPressedMsgId(null)} className="bg-[#2a3942] text-gray-300 text-xs px-3 py-1.5 rounded-xl active:scale-95">ביטול</button>
+                  </div>
+                )}
               </div>
             )
           }
@@ -290,7 +320,18 @@ export default function ChatPage() {
           const userColor = getUserColor(msg.user.id)
 
           return (
-            <div key={msg.id} className={`flex w-full ${isMe ? 'justify-start' : 'justify-end'}`}>
+            <div key={msg.id} className={`flex w-full ${isMe ? 'justify-start' : 'justify-end'} relative`}
+              onTouchStart={() => handlePressStart(msg.id)}
+              onTouchEnd={handlePressEnd}
+              onTouchMove={handlePressEnd}
+              onContextMenu={e => { if (isAdmin) { e.preventDefault(); setPressedMsgId(msg.id) } }}
+            >
+              {pressedMsgId === msg.id && (
+                <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/60 rounded-2xl z-10">
+                  <button onClick={() => deleteMessage(msg.id)} className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl active:scale-95">מחק</button>
+                  <button onClick={() => setPressedMsgId(null)} className="bg-[#2a3942] text-gray-300 text-xs px-3 py-1.5 rounded-xl active:scale-95">ביטול</button>
+                </div>
+              )}
               <div className={`max-w-[78%] min-w-0 ${isMe ? 'items-start' : 'items-end'} flex flex-col`}>
                 <div className={`relative px-3 pt-1.5 pb-5 rounded-2xl text-sm leading-relaxed min-w-[80px] ${
                   isMe

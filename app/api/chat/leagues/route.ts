@@ -29,5 +29,8 @@ export async function GET(request: Request) {
     lastMessage: m.league.messages[0] ?? null,
   }))
 
-  return NextResponse.json({ leagues, currentUserId: userId })
+  const currentUser = await db.user.findUnique({ where: { id: userId }, select: { username: true } })
+  const isAdmin = currentUser?.username === 'ערד'
+
+  return NextResponse.json({ leagues, currentUserId: userId, isAdmin })
 }
