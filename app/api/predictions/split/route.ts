@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   await postSystemMessage(
     prediction.leagueId,
     userId,
-    `${user.username} הפעיל ספליט על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
+    `${user.username} הפעיל ספליט על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}: ${prediction.predictedHomeScore}-${prediction.predictedAwayScore} / ${splitHomeScore2}-${splitAwayScore2}`
   )
 
   const updatedUser = await db.user.findUnique({
