@@ -281,8 +281,8 @@ async function sendMatchSummaryMessages() {
     }
 
     for (const [leagueId, preds] of Object.entries(byLeague)) {
-      const lines = preds.map(p => `${p.username}: ${p.totalPoints ?? 0} נקודות`).join('\n')
-      const content = `${match.homeTeamName} ${match.homeScore}-${match.awayScore} ${match.awayTeamName}\n${lines}`
+      const lines = preds.map(p => `${p.username}: ${p.totalPoints ?? 0} נק'`).join('\n')
+      const content = `${match.homeTeamName} ${match.homeScore}:${match.awayScore} ${match.awayTeamName}\n${lines}`
       await db.message.create({ data: { leagueId, userId: adminUser.id, content, isSystem: true } })
     }
 

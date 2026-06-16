@@ -274,9 +274,10 @@ export default function ChatPage() {
 
         {messages.map((msg, i) => {
           if (msg.isSystem) {
+            const multiLine = msg.content.includes('\n')
             return (
               <div key={msg.id} className="flex justify-center my-1">
-                <div className="bg-[#1a2e35] border border-[#d4a847]/30 text-[#d4a847] text-xs px-4 py-1.5 rounded-full text-center max-w-[90%]">
+                <div className={`bg-[#1a2e35] border border-[#d4a847]/30 text-[#d4a847] text-xs px-4 py-1.5 max-w-[90%] whitespace-pre-line ${multiLine ? 'rounded-2xl text-right' : 'rounded-full text-center'}`}>
                   {msg.content}
                 </div>
               </div>
