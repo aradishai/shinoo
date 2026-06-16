@@ -246,6 +246,50 @@ async function sendMatchReminders() {
   }
 }
 
+async function sendMatchSummaryMessages() {
+  const unsummarized = await db.$queryRaw<{ id: string; homeScore: number; awayScore: number; homeTeamName: string; awayTeamName: string }[]>`
+    SELECT m.id, m."homeScore", m."awayScore", ht."nameHe" as "homeTeamName", at."nameHe" as "awayTeamName"
+    FROM "Match" m
+    JOIN "Team" ht ON m."homeTeamId" = ht.id
+    JOIN "Team" at ON m."awayTeamId" = at.id
+    WHERE m.status = 'FINISHED' AND m."homeScore" IS NOT NULL AND m."summarySent" = false
+  `
+  if (unsummarized.length === 0) return
+
+  const adminUser = await db.user.findFirst({ where: { username: 'ערד' } })
+  if (!adminUser) return
+
+  for (const match of unsummarized) {
+    const predictions = await db.$queryRaw<{ leagueId: string; username: string; totalPoints: number | null }[]>`
+      SELECT p."leagueId", u.username, pp."totalPoints"
+      FROM "Prediction" p
+      JOIN "User" u ON p."userId" = u.id
+      LEFT JOIN "PredictionPoints" pp ON pp."predictionId" = p.id
+      WHERE p."matchId" = ${match.id}
+      ORDER BY pp."totalPoints" DESC NULLS LAST
+    `
+    if (predictions.length === 0) {
+      await db.$executeRaw`UPDATE "Match" SET "summarySent" = true WHERE id = ${match.id}`
+      continue
+    }
+
+    // Group by league
+    const byLeague: Record<string, typeof predictions> = {}
+    for (const p of predictions) {
+      if (!byLeague[p.leagueId]) byLeague[p.leagueId] = []
+      byLeague[p.leagueId].push(p)
+    }
+
+    for (const [leagueId, preds] of Object.entries(byLeague)) {
+      const lines = preds.map(p => `${p.username}: ${p.totalPoints ?? 0} נקודות`).join('\n')
+      const content = `${match.homeTeamName} ${match.homeScore}-${match.awayScore} ${match.awayTeamName}\n${lines}`
+      await db.message.create({ data: { leagueId, userId: adminUser.id, content, isSystem: true } })
+    }
+
+    await db.$executeRaw`UPDATE "Match" SET "summarySent" = true WHERE id = ${match.id}`
+  }
+}
+
 async function recalculateMissingPoints() {
   const finished = await db.match.findMany({
     where: {
@@ -263,6 +307,7 @@ export async function GET() {
   try {
     await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "minuteAt" TIMESTAMP(3)`
     await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "coinsGranted" BOOLEAN NOT NULL DEFAULT false`
+    await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "summarySent" BOOLEAN NOT NULL DEFAULT false`
     // Fix matches that were created with 3-hour lockAt instead of 1-hour
     await db.$executeRaw`UPDATE "Match" SET "lockAt" = "kickoffAt" - INTERVAL '1 hour' WHERE status = 'SCHEDULED' AND "lockAt" < "kickoffAt" - INTERVAL '90 minutes'`
     // Restore France vs Senegal to LIVE (was prematurely finished)
@@ -282,6 +327,7 @@ export async function GET() {
     await syncMissingScoresFromApiSports()
     await autoFinishStaleMatches()
     await recalculateMissingPoints()
+    await sendMatchSummaryMessages()
     await sendMatchReminders()
     return NextResponse.json({ ok: true, ts: new Date().toISOString() })
   } catch (error) {

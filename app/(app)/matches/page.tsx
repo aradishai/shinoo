@@ -57,6 +57,7 @@ export default function MatchesPage() {
   const [scores, setScores] = useState<Record<string, { home: string; away: string; topScorerId: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
   const [userStock, setUserStock] = useState({ x3Stock: 0, goalsStock: 0, splitStock: 0 })
+  const [currentUserId, setCurrentUserId] = useState<string>('')
   const [splitModal, setSplitModal] = useState<Match | null>(null)
   const [splitScores, setSplitScores] = useState({ home: '0', away: '0' })
   const [powerupLoading, setPowerupLoading] = useState<string | null>(null)
@@ -69,6 +70,7 @@ export default function MatchesPage() {
     })
     fetch('/api/auth/me').then(r => r.json()).then(d => {
       setUserStock({ x3Stock: d.data?.x3Stock ?? 0, goalsStock: d.data?.goalsStock ?? 0, splitStock: d.data?.splitStock ?? 0 })
+      setCurrentUserId(d.data?.id ?? '')
     })
   }, [])
 
@@ -268,7 +270,7 @@ export default function MatchesPage() {
                   <div className="flex flex-col items-center gap-1 flex-1">
                     <Flag code={match.homeTeam.code} flagUrl={match.homeTeam.flagUrl} />
                     <span className="text-white text-xs font-semibold text-center leading-tight">{match.homeTeam.nameHe}</span>
-                    {(isLive || isPaused || isFinished) && match.userPrediction && (
+                    {(isLive || isPaused || isFinished || match.status === 'LOCKED') && match.userPrediction && (
                       <span className="text-primary font-black text-sm">{match.userPrediction.predictedHomeScore}</span>
                     )}
                   </div>
@@ -295,7 +297,7 @@ export default function MatchesPage() {
                   <div className="flex flex-col items-center gap-1 flex-1">
                     <Flag code={match.awayTeam.code} flagUrl={match.awayTeam.flagUrl} />
                     <span className="text-white text-xs font-semibold text-center leading-tight">{match.awayTeam.nameHe}</span>
-                    {(isLive || isPaused || isFinished) && match.userPrediction && (
+                    {(isLive || isPaused || isFinished || match.status === 'LOCKED') && match.userPrediction && (
                       <span className="text-primary font-black text-sm">{match.userPrediction.predictedAwayScore}</span>
                     )}
                   </div>
@@ -366,13 +368,18 @@ export default function MatchesPage() {
                 {(isFinished || isLive || isPaused || match.status === 'LOCKED') && match.memberPredictions && match.memberPredictions.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-dark-border/50 space-y-1 px-4 pb-3">
                     {match.memberPredictions.map((mp: any) => {
+                      const isMe = mp.user.id === currentUserId
                       const powerupTag = mp.x3Applied ? 'X3' : mp.x2Applied ? 'X2' : mp.minute90Applied ? "90'" : mp.shinooApplied ? 'שינו' : mp.splitApplied ? 'ספליט' : mp.goalsApplied ? 'G+' : null
+                      const pts = mp.points?.totalPoints
                       return (
                         <div key={mp.id} className="flex items-center justify-between text-xs">
-                          <span className="text-gray-500 truncate max-w-[60%]">{mp.user.username}</span>
+                          <span className={`truncate max-w-[60%] font-medium ${isMe ? 'text-primary' : 'text-gray-500'}`}>{mp.user.username}</span>
                           <div className="flex items-center gap-1.5">
                             {powerupTag && <span className="text-[10px] font-bold text-yellow-400">{powerupTag}</span>}
-                            <span className="text-primary font-bold">{mp.predictedAwayScore}-{mp.predictedHomeScore}</span>
+                            <span className={`font-bold ${isMe ? 'text-primary' : 'text-white/80'}`}>{mp.predictedAwayScore}-{mp.predictedHomeScore}</span>
+                            {isFinished && pts != null && (
+                              <span className="text-yellow-400 font-black text-[11px]">+{pts}</span>
+                            )}
                           </div>
                         </div>
                       )

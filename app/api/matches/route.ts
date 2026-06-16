@@ -56,7 +56,6 @@ export async function GET(request: Request) {
 
       const memberPredWhere: Record<string, unknown> = {
         matchId: { in: visibleMatchIds },
-        userId: { not: userId },
         leagueId: leagueId ? leagueId : { in: userLeagueIds },
       }
 
