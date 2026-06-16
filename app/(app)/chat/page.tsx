@@ -293,7 +293,8 @@ export default function ChatPage() {
 
         {messages.map((msg, i) => {
           if (msg.isSystem) {
-            const multiLine = msg.content.includes('\n')
+            const lines = msg.content.split('\n')
+            const isMatchSummary = lines.length > 1
             return (
               <div key={msg.id} className="flex justify-center my-1 relative"
                 onTouchStart={() => handlePressStart(msg.id)}
@@ -301,9 +302,28 @@ export default function ChatPage() {
                 onTouchMove={handlePressEnd}
                 onContextMenu={e => { if (isAdmin) { e.preventDefault(); setPressedMsgId(msg.id) } }}
               >
-                <div className={`bg-[#1a2e35] border border-[#d4a847]/30 text-[#d4a847] text-xs px-4 py-1.5 max-w-[90%] whitespace-pre-line ${multiLine ? 'rounded-2xl text-right' : 'rounded-full text-center'}`}>
-                  {msg.content}
-                </div>
+                {isMatchSummary ? (
+                  <div className="bg-[#1a2e35] border border-[#d4a847]/30 text-xs rounded-2xl px-4 py-2.5 max-w-[90%] min-w-[200px]">
+                    <div className="text-white font-bold text-center mb-2" dir="auto">{lines[0]}</div>
+                    <div className="space-y-1">
+                      {lines.slice(1).map((row, ri) => {
+                        const colonIdx = row.lastIndexOf(':')
+                        const name = colonIdx !== -1 ? row.slice(0, colonIdx).trim() : row
+                        const pts = colonIdx !== -1 ? row.slice(colonIdx + 1).trim() : ''
+                        return (
+                          <div key={ri} className="flex justify-between gap-4">
+                            <span className="text-[#d4a847]" dir="auto">{name}</span>
+                            <span className="text-white font-bold" dir="ltr">{pts}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-[#1a2e35] border border-[#d4a847]/30 text-[#d4a847] text-xs px-4 py-1.5 rounded-full text-center max-w-[90%]">
+                    {msg.content}
+                  </div>
+                )}
                 {pressedMsgId === msg.id && (
                   <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/60 rounded-2xl z-10">
                     <button onClick={() => deleteMessage(msg.id)} className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl active:scale-95">מחק</button>
