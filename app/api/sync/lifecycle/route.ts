@@ -272,6 +272,9 @@ export async function GET() {
     // Delete duplicate matches (wrong home/away order + wrong time)
     await db.$executeRaw`DELETE FROM "Prediction" WHERE "matchId" IN ('cmobmm5dg005512r2ygi95sho', 'cmobmm5cy004z12r288o12ocg')`
     await db.$executeRaw`DELETE FROM "Match" WHERE id IN ('cmobmm5dg005512r2ygi95sho', 'cmobmm5cy004z12r288o12ocg')`
+    // Revoke 10 coins mistakenly granted for test matchday 999
+    await db.$executeRaw`UPDATE "User" SET coins = GREATEST(0, coins - 10) WHERE id IN (SELECT "userId" FROM "PowerupUsage" WHERE type = 'coins_matchday_999')`
+    await db.$executeRaw`DELETE FROM "PowerupUsage" WHERE type = 'coins_matchday_999'`
     await lockExpiredMatches()
     await syncFootballData()
     await syncMissingScoresFromApiSports()
