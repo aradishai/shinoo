@@ -28,17 +28,6 @@ export async function POST(request: Request) {
   if (!['LIVE', 'PAUSED'].includes(prediction.match.status))
     return NextResponse.json({ error: 'דקה 90 זמין רק במהלך משחק' }, { status: 400 })
 
-  const matchMinute = (prediction.match as any).minute
-  if (matchMinute != null) {
-    if (matchMinute >= 90)
-      return NextResponse.json({ error: 'דקה 90 זמין רק עד דקה 90' }, { status: 400 })
-  } else {
-    const kickoff = prediction.match.kickoffAt
-    const now = new Date()
-    const elapsedMin = (now.getTime() - kickoff.getTime()) / 60000
-    if (elapsedMin >= 95)
-      return NextResponse.json({ error: 'דקה 90 זמין רק עד דקה 90' }, { status: 400 })
-  }
 
   if ((prediction as any).minute90Applied)
     return NextResponse.json({ error: 'דקה 90 כבר הופעל על משחק זה' }, { status: 400 })
