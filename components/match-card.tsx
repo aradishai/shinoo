@@ -402,7 +402,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           )}
           {showAllin && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onAllin() }} className="transition-all active:scale-95">
-              <img src="/btn-allin.png" alt="ALL IN" className="h-8 w-24 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              <img src="/btn-allin.png" alt="ALL IN" className="h-7 w-24 object-fill rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
         </div>
