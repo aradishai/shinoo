@@ -361,7 +361,7 @@ export default function MatchesPage() {
                       {showX3 && <button onClick={() => applyPreMatchPowerup(match, 'x3')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-x3.png" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} /></button>}
                       {showGoals && <button onClick={() => applyPreMatchPowerup(match, 'goals')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-goals.png" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} /></button>}
                       {showSplit && <button onClick={() => { setSplitModal(match); setSplitScores({ home: '0', away: '0' }) }} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-split.png" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} /></button>}
-                      {showAllin && <button onClick={() => applyPreMatchPowerup(match, 'allin')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-allin.png" className="h-7 w-24 object-fill rounded-lg" style={{ mixBlendMode: 'lighten' }} /></button>}
+                      {showAllin && <button onClick={() => applyPreMatchPowerup(match, 'allin')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-allin.png" className="h-7 w-20 object-cover rounded-lg" style={{ mixBlendMode: 'lighten' }} /></button>}
                     </div>
                   )
                 })()}
