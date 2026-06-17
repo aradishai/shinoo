@@ -89,7 +89,14 @@ export async function GET(request: Request) {
     const result = matches.map((match) => ({
       ...match,
       userPrediction: predictionsMap[match.id] || null,
-      memberPredictions: memberPredMap[match.id] || [],
+      memberPredictions: (memberPredMap[match.id] || []).map((p: any) => {
+        const usedSplit2 = p.splitApplied && p.points?.explanation?.includes('ספליט 2')
+        return {
+          ...p,
+          displayHomeScore: usedSplit2 ? p.splitHomeScore2 : p.predictedHomeScore,
+          displayAwayScore: usedSplit2 ? p.splitAwayScore2 : p.predictedAwayScore,
+        }
+      }),
       powerupUsage: powerupMap[match.id] || null,
     }))
 

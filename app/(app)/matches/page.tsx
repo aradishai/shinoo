@@ -376,7 +376,7 @@ export default function MatchesPage() {
                           <span className={`truncate max-w-[60%] font-medium ${isMe ? 'text-primary' : 'text-gray-500'}`}>{mp.user.username}</span>
                           <div className="flex items-center gap-1.5">
                             {powerupTag && <span className="text-[10px] font-bold text-yellow-400">{powerupTag}</span>}
-                            <span className={`font-bold ${isMe ? 'text-primary' : 'text-white/80'}`}>{mp.predictedAwayScore}-{mp.predictedHomeScore}</span>
+                            <span className={`font-bold ${isMe ? 'text-primary' : 'text-white/80'}`}>{mp.displayAwayScore ?? mp.predictedAwayScore}-{mp.displayHomeScore ?? mp.predictedHomeScore}</span>
                             {isFinished && pts != null && (
                               <span className="text-yellow-400 font-black text-[11px]">+{pts}</span>
                             )}
