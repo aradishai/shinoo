@@ -156,18 +156,31 @@ async function autoFinishStaleMatches() {
 async function syncMissingScoresFromApiSports() {
   if (!AF_KEY) return
   const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-  const unscored = await db.match.findMany({
+  // Sync ALL active matches (with or without score) + unscored finished matches
+  const matches = await db.match.findMany({
     where: {
-      status: { in: ['FINISHED', 'LIVE'] },
-      homeScore: null,
+      status: { in: ['LIVE', 'PAUSED', 'LOCKED', 'FINISHED'] },
       kickoffAt: { gte: twoDaysAgo },
+      OR: [
+        { homeScore: null },
+        { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
+      ],
     },
     include: { homeTeam: true, awayTeam: true },
   })
-  if (unscored.length === 0) return
+  if (matches.length === 0) return
 
-  for (const match of unscored) {
-    const dateStr = match.kickoffAt.toISOString().slice(0, 10)
+  // Group by date to minimize API calls
+  const byDate: Record<string, typeof matches> = {}
+  for (const m of matches) {
+    const d = m.kickoffAt.toISOString().slice(0, 10)
+    if (!byDate[d]) byDate[d] = []
+    byDate[d].push(m)
+  }
+
+  const finishedStatuses = ['FT', 'AET', 'PEN', 'AWD', 'WO']
+
+  for (const [dateStr, dayMatches] of Object.entries(byDate)) {
     try {
       const res = await axios.get(`${AF_API}/fixtures`, {
         params: { date: dateStr, league: 1, season: 2026 },
@@ -175,32 +188,37 @@ async function syncMissingScoresFromApiSports() {
         timeout: 8000,
       })
       const fixtures: any[] = res.data?.response ?? []
-      const kickoffMs = new Date(match.kickoffAt).getTime()
-      const fixture = fixtures.find((f: any) => {
-        const diff = Math.abs(new Date(f.fixture.date).getTime() - kickoffMs)
-        if (diff > 2 * 60 * 60_000) return false
-        const hName = (f.teams.home.name ?? '').toLowerCase()
-        const aName = (f.teams.away.name ?? '').toLowerCase()
-        const hEn = (match.homeTeam.nameEn ?? '').toLowerCase()
-        const aEn = (match.awayTeam.nameEn ?? '').toLowerCase()
-        return (hName.includes(hEn.split(' ')[0]) || hEn.includes(hName.split(' ')[0])) &&
-               (aName.includes(aEn.split(' ')[0]) || aEn.includes(aName.split(' ')[0]))
-      })
-      if (!fixture) continue
-      const homeScore = fixture.goals?.home
-      const awayScore = fixture.goals?.away
-      if (homeScore === null || homeScore === undefined) continue
-      const afStatus = fixture.fixture?.status?.short
-      const finishedStatuses = ['FT', 'AET', 'PEN', 'AWD', 'WO']
-      const status = finishedStatuses.includes(afStatus) ? 'FINISHED' : match.status
-      await db.match.update({
-        where: { id: match.id },
-        data: {
-          homeScore, awayScore, status,
-          providerMatchId: String(fixture.fixture.id),
-        },
-      })
-      await recalculatePoints(match.id)
+
+      for (const match of dayMatches) {
+        const kickoffMs = new Date(match.kickoffAt).getTime()
+        const fixture = fixtures.find((f: any) => {
+          const diff = Math.abs(new Date(f.fixture.date).getTime() - kickoffMs)
+          if (diff > 2 * 60 * 60_000) return false
+          const hName = (f.teams.home.name ?? '').toLowerCase()
+          const aName = (f.teams.away.name ?? '').toLowerCase()
+          const hEn = (match.homeTeam.nameEn ?? '').toLowerCase()
+          const aEn = (match.awayTeam.nameEn ?? '').toLowerCase()
+          return (hName.includes(hEn.split(' ')[0]) || hEn.includes(hName.split(' ')[0])) &&
+                 (aName.includes(aEn.split(' ')[0]) || aEn.includes(aName.split(' ')[0]))
+        })
+        if (!fixture) continue
+
+        const afStatus = fixture.fixture?.status?.short
+        const isFinishedByApi = finishedStatuses.includes(afStatus)
+        const homeScore = fixture.goals?.home
+        const awayScore = fixture.goals?.away
+
+        // For active matches: update score and mark FINISHED only when api says FT
+        // For scoreless finished matches: fill in the score
+        if (homeScore === null || homeScore === undefined) continue
+
+        const newStatus = isFinishedByApi ? 'FINISHED' : match.status
+        await db.match.update({
+          where: { id: match.id },
+          data: { homeScore, awayScore, status: newStatus, providerMatchId: String(fixture.fixture.id) },
+        })
+        await recalculatePoints(match.id)
+      }
     } catch { /* silent */ }
   }
 }
