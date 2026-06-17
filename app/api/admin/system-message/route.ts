@@ -13,10 +13,12 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const { secret, leagueName, content } = await req.json()
+  const { secret, leagueName, leagueId, content } = await req.json()
   if (secret !== SECRET) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  const league = await db.league.findFirst({ where: { name: { contains: leagueName } } })
+  const league = leagueId
+    ? await db.league.findUnique({ where: { id: leagueId } })
+    : await db.league.findFirst({ where: { name: { contains: leagueName, mode: 'insensitive' } } })
   if (!league) return NextResponse.json({ error: 'league not found' }, { status: 404 })
 
   const adminUser = await db.user.findFirst({ where: { username: 'ערד' } })
