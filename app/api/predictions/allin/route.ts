@@ -33,27 +33,31 @@ export async function POST(request: Request) {
   await db.user.update({ where: { id: userId }, data: { allinStock: { decrement: 1 } } })
   await db.prediction.update({ where: { id: predictionId }, data: { allinApplied: true } })
 
-  // Find or create pool for this match + league
-  let pool = await db.allInPool.findUnique({
-    where: { matchId_leagueId: { matchId: prediction.matchId, leagueId: prediction.leagueId } },
-  })
-  if (!pool) {
-    pool = await db.allInPool.create({
-      data: { matchId: prediction.matchId, leagueId: prediction.leagueId },
+  try {
+    // Find or create pool for this match + league
+    let pool = await db.allInPool.findUnique({
+      where: { matchId_leagueId: { matchId: prediction.matchId, leagueId: prediction.leagueId } },
     })
+    if (!pool) {
+      pool = await db.allInPool.create({
+        data: { matchId: prediction.matchId, leagueId: prediction.leagueId },
+      })
+    }
+
+    await db.allInEntry.upsert({
+      where: { predictionId },
+      update: {},
+      create: { poolId: pool.id, userId, predictionId },
+    })
+
+    await postSystemMessage(
+      prediction.leagueId,
+      userId,
+      `${user.username} נכנס ALL IN על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
+    )
+  } catch (e) {
+    console.error('[allin] pool/entry/message error:', e)
   }
-
-  await db.allInEntry.upsert({
-    where: { predictionId },
-    update: {},
-    create: { poolId: pool.id, userId, predictionId },
-  })
-
-  await postSystemMessage(
-    prediction.leagueId,
-    userId,
-    `${user.username} נכנס ALL IN על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
-  )
 
   const updatedUser = await db.user.findUnique({
     where: { id: userId },

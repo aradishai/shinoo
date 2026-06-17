@@ -46,11 +46,11 @@ export async function GET(
   const messages = await db.message.findMany({
     where: { leagueId: params.id },
     include: { user: { select: { id: true, username: true, avatar: true } } },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: 'desc' },
     take: 100,
   })
 
-  return NextResponse.json({ messages })
+  return NextResponse.json({ messages: messages.reverse() })
 }
 
 export async function POST(
