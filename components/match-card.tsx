@@ -44,12 +44,14 @@ interface PowerupProps {
   goalsApplied: boolean
   minute90Applied: boolean
   splitApplied: boolean
+  allinApplied: boolean
   x2Stock: number
   shinooStock: number
   x3Stock: number
   goalsStock: number
   minute90Stock: number
   splitStock: number
+  allinStock: number
   usage: { x2Used: number; shinooUsed: number } | null
   onX2: () => void
   onShinoo: () => void
@@ -57,6 +59,8 @@ interface PowerupProps {
   onGoals: () => void
   onMinute90: () => void
   onSplit: () => void
+  onAllin: () => void
+  onAllinInfo: () => void
   loading?: string | null
 }
 
@@ -191,7 +195,8 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
 
   const anyApplied = !!powerup && (
     powerup.x2Applied || powerup.shinooApplied || powerup.x3Applied ||
-    powerup.goalsApplied || powerup.minute90Applied || powerup.splitApplied
+    powerup.goalsApplied || powerup.minute90Applied || powerup.splitApplied ||
+    powerup.allinApplied
   )
   const appliedImg = !powerup ? null :
     powerup.x2Applied ? '/btn-x2.png' :
@@ -199,7 +204,8 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     powerup.x3Applied ? '/btn-x3.png' :
     powerup.goalsApplied ? '/btn-goals.png' :
     powerup.minute90Applied ? '/btn-90.png' :
-    powerup.splitApplied ? '/btn-split.png' : null
+    powerup.splitApplied ? '/btn-split.png' :
+    powerup.allinApplied ? '/btn-allin.png' : null
 
   const matchUrl = leagueId
     ? `/matches/${match.id}?leagueId=${leagueId}`
@@ -352,15 +358,31 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const powerupArea = (() => {
     if (!powerup || isFinished) return null
 
-    // If any powerup already applied — tag in header is enough, nothing here
-    if (anyApplied) return null
+    // If any powerup already applied — show info button for ALL IN, otherwise nothing
+    if (anyApplied) {
+      if (powerup.allinApplied) {
+        return (
+          <div className="flex justify-center px-4 pb-3 pt-2 border-t border-dark-border/40">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onAllinInfo() }}
+              className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/40 rounded-xl px-4 py-1.5 active:scale-95 transition-all"
+            >
+              <img src="/btn-allin.png" alt="ALL IN" className="h-5 w-14 object-contain" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              <span className="text-yellow-400 text-xs font-bold">הצג קופה ›</span>
+            </button>
+          </div>
+        )
+      }
+      return null
+    }
 
-    // Pre-match buttons (X3, GOALS+, SPLIT) — only when match is open
+    // Pre-match buttons (X3, GOALS+, SPLIT, ALL IN) — only when match is open
     if (isOpen) {
       const showX3 = powerup.x3Stock > 0
       const showGoals = powerup.goalsStock > 0
       const showSplit = powerup.splitStock > 0
-      if (!showX3 && !showGoals && !showSplit) return null
+      const showAllin = powerup.allinStock > 0
+      if (!showX3 && !showGoals && !showSplit && !showAllin) return null
       return (
         <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
           {showX3 && (
@@ -376,6 +398,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           {showSplit && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onSplit() }} className="transition-all active:scale-95">
               <img src="/btn-split.png" alt="SPLIT" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+            </button>
+          )}
+          {showAllin && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onAllin() }} className="transition-all active:scale-95">
+              <img src="/btn-allin.png" alt="ALL IN" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
         </div>

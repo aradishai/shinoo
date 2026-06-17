@@ -19,6 +19,7 @@ model User {
   goalsStock        Int                @default(0)
   minute90Stock     Int                @default(0)
   splitStock        Int                @default(0)
+  allinStock        Int                @default(0)
   interests         String[]           @default([])
   avatar            String             @default("⚽")
   leagueMembers     LeagueMember[]
@@ -169,6 +170,7 @@ model Prediction {
   goalsApplied               Boolean  @default(false)
   minute90Applied            Boolean  @default(false)
   splitApplied               Boolean  @default(false)
+  allinApplied               Boolean  @default(false)
   splitHomeScore2            Int?
   splitAwayScore2            Int?
   createdAt                  DateTime @default(now())
@@ -207,6 +209,28 @@ model CoinBet {
 
   user       User       @relation(fields: [userId], references: [id])
   prediction Prediction @relation(fields: [predictionId], references: [id])
+}
+
+model AllInPool {
+  id        String       @id @default(cuid())
+  matchId   String
+  leagueId  String
+  resolved  Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  entries   AllInEntry[]
+
+  @@unique([matchId, leagueId])
+}
+
+model AllInEntry {
+  id           String   @id @default(cuid())
+  poolId       String
+  userId       String
+  predictionId String   @unique
+  pointsWon    Int?
+  createdAt    DateTime @default(now())
+
+  pool AllInPool @relation(fields: [poolId], references: [id])
 }
 
 model PredictionPoints {

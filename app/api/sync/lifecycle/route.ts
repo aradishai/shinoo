@@ -329,6 +329,10 @@ export async function GET() {
     await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "minuteAt" TIMESTAMP(3)`
     await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "coinsGranted" BOOLEAN NOT NULL DEFAULT false`
     await db.$executeRaw`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "summarySent" BOOLEAN NOT NULL DEFAULT false`
+    await db.$executeRaw`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "allinStock" INTEGER NOT NULL DEFAULT 0`
+    await db.$executeRaw`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "allinApplied" BOOLEAN NOT NULL DEFAULT false`
+    await db.$executeRaw`CREATE TABLE IF NOT EXISTS "AllInPool" (id TEXT PRIMARY KEY, "matchId" TEXT NOT NULL, "leagueId" TEXT NOT NULL, resolved BOOLEAN NOT NULL DEFAULT false, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE("matchId","leagueId"))`
+    await db.$executeRaw`CREATE TABLE IF NOT EXISTS "AllInEntry" (id TEXT PRIMARY KEY, "poolId" TEXT NOT NULL REFERENCES "AllInPool"(id), "userId" TEXT NOT NULL, "predictionId" TEXT NOT NULL UNIQUE, "pointsWon" INTEGER, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP)`
     // Fix matches that were created with 3-hour lockAt instead of 1-hour
     await db.$executeRaw`UPDATE "Match" SET "lockAt" = "kickoffAt" - INTERVAL '1 hour' WHERE status = 'SCHEDULED' AND "lockAt" < "kickoffAt" - INTERVAL '90 minutes'`
     // Restore France vs Senegal to LIVE (was prematurely finished)

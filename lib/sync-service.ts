@@ -239,6 +239,60 @@ export async function recalculatePoints(matchId: string): Promise<void> {
   }
 
   console.log(`[sync] Recalculated points for ${predictions.length} predictions`)
+
+  // Resolve ALL IN pools for this match if it's finished
+  if (isFinished) {
+    await resolveAllInPools(matchId)
+  }
+}
+
+export async function resolveAllInPools(matchId: string): Promise<void> {
+  const pools = await db.allInPool.findMany({
+    where: { matchId, resolved: false },
+    include: { entries: true },
+  })
+
+  for (const pool of pools) {
+    if (pool.entries.length < 2) {
+      // Refund single participant — give back their points as-is
+      await db.allInPool.update({ where: { id: pool.id }, data: { resolved: true } })
+      continue
+    }
+
+    // Get each participant's current totalPoints
+    const withPoints = await Promise.all(
+      pool.entries.map(async (e) => {
+        const pp = await db.predictionPoints.findUnique({
+          where: { predictionId: e.predictionId },
+          select: { totalPoints: true, predictionId: true },
+        })
+        return { ...e, totalPoints: pp?.totalPoints ?? 0 }
+      })
+    )
+
+    const pot = withPoints.reduce((s, e) => s + e.totalPoints, 0)
+    const maxPts = Math.max(...withPoints.map(e => e.totalPoints))
+    const winners = withPoints.filter(e => e.totalPoints === maxPts)
+    const share = Math.floor(pot / winners.length)
+
+    for (const entry of withPoints) {
+      const isWinner = winners.some(w => w.id === entry.id)
+      const pointsWon = isWinner ? share : 0
+
+      // Update PredictionPoints totalPoints to reflect ALL IN outcome
+      await db.predictionPoints.update({
+        where: { predictionId: entry.predictionId },
+        data: { totalPoints: pointsWon },
+      })
+
+      await db.allInEntry.update({
+        where: { id: entry.id },
+        data: { pointsWon },
+      })
+    }
+
+    await db.allInPool.update({ where: { id: pool.id }, data: { resolved: true } })
+  }
 }
 
 export async function updateMatchStatuses(): Promise<void> {

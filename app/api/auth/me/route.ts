@@ -20,6 +20,7 @@ export async function GET(request: Request) {
         goalsStock: true,
         minute90Stock: true,
         splitStock: true,
+        allinStock: true,
         avatar: true,
         createdAt: true,
         _count: {

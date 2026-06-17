@@ -19,6 +19,7 @@ interface User {
   goalsStock?: number
   minute90Stock?: number
   splitStock?: number
+  allinStock?: number
 }
 
 interface Match {
@@ -34,7 +35,7 @@ interface Match {
   minuteAt?: string | null
   round?: string | null
   tournament?: { type: string } | null
-  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; splitHomeScore2?: number | null; splitAwayScore2?: number | null } | null
+  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; allinApplied?: boolean; splitHomeScore2?: number | null; splitAwayScore2?: number | null } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; user: { id: string; username: string } }[]
   powerupUsage?: { x2Used: number; shinooUsed: number } | null
 }
@@ -176,6 +177,8 @@ export default function HomePage() {
   const [shinooModal, setShinooModal] = useState<Match | null>(null)
   const [splitModal, setSplitModal] = useState<Match | null>(null)
   const [splitScores, setSplitScores] = useState({ home: '0', away: '0' })
+  const [allinPoolModal, setAllinPoolModal] = useState<{ match: Match; leagueId: string } | null>(null)
+  const [allinPoolData, setAllinPoolData] = useState<{ id: string; resolved: boolean; totalPot: number; entries: { userId: string; username: string; pointsWon: number | null; currentPoints: number | null; isMe: boolean }[] } | null>(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [minute90Reveal, setMinute90Reveal] = useState<Minute90RevealData | null>(null)
   const [showAdminPanel, setShowAdminPanel] = useState(false)
@@ -547,6 +550,28 @@ export default function HomePage() {
     else toast.error(data.error || 'שגיאה')
   }
 
+  const applyAllin = async (match: Match, leagueId: string) => {
+    if (!match.userPrediction) { openInlinePredict(match); toast('הכנס ניחוש קודם ↑', { icon: '💡' }); return }
+    setPowerupLoading(`allin-${match.id}`)
+    const res = await fetch('/api/predictions/allin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ predictionId: match.userPrediction.id }),
+    })
+    setPowerupLoading(null)
+    const data = await res.json()
+    if (res.ok) { powerupToast('/btn-allin.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id); await refreshUser() }
+    else toast.error(data.error || 'שגיאה')
+  }
+
+  const showAllinPool = async (match: Match, leagueId: string) => {
+    setAllinPoolData(null)
+    setAllinPoolModal({ match, leagueId })
+    const res = await fetch(`/api/matches/${match.id}/allin-pool?leagueId=${leagueId}`)
+    const data = await res.json()
+    if (res.ok) setAllinPoolData(data.pool)
+  }
+
   const applyMinute90 = async (match: Match) => {
     if (!match.userPrediction) return
     setPowerupLoading(`90-${match.id}`)
@@ -646,6 +671,49 @@ export default function HomePage() {
               אשר ספליט
             </button>
             <button onClick={() => setSplitModal(null)} className="w-full py-3 rounded-2xl bg-dark-50 border border-dark-border text-gray-500 font-medium text-sm">ביטול</button>
+          </div>
+        </div>
+      )}
+
+      {/* ALL IN pool modal */}
+      {allinPoolModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70" onClick={() => setAllinPoolModal(null)}>
+          <div className="bg-dark-card border border-yellow-500/40 rounded-t-3xl p-6 w-full max-w-sm pb-10" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center mb-3">
+              <img src="/btn-allin.png" alt="ALL IN" className="h-10 object-contain" style={{ mixBlendMode: 'lighten' }} />
+            </div>
+            <p className="text-gray-400 text-xs text-center mb-4">
+              {allinPoolModal.match.homeTeam.nameHe} נגד {allinPoolModal.match.awayTeam.nameHe}
+            </p>
+            {!allinPoolData ? (
+              <p className="text-gray-500 text-center text-sm">טוען...</p>
+            ) : !allinPoolData ? (
+              <p className="text-gray-500 text-center text-sm">אין קופה עדיין</p>
+            ) : (
+              <>
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-3 mb-4 text-center">
+                  <p className="text-gray-400 text-xs mb-1">סך הקופה</p>
+                  <p className="text-yellow-400 font-black text-3xl">{allinPoolData.totalPot} נק&apos;</p>
+                  <p className="text-gray-500 text-xs mt-1">{allinPoolData.entries.length} משתתפים · הגבוה ביותר זוכה בהכל</p>
+                </div>
+                <div className="space-y-2 mb-5">
+                  {allinPoolData.entries.map((e) => (
+                    <div key={e.userId} className={`flex items-center justify-between px-3 py-2 rounded-xl ${e.isMe ? 'bg-yellow-500/10 border border-yellow-500/30' : 'bg-dark-50'}`}>
+                      <span className={`font-bold text-sm ${e.isMe ? 'text-yellow-400' : 'text-white'}`}>{e.username}{e.isMe ? ' (את/ה)' : ''}</span>
+                      <span className="text-gray-400 text-sm font-bold">
+                        {allinPoolData.resolved
+                          ? (e.pointsWon !== null ? `${e.pointsWon} נק'` : '—')
+                          : (e.currentPoints !== null ? `${e.currentPoints} נק'` : '—')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {allinPoolData.resolved && (
+                  <p className="text-green-400 text-xs text-center font-bold mb-3">✓ הקופה נסגרה — הניקוד עודכן</p>
+                )}
+              </>
+            )}
+            <button onClick={() => setAllinPoolModal(null)} className="w-full py-3 rounded-2xl bg-dark-50 border border-dark-border text-gray-500 font-medium text-sm">סגור</button>
           </div>
         </div>
       )}
@@ -1114,12 +1182,14 @@ export default function HomePage() {
                       goalsApplied: !!match.userPrediction.goalsApplied,
                       minute90Applied: !!match.userPrediction.minute90Applied,
                       splitApplied: !!match.userPrediction.splitApplied,
+                      allinApplied: !!match.userPrediction.allinApplied,
                       x2Stock: user?.x2Stock ?? 0,
                       shinooStock: user?.shinooStock ?? 0,
                       x3Stock: user?.x3Stock ?? 0,
                       goalsStock: user?.goalsStock ?? 0,
                       minute90Stock: user?.minute90Stock ?? 0,
                       splitStock: user?.splitStock ?? 0,
+                      allinStock: user?.allinStock ?? 0,
                       usage: match.powerupUsage || null,
                       onX2: () => applyX2(match),
                       onShinoo: () => setShinooModal(match),
@@ -1127,6 +1197,8 @@ export default function HomePage() {
                       onGoals: () => applyGoals(match),
                       onMinute90: () => applyMinute90(match),
                       onSplit: () => { setSplitModal(match); setSplitScores({ home: '0', away: '0' }) },
+                      onAllin: () => applyAllin(match, primaryLeague.id),
+                      onAllinInfo: () => showAllinPool(match, primaryLeague.id),
                       loading: powerupLoading,
                     } : null}
                   />
@@ -1171,12 +1243,14 @@ export default function HomePage() {
                           goalsApplied: !!match.userPrediction?.goalsApplied,
                           minute90Applied: !!match.userPrediction?.minute90Applied,
                           splitApplied: !!match.userPrediction?.splitApplied,
+                          allinApplied: !!match.userPrediction?.allinApplied,
                           x2Stock: user?.x2Stock ?? 0,
                           shinooStock: user?.shinooStock ?? 0,
                           x3Stock: user?.x3Stock ?? 0,
                           goalsStock: user?.goalsStock ?? 0,
                           minute90Stock: user?.minute90Stock ?? 0,
                           splitStock: user?.splitStock ?? 0,
+                          allinStock: user?.allinStock ?? 0,
                           usage: match.powerupUsage || null,
                           onX2: () => applyX2(match),
                           onShinoo: () => setShinooModal(match),
@@ -1184,6 +1258,8 @@ export default function HomePage() {
                           onGoals: () => applyGoals(match),
                           onMinute90: () => applyMinute90(match),
                           onSplit: () => { if (!match.userPrediction) { openInlinePredict(match); toast('הכנס ניחוש קודם ↑', { icon: '💡' }); return }; setSplitModal(match); setSplitScores({ home: '0', away: '0' }) },
+                          onAllin: () => applyAllin(match, primaryLeague.id),
+                          onAllinInfo: () => showAllinPool(match, primaryLeague.id),
                           loading: powerupLoading,
                         }}
                       />
