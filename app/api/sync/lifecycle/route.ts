@@ -302,7 +302,7 @@ async function sendMatchSummaryMessages() {
       const NL = "\n"
       const PTS = "נק’"
       const lines = preds.map(p => p.username + ": " + (p.totalPoints ?? 0) + " " + PTS).join(NL)
-      const title = match.homeTeamName + " " + match.homeScore + ":" + match.awayScore + " " + match.awayTeamName
+      const title = match.awayTeamName + "|" + match.awayScore + ":" + match.homeScore + "|" + match.homeTeamName
       const content = title + NL + lines
       await db.message.create({ data: { leagueId, userId: adminUser.id, content, isSystem: true } })
     }
