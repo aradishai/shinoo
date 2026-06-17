@@ -44,6 +44,8 @@ async function saveSubscription(sub: PushSubscription): Promise<{ ok: boolean; s
 export async function registerPush(): Promise<{ ok: boolean; error?: string }> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window))
     return { ok: false, error: 'הדפדפן לא תומך בהתראות' }
+  if (typeof Notification === 'undefined')
+    return { ok: false, error: 'הדפדפן לא תומך בהתראות' }
   if (Notification.permission === 'denied')
     return { ok: false, error: 'חסמת התראות בהגדרות הדפדפן' }
 

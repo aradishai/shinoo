@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import toast from 'react-hot-toast'
 import { registerPush } from '@/components/push-register'
 
 const USER_COLORS = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff9f43','#a29bfe','#fd79a8','#00cec9','#e17055','#55efc4','#74b9ff','#fdcb6e']
@@ -87,15 +88,28 @@ export default function ChatPage() {
   }, [])
 
   const enableNotifications = async () => {
+    if (notifStatus === 'granted') {
+      toast.success('התראות כבר פעילות 🔔')
+      return
+    }
     setNotifStatus('loading')
     setNotifError(null)
-    const result = await registerPush()
-    if (result.ok) {
-      setNotifStatus('granted')
-    } else {
-      setNotifError(result.error ?? null)
-      const perm = typeof Notification !== 'undefined' ? Notification.permission : 'unknown'
-      setNotifStatus(perm === 'denied' ? 'denied' : 'error')
+    try {
+      const result = await registerPush()
+      if (result.ok) {
+        setNotifStatus('granted')
+        toast.success('התראות הופעלו! 🔔')
+      } else {
+        setNotifError(result.error ?? null)
+        toast.error(result.error ?? 'שגיאה בהפעלת התראות')
+        const perm = typeof Notification !== 'undefined' ? Notification.permission : 'unknown'
+        setNotifStatus(perm === 'denied' ? 'denied' : 'error')
+      }
+    } catch (err) {
+      const msg = String(err)
+      setNotifStatus('error')
+      setNotifError(msg)
+      toast.error('שגיאה: ' + msg)
     }
   }
 
