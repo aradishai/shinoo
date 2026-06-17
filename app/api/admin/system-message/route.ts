@@ -5,6 +5,13 @@ export const dynamic = 'force-dynamic'
 
 const SECRET = process.env.ADMIN_SECRET || 'shinoo-admin-2026'
 
+export async function GET(req: Request) {
+  const secret = new URL(req.url).searchParams.get('secret')
+  if (secret !== SECRET) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  const leagues = await db.league.findMany({ select: { id: true, name: true } })
+  return NextResponse.json({ leagues })
+}
+
 export async function POST(req: Request) {
   const { secret, leagueName, content } = await req.json()
   if (secret !== SECRET) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
