@@ -96,6 +96,33 @@ async function main() {
     await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "reminderSent" BOOLEAN NOT NULL DEFAULT false`)
     await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "avatar" TEXT NOT NULL DEFAULT '⚽'`)
     await pool.query(`ALTER TABLE "Message" ADD COLUMN IF NOT EXISTS "isSystem" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "summarySent" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "allinStock" INTEGER NOT NULL DEFAULT 0`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "allinApplied" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "AllInPool" (
+        "id" TEXT NOT NULL,
+        "matchId" TEXT NOT NULL,
+        "leagueId" TEXT NOT NULL,
+        "resolved" BOOLEAN NOT NULL DEFAULT false,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "AllInPool_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "AllInPool_matchId_leagueId_key" UNIQUE ("matchId", "leagueId")
+      )
+    `)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "AllInEntry" (
+        "id" TEXT NOT NULL,
+        "poolId" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "predictionId" TEXT NOT NULL,
+        "pointsWon" INTEGER,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "AllInEntry_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "AllInEntry_predictionId_key" UNIQUE ("predictionId"),
+        CONSTRAINT "AllInEntry_poolId_fkey" FOREIGN KEY ("poolId") REFERENCES "AllInPool"("id")
+      )
+    `)
     console.log('Column check complete')
   } finally {
     await pool.end()
