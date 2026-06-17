@@ -304,7 +304,7 @@ export default function ChatPage() {
               >
                 {isMatchSummary ? (
                   <div className="bg-[#1a2e35] border border-[#d4a847]/30 text-xs rounded-2xl px-4 py-2.5 max-w-[90%] min-w-[200px]">
-                    <div className="text-white font-bold text-center mb-2" dir="ltr">{lines[0]}</div>
+                    <div className="text-white font-bold text-center mb-2" dir="rtl">{lines[0]}</div>
                     <div className="space-y-1">
                       {lines.slice(1).map((row, ri) => {
                         const colonIdx = row.lastIndexOf(':')
