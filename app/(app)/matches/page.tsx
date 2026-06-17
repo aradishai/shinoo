@@ -56,7 +56,7 @@ export default function MatchesPage() {
   const [leagueId, setLeagueId] = useState<string | null>(null)
   const [scores, setScores] = useState<Record<string, { home: string; away: string; topScorerId: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
-  const [userStock, setUserStock] = useState({ x3Stock: 0, goalsStock: 0, splitStock: 0 })
+  const [userStock, setUserStock] = useState({ x3Stock: 0, goalsStock: 0, splitStock: 0, allinStock: 0 })
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [splitModal, setSplitModal] = useState<Match | null>(null)
   const [splitScores, setSplitScores] = useState({ home: '0', away: '0' })
@@ -69,7 +69,7 @@ export default function MatchesPage() {
       if (leagues.length > 0) setLeagueId(leagues[0].id)
     })
     fetch('/api/auth/me').then(r => r.json()).then(d => {
-      setUserStock({ x3Stock: d.data?.x3Stock ?? 0, goalsStock: d.data?.goalsStock ?? 0, splitStock: d.data?.splitStock ?? 0 })
+      setUserStock({ x3Stock: d.data?.x3Stock ?? 0, goalsStock: d.data?.goalsStock ?? 0, splitStock: d.data?.splitStock ?? 0, allinStock: d.data?.allinStock ?? 0 })
       setCurrentUserId(d.data?.id ?? '')
     })
   }, [])
@@ -178,12 +178,12 @@ export default function MatchesPage() {
     ), { duration: 2000 })
   }
 
-  const applyPreMatchPowerup = async (match: Match, type: 'x3' | 'goals' | 'split', splitH?: number, splitA?: number) => {
+  const applyPreMatchPowerup = async (match: Match, type: 'x3' | 'goals' | 'split' | 'allin', splitH?: number, splitA?: number) => {
     if (!match.userPrediction) return
     setPowerupLoading(`${type}-${match.id}`)
     const body: Record<string, unknown> = { predictionId: match.userPrediction.id }
     if (type === 'split') { body.splitHomeScore2 = splitH; body.splitAwayScore2 = splitA }
-    const imgMap = { x3: '/btn-x3.png', goals: '/btn-goals.png', split: '/btn-split.png' }
+    const imgMap = { x3: '/btn-x3.png', goals: '/btn-goals.png', split: '/btn-split.png', allin: '/btn-allin.png' }
     const res = await fetch(`/api/predictions/${type}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
     })
@@ -341,9 +341,9 @@ export default function MatchesPage() {
                 {/* Pre-match powerup buttons */}
                 {(() => {
                   if (!isOpen || !hasPrediction) return null
-                  const anyApplied = match.userPrediction?.x3Applied || match.userPrediction?.goalsApplied || match.userPrediction?.splitApplied
+                  const anyApplied = match.userPrediction?.x3Applied || match.userPrediction?.goalsApplied || match.userPrediction?.splitApplied || (match.userPrediction as any)?.allinApplied
                   if (anyApplied) {
-                    const img = match.userPrediction?.x3Applied ? '/btn-x3.png' : match.userPrediction?.goalsApplied ? '/btn-goals.png' : '/btn-split.png'
+                    const img = match.userPrediction?.x3Applied ? '/btn-x3.png' : match.userPrediction?.goalsApplied ? '/btn-goals.png' : match.userPrediction?.splitApplied ? '/btn-split.png' : '/btn-allin.png'
                     return (
                       <div className="flex items-center justify-center gap-1.5 px-4 pb-2 pt-1 border-t border-dark-border/40">
                         <img src={img} className="h-5 w-auto rounded" style={{ mixBlendMode: 'lighten' }} />
@@ -354,12 +354,14 @@ export default function MatchesPage() {
                   const showX3 = userStock.x3Stock > 0
                   const showGoals = userStock.goalsStock > 0
                   const showSplit = userStock.splitStock > 0
-                  if (!showX3 && !showGoals && !showSplit) return null
+                  const showAllin = userStock.allinStock > 0
+                  if (!showX3 && !showGoals && !showSplit && !showAllin) return null
                   return (
                     <div className="flex gap-3 justify-center px-4 pb-3 pt-1 border-t border-dark-border/40" dir="ltr">
                       {showX3 && <button onClick={() => applyPreMatchPowerup(match, 'x3')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-x3.png" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} /></button>}
                       {showGoals && <button onClick={() => applyPreMatchPowerup(match, 'goals')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-goals.png" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} /></button>}
                       {showSplit && <button onClick={() => { setSplitModal(match); setSplitScores({ home: '0', away: '0' }) }} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-split.png" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} /></button>}
+                      {showAllin && <button onClick={() => applyPreMatchPowerup(match, 'allin')} disabled={!!powerupLoading} className="transition-all active:scale-95"><img src="/btn-allin.png" className="h-8 w-24 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} /></button>}
                     </div>
                   )
                 })()}
