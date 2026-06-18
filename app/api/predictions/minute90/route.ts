@@ -36,8 +36,12 @@ export async function POST(request: Request) {
   if (!user || user.minute90Stock < 1)
     return NextResponse.json({ error: 'אין לך דקה 90 — קנה בחנות' }, { status: 400 })
 
-  const newHome = Math.floor(Math.random() * 6)
-  const newAway = Math.floor(Math.random() * 6)
+  let newHome: number
+  let newAway: number
+  do {
+    newHome = Math.floor(Math.random() * 6)
+    newAway = Math.floor(Math.random() * 6)
+  } while (newHome === prediction.predictedHomeScore && newAway === prediction.predictedAwayScore)
   const matchday = getRoundNumber(prediction.match.round)
 
   await db.user.update({ where: { id: userId }, data: { minute90Stock: { decrement: 1 } } })
