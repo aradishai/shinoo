@@ -205,8 +205,9 @@ async function syncMissingScoresFromApiSports() {
 
         const afStatus = fixture.fixture?.status?.short
         const isFinishedByApi = finishedStatuses.includes(afStatus)
-        const homeScore = fixture.goals?.home
-        const awayScore = fixture.goals?.away
+        // Use fulltime (90 min) score, not goals which includes extra time
+        const homeScore = fixture.score?.fulltime?.home ?? fixture.goals?.home
+        const awayScore = fixture.score?.fulltime?.away ?? fixture.goals?.away
 
         // For active matches: update score and mark FINISHED only when api says FT
         // For scoreless finished matches: fill in the score
