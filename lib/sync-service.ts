@@ -240,9 +240,10 @@ export async function recalculatePoints(matchId: string): Promise<void> {
 
   console.log(`[sync] Recalculated points for ${predictions.length} predictions`)
 
-  // Resolve ALL IN pools for this match if it's finished
+  // Resolve ALL IN pools and DOUBLE entries for this match if it's finished
   if (isFinished) {
     await resolveAllInPools(matchId)
+    await resolveDoubleEntries(matchId)
   }
 }
 
@@ -292,6 +293,55 @@ export async function resolveAllInPools(matchId: string): Promise<void> {
     }
 
     await db.allInPool.update({ where: { id: pool.id }, data: { resolved: true } })
+  }
+}
+
+export async function resolveDoubleEntries(matchId: string): Promise<void> {
+  // Find predictions for this match
+  const predsForMatch = await db.prediction.findMany({
+    where: { matchId },
+    select: { id: true },
+  })
+  const predIdsForMatch = predsForMatch.map(p => p.id)
+  if (predIdsForMatch.length === 0) return
+
+  // Find unresolved DoubleEntries that reference one of these predictions
+  const entries = await (db as any).doubleEntry.findMany({
+    where: {
+      resolved: false,
+      predictionId1: { not: null },
+      predictionId2: { not: null },
+      OR: [
+        { predictionId1: { in: predIdsForMatch } },
+        { predictionId2: { in: predIdsForMatch } },
+      ],
+    },
+  }) as { id: string; userId: string; predictionId1: string; predictionId2: string }[]
+
+  for (const entry of entries) {
+    const [pred1, pred2] = await Promise.all([
+      db.prediction.findUnique({
+        where: { id: entry.predictionId1 },
+        include: { match: { select: { status: true } }, points: { select: { resultPoints: true, totalPoints: true } } },
+      }),
+      db.prediction.findUnique({
+        where: { id: entry.predictionId2 },
+        include: { match: { select: { status: true } }, points: { select: { resultPoints: true, totalPoints: true } } },
+      }),
+    ])
+
+    if (!pred1 || !pred2) continue
+    if (pred1.match.status !== 'FINISHED' || pred2.match.status !== 'FINISHED') continue
+
+    const pts1 = pred1.points?.resultPoints ?? 0
+    const pts2 = pred2.points?.resultPoints ?? 0
+    const bonus = pts1 > 0 && pts2 > 0 ? (pred1.points?.totalPoints ?? 0) + (pred2.points?.totalPoints ?? 0) : 0
+
+    await (db as any).doubleEntry.update({
+      where: { id: entry.id },
+      data: { bonusPoints: bonus, resolved: true },
+    })
+    console.log(`[sync] Resolved double entry ${entry.id}: bonus=${bonus}`)
   }
 }
 

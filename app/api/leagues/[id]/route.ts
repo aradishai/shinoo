@@ -61,16 +61,28 @@ export async function GET(
         if (p.match?.round) roundSet.add(p.match.round)
     const rounds = Array.from(roundSet).sort((a, b) => getRoundNumber(a) - getRoundNumber(b))
 
+    // Fetch double bonus per user for this league
+    const resolvedDoubles = await (db as any).doubleEntry.findMany({
+      where: { leagueId: params.id, resolved: true },
+      select: { userId: true, bonusPoints: true },
+    }) as { userId: string; bonusPoints: number | null }[]
+    const doubleBonusMap: Record<string, number> = {}
+    for (const d of resolvedDoubles) {
+      doubleBonusMap[d.userId] = (doubleBonusMap[d.userId] ?? 0) + (d.bonusPoints ?? 0)
+    }
+
     // Build standings
     const standings = league.members
       .map((member) => {
         const predictions = selectedRound
           ? member.user.predictions.filter(p => p.match?.round === selectedRound)
           : member.user.predictions
-        const totalPoints = predictions.reduce(
+        const baseTotal = predictions.reduce(
           (sum, pred) => sum + (pred.points?.totalPoints || 0),
           0
         )
+        const doubleBonus = doubleBonusMap[member.userId] ?? 0
+        const totalPoints = baseTotal + doubleBonus
         const scored = predictions.filter(p => p.points !== null)
         const finished = scored.filter(p => p.match?.status === 'FINISHED')
         const wrong = finished.filter(p => (p.points?.resultPoints || 0) === 0).length
@@ -168,6 +180,12 @@ export async function GET(
       powerupUsage: powerupMap[match.id] || null,
     }))
 
+    const activeDoubleEntry = await (db as any).doubleEntry.findFirst({
+      where: { userId, leagueId: params.id, resolved: false },
+      select: { id: true, predictionId1: true, predictionId2: true },
+      orderBy: { createdAt: 'desc' },
+    }) as { id: string; predictionId1: string | null; predictionId2: string | null } | null
+
     return NextResponse.json({
       data: {
         id: league.id,
@@ -178,6 +196,7 @@ export async function GET(
         standings,
         rounds,
         matches: matchesWithPredictions,
+        activeDoubleEntry,
       },
     })
   } catch (error) {

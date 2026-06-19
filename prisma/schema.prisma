@@ -20,6 +20,7 @@ model User {
   minute90Stock     Int                @default(0)
   splitStock        Int                @default(0)
   allinStock        Int                @default(0)
+  doubleStock       Int                @default(0)
   interests         String[]           @default([])
   avatar            String             @default("⚽")
   leagueMembers     LeagueMember[]
@@ -231,6 +232,17 @@ model AllInEntry {
   createdAt    DateTime @default(now())
 
   pool AllInPool @relation(fields: [poolId], references: [id])
+}
+
+model DoubleEntry {
+  id            String   @id @default(cuid())
+  userId        String
+  leagueId      String
+  predictionId1 String?
+  predictionId2 String?
+  bonusPoints   Int?
+  resolved      Boolean  @default(false)
+  createdAt     DateTime @default(now())
 }
 
 model PredictionPoints {

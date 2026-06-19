@@ -52,6 +52,9 @@ interface PowerupProps {
   minute90Stock: number
   splitStock: number
   allinStock: number
+  doubleStock: number
+  doubleSlot?: 1 | 2 | null
+  nextDoubleSlot?: 1 | 2 | null
   usage: { x2Used: number; shinooUsed: number } | null
   onX2: () => void
   onShinoo: () => void
@@ -61,6 +64,8 @@ interface PowerupProps {
   onSplit: () => void
   onAllin: () => void
   onAllinInfo: () => void
+  onDouble?: () => void
+  onDoubleRemove?: (slot: 1 | 2) => void
   loading?: string | null
 }
 
@@ -206,6 +211,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     powerup.minute90Applied ? '/btn-90.png' :
     powerup.splitApplied ? '/btn-split.png' :
     powerup.allinApplied ? '/btn-allin.png' : null
+  const doubleSlot = powerup?.doubleSlot ?? null
 
   const matchUrl = leagueId
     ? `/matches/${match.id}?leagueId=${leagueId}`
@@ -225,6 +231,12 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
             <div className="flex items-center gap-1">
               <img src={appliedImg} className="h-8 w-auto" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
               <span className="text-green-400 font-black text-sm">✓</span>
+            </div>
+          )}
+          {doubleSlot && (
+            <div className="flex items-center gap-1">
+              <img src="/btn-double.png" className="h-7 w-auto rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              <span className="text-blue-400 font-black text-xs">({doubleSlot})</span>
             </div>
           )}
           {match.round && <span>{match.round}</span>}
@@ -376,35 +388,57 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       return null
     }
 
-    // Pre-match buttons (X3, GOALS+, SPLIT, ALL IN) — only when match is open
+    // Pre-match buttons (X3, GOALS+, SPLIT, ALL IN, DOUBLE) — only when match is open
     if (isOpen) {
       const showX3 = powerup.x3Stock > 0
       const showGoals = powerup.goalsStock > 0
       const showSplit = powerup.splitStock > 0
       const showAllin = powerup.allinStock > 0
-      if (!showX3 && !showGoals && !showSplit && !showAllin) return null
+      const showDouble = !doubleSlot && powerup.nextDoubleSlot !== null && powerup.nextDoubleSlot !== undefined
+      const doubleRemoveSlot = doubleSlot
+      if (!showX3 && !showGoals && !showSplit && !showAllin && !showDouble && !doubleRemoveSlot) return null
       return (
-        <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
-          {showX3 && (
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX3() }} className="transition-all active:scale-95">
-              <img src="/btn-x3.png" alt="X3" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
-            </button>
-          )}
-          {showGoals && (
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onGoals() }} className="transition-all active:scale-95">
-              <img src="/btn-goals.png" alt="GOALS+" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
-            </button>
-          )}
-          {showSplit && (
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onSplit() }} className="transition-all active:scale-95">
-              <img src="/btn-split.png" alt="SPLIT" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
-            </button>
-          )}
-          {showAllin && (
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onAllin() }} className="transition-all active:scale-95">
-              <img src="/btn-allin.png" alt="ALL IN" className="h-7 w-20 object-cover rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
-            </button>
-          )}
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
+            {showX3 && (
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX3() }} className="transition-all active:scale-95">
+                <img src="/btn-x3.png" alt="X3" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              </button>
+            )}
+            {showGoals && (
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onGoals() }} className="transition-all active:scale-95">
+                <img src="/btn-goals.png" alt="GOALS+" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              </button>
+            )}
+            {showSplit && (
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onSplit() }} className="transition-all active:scale-95">
+                <img src="/btn-split.png" alt="SPLIT" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              </button>
+            )}
+            {showAllin && (
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onAllin() }} className="transition-all active:scale-95">
+                <img src="/btn-allin.png" alt="ALL IN" className="h-7 w-20 object-cover rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              </button>
+            )}
+            {showDouble && powerup.onDouble && (
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onDouble!() }} className="flex flex-col items-center transition-all active:scale-95">
+                <img src="/btn-double.png" alt="DOUBLE" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+                <span className="text-blue-400 text-[10px] font-black">({powerup.nextDoubleSlot})</span>
+              </button>
+            )}
+            {doubleRemoveSlot && powerup.onDoubleRemove && (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onDoubleRemove!(doubleRemoveSlot) }}
+                className="flex flex-col items-center transition-all active:scale-95"
+              >
+                <div className="relative">
+                  <img src="/btn-double.png" alt="DOUBLE" className="h-7 w-20 object-contain rounded-lg opacity-70" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[9px] font-black flex items-center justify-center">✕</span>
+                </div>
+                <span className="text-blue-400 text-[10px] font-black">({doubleRemoveSlot})</span>
+              </button>
+            )}
+          </div>
         </div>
       )
     }

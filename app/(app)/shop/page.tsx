@@ -12,11 +12,12 @@ const SHOP_ITEMS = [
   { id: 'minute90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.png', stockKey: 'minute90Stock' as const, comingSoon: false, cost: 1 },
   { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.png', stockKey: 'splitStock' as const, comingSoon: false, cost: 3 },
   { id: 'allin', name: 'ALL IN', description: 'לשימוש לפני המשחק – שים את הניקוד שלך בקופה משותפת. בעל הניקוד הגבוה ביותר זוכה בכל הקופה.', img: '/btn-allin.png', stockKey: 'allinStock' as const, comingSoon: false, cost: 1, imgClass: 'w-32 h-14' },
+  { id: 'double', name: 'דאבל', description: 'לשימוש לפני המשחק – שייך ל-2 משחקים שונים. אם שניהם מנוחשים נכון, תקבל בונוס נקודות על שניהם!', img: '/btn-double.png', stockKey: 'doubleStock' as const, comingSoon: false, cost: 3 },
 ]
 
 export default function ShopPage() {
   const [coins, setCoins] = useState<number | null>(null)
-  const [stock, setStock] = useState({ x2Stock: 0, shinooStock: 0, x3Stock: 0, goalsStock: 0, minute90Stock: 0, splitStock: 0, allinStock: 0 })
+  const [stock, setStock] = useState({ x2Stock: 0, shinooStock: 0, x3Stock: 0, goalsStock: 0, minute90Stock: 0, splitStock: 0, allinStock: 0, doubleStock: 0 })
   const [loading, setLoading] = useState<string | null>(null)
   const [tooltip, setTooltip] = useState<string | null>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
@@ -34,6 +35,7 @@ export default function ShopPage() {
           minute90Stock: d.data?.minute90Stock ?? 0,
           splitStock: d.data?.splitStock ?? 0,
           allinStock: d.data?.allinStock ?? 0,
+          doubleStock: d.data?.doubleStock ?? 0,
         })
       })
   }, [])
@@ -67,6 +69,7 @@ export default function ShopPage() {
         minute90Stock: data.minute90Stock ?? 0,
         splitStock: data.splitStock ?? 0,
         allinStock: data.allinStock ?? 0,
+        doubleStock: data.doubleStock ?? 0,
       })
       toast.success('נקנה!')
     } catch {

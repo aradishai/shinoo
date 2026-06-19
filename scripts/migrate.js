@@ -123,6 +123,18 @@ async function main() {
         CONSTRAINT "AllInEntry_poolId_fkey" FOREIGN KEY ("poolId") REFERENCES "AllInPool"("id")
       )
     `)
+    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "doubleStock" INTEGER NOT NULL DEFAULT 0`)
+    await pool.query(`CREATE TABLE IF NOT EXISTS "DoubleEntry" (
+      "id" TEXT NOT NULL,
+      "userId" TEXT NOT NULL,
+      "leagueId" TEXT NOT NULL,
+      "predictionId1" TEXT,
+      "predictionId2" TEXT,
+      "bonusPoints" INTEGER,
+      "resolved" BOOLEAN NOT NULL DEFAULT false,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "DoubleEntry_pkey" PRIMARY KEY ("id")
+    )`)
     console.log('Column check complete')
   } finally {
     await pool.end()

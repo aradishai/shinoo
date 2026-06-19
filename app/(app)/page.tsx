@@ -20,6 +20,7 @@ interface User {
   minute90Stock?: number
   splitStock?: number
   allinStock?: number
+  doubleStock?: number
 }
 
 interface Match {
@@ -63,12 +64,19 @@ interface LeagueSummary {
   role?: string
 }
 
+interface ActiveDoubleEntry {
+  id: string
+  predictionId1: string | null
+  predictionId2: string | null
+}
+
 interface LeagueDetail {
   id: string
   name: string
   inviteCode: string
   standings: StandingEntry[]
   matches: Match[]
+  activeDoubleEntry?: ActiveDoubleEntry | null
 }
 
 interface Minute90RevealData {
@@ -609,6 +617,42 @@ export default function HomePage() {
     const data = await res.json()
     if (res.ok) { powerupToast('/btn-split.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id); await refreshUser() }
     else toast.error(data.error || 'שגיאה')
+  }
+
+  const applyDouble = async (match: Match, slot: 1 | 2) => {
+    if (!match.userPrediction) { openInlinePredict(match); toast('הכנס ניחוש קודם ↑', { icon: '💡' }); return }
+    setPowerupLoading(`double-${match.id}`)
+    const res = await fetch('/api/predictions/double', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ predictionId: match.userPrediction.id, slot }),
+    })
+    setPowerupLoading(null)
+    const data = await res.json()
+    if (res.ok) {
+      powerupToast('/btn-double.png')
+      if (primaryLeague) await fetchPrimaryLeague(primaryLeague.id)
+      await refreshUser()
+    } else {
+      toast.error(data.error || 'שגיאה')
+    }
+  }
+
+  const removeDouble = async (slot: 1 | 2, leagueId: string) => {
+    setPowerupLoading(`double-remove`)
+    const res = await fetch('/api/predictions/double', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slot, leagueId }),
+    })
+    setPowerupLoading(null)
+    const data = await res.json()
+    if (res.ok) {
+      if (primaryLeague) await fetchPrimaryLeague(primaryLeague.id)
+      await refreshUser()
+    } else {
+      toast.error(data.error || 'שגיאה')
+    }
   }
 
   const liveMatchCount = primaryLeague?.matches.filter(m => ['LIVE', 'PAUSED'].includes(m.status)).length ?? 0
@@ -1190,6 +1234,9 @@ export default function HomePage() {
                       minute90Stock: user?.minute90Stock ?? 0,
                       splitStock: user?.splitStock ?? 0,
                       allinStock: user?.allinStock ?? 0,
+                      doubleStock: user?.doubleStock ?? 0,
+                      doubleSlot: primaryLeague.activeDoubleEntry?.predictionId1 === match.userPrediction.id ? 1 : primaryLeague.activeDoubleEntry?.predictionId2 === match.userPrediction.id ? 2 : null,
+                      nextDoubleSlot: null,
                       usage: match.powerupUsage || null,
                       onX2: () => applyX2(match),
                       onShinoo: () => setShinooModal(match),
@@ -1199,6 +1246,7 @@ export default function HomePage() {
                       onSplit: () => { setSplitModal(match); setSplitScores({ home: '0', away: '0' }) },
                       onAllin: () => applyAllin(match, primaryLeague.id),
                       onAllinInfo: () => showAllinPool(match, primaryLeague.id),
+                      onDoubleRemove: (slot) => removeDouble(slot, primaryLeague.id),
                       loading: powerupLoading,
                     } : null}
                   />
@@ -1235,33 +1283,44 @@ export default function HomePage() {
                         memberPredictions={match.memberPredictions}
                         leagueId={primaryLeague.id}
                         onPredictClick={isOpen ? () => openInlinePredict(match) : undefined}
-                        powerup={{
-                          predictionId: match.userPrediction?.id ?? '',
-                          x2Applied: !!match.userPrediction?.x2Applied,
-                          shinooApplied: !!match.userPrediction?.shinooApplied,
-                          x3Applied: !!match.userPrediction?.x3Applied,
-                          goalsApplied: !!match.userPrediction?.goalsApplied,
-                          minute90Applied: !!match.userPrediction?.minute90Applied,
-                          splitApplied: !!match.userPrediction?.splitApplied,
-                          allinApplied: !!match.userPrediction?.allinApplied,
-                          x2Stock: user?.x2Stock ?? 0,
-                          shinooStock: user?.shinooStock ?? 0,
-                          x3Stock: user?.x3Stock ?? 0,
-                          goalsStock: user?.goalsStock ?? 0,
-                          minute90Stock: user?.minute90Stock ?? 0,
-                          splitStock: user?.splitStock ?? 0,
-                          allinStock: user?.allinStock ?? 0,
-                          usage: match.powerupUsage || null,
-                          onX2: () => applyX2(match),
-                          onShinoo: () => setShinooModal(match),
-                          onX3: () => applyX3(match),
-                          onGoals: () => applyGoals(match),
-                          onMinute90: () => applyMinute90(match),
-                          onSplit: () => { if (!match.userPrediction) { openInlinePredict(match); toast('הכנס ניחוש קודם ↑', { icon: '💡' }); return }; setSplitModal(match); setSplitScores({ home: '0', away: '0' }) },
-                          onAllin: () => applyAllin(match, primaryLeague.id),
-                          onAllinInfo: () => showAllinPool(match, primaryLeague.id),
-                          loading: powerupLoading,
-                        }}
+                        powerup={(() => {
+                          const de = primaryLeague.activeDoubleEntry
+                          const predId = match.userPrediction?.id ?? null
+                          const thisSlot = predId && de?.predictionId1 === predId ? 1 : predId && de?.predictionId2 === predId ? 2 : null
+                          const nextSlot = !de ? (user?.doubleStock ?? 0) > 0 ? 1 : null : !de.predictionId2 ? 2 : null
+                          return {
+                            predictionId: predId ?? '',
+                            x2Applied: !!match.userPrediction?.x2Applied,
+                            shinooApplied: !!match.userPrediction?.shinooApplied,
+                            x3Applied: !!match.userPrediction?.x3Applied,
+                            goalsApplied: !!match.userPrediction?.goalsApplied,
+                            minute90Applied: !!match.userPrediction?.minute90Applied,
+                            splitApplied: !!match.userPrediction?.splitApplied,
+                            allinApplied: !!match.userPrediction?.allinApplied,
+                            x2Stock: user?.x2Stock ?? 0,
+                            shinooStock: user?.shinooStock ?? 0,
+                            x3Stock: user?.x3Stock ?? 0,
+                            goalsStock: user?.goalsStock ?? 0,
+                            minute90Stock: user?.minute90Stock ?? 0,
+                            splitStock: user?.splitStock ?? 0,
+                            allinStock: user?.allinStock ?? 0,
+                            doubleStock: user?.doubleStock ?? 0,
+                            doubleSlot: thisSlot,
+                            nextDoubleSlot: thisSlot ? null : nextSlot,
+                            usage: match.powerupUsage || null,
+                            onX2: () => applyX2(match),
+                            onShinoo: () => setShinooModal(match),
+                            onX3: () => applyX3(match),
+                            onGoals: () => applyGoals(match),
+                            onMinute90: () => applyMinute90(match),
+                            onSplit: () => { if (!match.userPrediction) { openInlinePredict(match); toast('הכנס ניחוש קודם ↑', { icon: '💡' }); return }; setSplitModal(match); setSplitScores({ home: '0', away: '0' }) },
+                            onAllin: () => applyAllin(match, primaryLeague.id),
+                            onAllinInfo: () => showAllinPool(match, primaryLeague.id),
+                            onDouble: nextSlot ? () => applyDouble(match, nextSlot) : undefined,
+                            onDoubleRemove: thisSlot ? (slot) => removeDouble(slot, primaryLeague.id) : undefined,
+                            loading: powerupLoading,
+                          }
+                        })()}
                       />
                       {isInlineOpen && (
                         <div className="bg-dark-card border border-primary/40 border-t-0 rounded-b-2xl px-4 pb-4 pt-3 -mt-3">

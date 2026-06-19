@@ -9,6 +9,7 @@ const PRICES: Record<string, number> = {
   minute90: 1,
   split: 3,
   allin: 1,
+  double: 3,
 }
 
 const STOCK_FIELDS: Record<string, string> = {
@@ -19,6 +20,7 @@ const STOCK_FIELDS: Record<string, string> = {
   minute90: 'minute90Stock',
   split: 'splitStock',
   allin: 'allinStock',
+  double: 'doubleStock',
 }
 
 export async function POST(request: Request) {
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
   const cost = PRICES[item]
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { coins: true, x2Stock: true, shinooStock: true, x3Stock: true, goalsStock: true, minute90Stock: true, splitStock: true, allinStock: true },
+    select: { coins: true, x2Stock: true, shinooStock: true, x3Stock: true, goalsStock: true, minute90Stock: true, splitStock: true, allinStock: true, doubleStock: true },
   })
   if (!user) return NextResponse.json({ error: 'משתמש לא נמצא' }, { status: 404 })
   if (user.coins < cost) return NextResponse.json({ error: `אין מספיק מטבעות — עולה 🪙${cost}` }, { status: 400 })
@@ -40,7 +42,7 @@ export async function POST(request: Request) {
   const updated = await db.user.update({
     where: { id: userId },
     data: { coins: { decrement: cost }, [stockField]: { increment: 1 } },
-    select: { coins: true, x2Stock: true, shinooStock: true, x3Stock: true, goalsStock: true, minute90Stock: true, splitStock: true, allinStock: true },
+    select: { coins: true, x2Stock: true, shinooStock: true, x3Stock: true, goalsStock: true, minute90Stock: true, splitStock: true, allinStock: true, doubleStock: true },
   })
 
   return NextResponse.json({
@@ -53,5 +55,6 @@ export async function POST(request: Request) {
     minute90Stock: updated.minute90Stock,
     splitStock: updated.splitStock,
     allinStock: updated.allinStock,
+    doubleStock: updated.doubleStock,
   })
 }
