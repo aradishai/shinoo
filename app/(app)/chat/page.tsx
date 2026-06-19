@@ -308,7 +308,8 @@ export default function ChatPage() {
         {messages.map((msg, i) => {
           if (msg.isSystem) {
             const lines = msg.content.split('\n')
-            const isMatchSummary = lines.length > 1
+            const isMatchSummary = lines.length > 1 && lines[0].includes('|')
+            const isMultiLine = lines.length > 1 && !isMatchSummary
             return (
               <div key={msg.id} className="flex justify-center my-1 relative"
                 onTouchStart={() => handlePressStart(msg.id)}
@@ -345,6 +346,10 @@ export default function ChatPage() {
                         )
                       })}
                     </div>
+                  </div>
+                ) : isMultiLine ? (
+                  <div className="bg-[#1a2e35] border border-[#d4a847]/30 text-[#d4a847] text-xs px-4 py-2.5 rounded-2xl text-center max-w-[90%] space-y-1">
+                    {lines.map((line, li) => <div key={li}>{line}</div>)}
                   </div>
                 ) : (
                   <div className="bg-[#1a2e35] border border-[#d4a847]/30 text-[#d4a847] text-xs px-4 py-1.5 rounded-full text-center max-w-[90%]">

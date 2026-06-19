@@ -306,6 +306,36 @@ async function sendMatchSummaryMessages() {
       const title = match.awayTeamName + "|" + match.awayScore + ":" + match.homeScore + "|" + match.homeTeamName
       const content = title + NL + lines
       await db.message.create({ data: { leagueId, userId: adminUser.id, content, isSystem: true } })
+
+      // Check streaks per user in this league
+      const allPreds = await db.$queryRaw<{ userId: string; username: string; resultPoints: number | null }[]>`
+        SELECT p."userId", u.username, pp."resultPoints"
+        FROM "Prediction" p
+        JOIN "User" u ON p."userId" = u.id
+        JOIN "Match" m ON p."matchId" = m.id
+        LEFT JOIN "PredictionPoints" pp ON pp."predictionId" = p.id
+        WHERE p."leagueId" = ${leagueId} AND m.status = ‘FINISHED’
+        ORDER BY m."kickoffAt" DESC, p."userId"
+      `
+      const byUser: Record<string, { username: string; resultPoints: number | null }[]> = {}
+      for (const row of allPreds) {
+        if (!byUser[row.userId]) byUser[row.userId] = []
+        byUser[row.userId].push(row)
+      }
+      const streakLines: string[] = []
+      for (const records of Object.values(byUser)) {
+        if (!records.length) continue
+        const username = records[0].username
+        let streak = 0
+        for (const r of records) {
+          if ((r.resultPoints ?? 0) > 0) streak++
+          else break
+        }
+        if (streak >= 3) streakLines.push(`🔥 ${username} ON FIRE עם ${streak} ניחושים מוצלחים ברצף!`)
+      }
+      if (streakLines.length > 0) {
+        await db.message.create({ data: { leagueId, userId: adminUser.id, content: streakLines.join(‘\n’), isSystem: true } })
+      }
     }
 
     await db.$executeRaw`UPDATE "Match" SET "summarySent" = true WHERE id = ${match.id}`
