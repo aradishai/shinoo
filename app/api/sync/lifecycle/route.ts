@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { recalculatePoints } from '@/lib/sync-service'
 import { db } from '@/lib/db'
 import axios from 'axios'
@@ -301,7 +301,7 @@ async function sendMatchSummaryMessages() {
 
     for (const [leagueId, preds] of Object.entries(byLeague)) {
       const NL = "\n"
-      const PTS = "נק’"
+      const PTS = "נק'"
       const lines = preds.map(p => p.username + ": " + (p.totalPoints ?? 0) + " " + PTS).join(NL)
       const title = match.awayTeamName + "|" + match.awayScore + ":" + match.homeScore + "|" + match.homeTeamName
       const content = title + NL + lines
@@ -314,7 +314,7 @@ async function sendMatchSummaryMessages() {
         JOIN "User" u ON p."userId" = u.id
         JOIN "Match" m ON p."matchId" = m.id
         LEFT JOIN "PredictionPoints" pp ON pp."predictionId" = p.id
-        WHERE p."leagueId" = ${leagueId} AND m.status = ‘FINISHED’
+        WHERE p."leagueId" = ${leagueId} AND m.status = 'FINISHED'
         ORDER BY m."kickoffAt" DESC, p."userId"
       `
       const byUser: Record<string, { username: string; resultPoints: number | null }[]> = {}
@@ -334,7 +334,7 @@ async function sendMatchSummaryMessages() {
         if (streak >= 3) streakLines.push(`🔥 ${username} ON FIRE עם ${streak} ניחושים מוצלחים ברצף!`)
       }
       if (streakLines.length > 0) {
-        await db.message.create({ data: { leagueId, userId: adminUser.id, content: streakLines.join(‘\n’), isSystem: true } })
+        await db.message.create({ data: { leagueId, userId: adminUser.id, content: streakLines.join('\n'), isSystem: true } })
       }
     }
 
