@@ -308,8 +308,9 @@ export default function ChatPage() {
         {messages.map((msg, i) => {
           if (msg.isSystem) {
             const lines = msg.content.split('\n')
-            const isMatchSummary = lines.length > 1 && lines[0].includes('|')
-            const isMultiLine = lines.length > 1 && !isMatchSummary
+            const isDoubleTicket = lines.length >= 3 && lines[0].startsWith('DOUBLE|')
+            const isMatchSummary = !isDoubleTicket && lines.length > 1 && lines[0].includes('|')
+            const isMultiLine = !isDoubleTicket && lines.length > 1 && !isMatchSummary
             return (
               <div key={msg.id} className="flex justify-center my-1 relative"
                 onTouchStart={() => handlePressStart(msg.id)}
@@ -317,7 +318,30 @@ export default function ChatPage() {
                 onTouchMove={handlePressEnd}
                 onContextMenu={e => { if (isAdmin) { e.preventDefault(); setPressedMsgId(msg.id) } }}
               >
-                {isMatchSummary ? (
+                {isDoubleTicket ? (() => {
+                  const username = lines[0].split('|')[1] ?? ''
+                  const matchLines = lines.slice(1)
+                  return (
+                    <div className="bg-[#0d1f2d] border border-blue-500/40 rounded-2xl px-4 py-3 max-w-[85%] min-w-[200px]">
+                      <div className="flex items-center justify-center gap-2 mb-3">
+                        <img src="/btn-double.png" alt="DOUBLE" className="h-6 w-auto" style={{ mixBlendMode: 'lighten' }} />
+                        <span className="text-blue-300 font-black text-xs">{username}</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {matchLines.map((line, li) => {
+                          const [home, away] = line.split('|')
+                          return (
+                            <div key={li} className="flex items-center justify-between bg-white/5 rounded-xl px-3 py-1.5 gap-3">
+                              <span className="text-white text-xs font-bold text-right flex-1">{home}</span>
+                              <span className="text-blue-400 text-[10px] font-black">נגד</span>
+                              <span className="text-white text-xs font-bold text-left flex-1">{away}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })() : isMatchSummary ? (
                   <div className="bg-[#1a2e35] border border-[#d4a847]/30 text-xs rounded-2xl px-4 py-2.5 max-w-[90%] min-w-[200px]">
                     {(() => {
                       const parts = lines[0].split('|')

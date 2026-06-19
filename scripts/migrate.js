@@ -124,6 +124,7 @@ async function main() {
       )
     `)
     await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "doubleStock" INTEGER NOT NULL DEFAULT 0`)
+    await pool.query(`ALTER TABLE "DoubleEntry" ADD COLUMN IF NOT EXISTS "chatSent" BOOLEAN NOT NULL DEFAULT false`)
     await pool.query(`CREATE TABLE IF NOT EXISTS "DoubleEntry" (
       "id" TEXT NOT NULL,
       "userId" TEXT NOT NULL,

@@ -346,6 +346,66 @@ export async function resolveDoubleEntries(matchId: string): Promise<void> {
   }
 }
 
+async function sendDoubleTicketMessages(lockedMatchId: string): Promise<void> {
+  // Find predictions for the locked match
+  const predsForMatch = await db.prediction.findMany({
+    where: { matchId: lockedMatchId },
+    select: { id: true },
+  })
+  const predIds = predsForMatch.map(p => p.id)
+  if (predIds.length === 0) return
+
+  // Find active DoubleEntries with both slots filled that include this match, not yet sent
+  const entries = await (db as any).doubleEntry.findMany({
+    where: {
+      resolved: false,
+      chatSent: false,
+      predictionId1: { not: null },
+      predictionId2: { not: null },
+      OR: [
+        { predictionId1: { in: predIds } },
+        { predictionId2: { in: predIds } },
+      ],
+    },
+  }) as { id: string; userId: string; leagueId: string; predictionId1: string; predictionId2: string }[]
+
+  const adminUser = await db.user.findFirst({ where: { username: 'ערד' }, select: { id: true } })
+  if (!adminUser) return
+
+  for (const entry of entries) {
+    const [pred1, pred2, user] = await Promise.all([
+      db.prediction.findUnique({
+        where: { id: entry.predictionId1 },
+        include: { match: { include: { homeTeam: true, awayTeam: true } } },
+      }),
+      db.prediction.findUnique({
+        where: { id: entry.predictionId2 },
+        include: { match: { include: { homeTeam: true, awayTeam: true } } },
+      }),
+      db.user.findUnique({ where: { id: entry.userId }, select: { username: true } }),
+    ])
+
+    if (!pred1 || !pred2 || !user) continue
+
+    // Format: DOUBLE|username\nhome1|away1\nhome2|away2
+    const content = [
+      `DOUBLE|${user.username}`,
+      `${pred1.match.homeTeam.nameHe}|${pred1.match.awayTeam.nameHe}`,
+      `${pred2.match.homeTeam.nameHe}|${pred2.match.awayTeam.nameHe}`,
+    ].join('\n')
+
+    await db.message.create({
+      data: { leagueId: entry.leagueId, userId: adminUser.id, content, isSystem: true },
+    })
+
+    await (db as any).doubleEntry.update({
+      where: { id: entry.id },
+      data: { chatSent: true },
+    })
+    console.log(`[sync] Sent DOUBLE ticket message for entry ${entry.id}`)
+  }
+}
+
 export async function updateMatchStatuses(): Promise<void> {
   console.log('[sync] Updating match statuses...')
 
@@ -365,6 +425,7 @@ export async function updateMatchStatuses(): Promise<void> {
       data: { status: 'LOCKED' },
     })
     console.log(`[sync] Locked match ${match.id}`)
+    await sendDoubleTicketMessages(match.id)
   }
 
   // Mark finished matches and recalculate points

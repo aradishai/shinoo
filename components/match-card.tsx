@@ -421,21 +421,19 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
               </button>
             )}
             {showDouble && powerup.onDouble && (
-              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onDouble!() }} className="flex flex-col items-center transition-all active:scale-95">
-                <img src="/btn-double.png" alt="DOUBLE" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
-                <span className="text-blue-400 text-[10px] font-black">({powerup.nextDoubleSlot})</span>
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onDouble!() }} className="transition-all active:scale-95">
+                <img src="/btn-double.png" alt="DOUBLE" className="h-9 w-24 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
               </button>
             )}
             {doubleRemoveSlot && powerup.onDoubleRemove && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onDoubleRemove!(doubleRemoveSlot) }}
-                className="flex flex-col items-center transition-all active:scale-95"
+                className="transition-all active:scale-95"
               >
                 <div className="relative">
-                  <img src="/btn-double.png" alt="DOUBLE" className="h-7 w-20 object-contain rounded-lg opacity-70" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+                  <img src="/btn-double.png" alt="DOUBLE" className="h-9 w-24 object-contain rounded-lg opacity-70" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[9px] font-black flex items-center justify-center">✕</span>
                 </div>
-                <span className="text-blue-400 text-[10px] font-black">({doubleRemoveSlot})</span>
               </button>
             )}
           </div>

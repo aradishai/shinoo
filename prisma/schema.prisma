@@ -242,6 +242,7 @@ model DoubleEntry {
   predictionId2 String?
   bonusPoints   Int?
   resolved      Boolean  @default(false)
+  chatSent      Boolean  @default(false)
   createdAt     DateTime @default(now())
 }
 
