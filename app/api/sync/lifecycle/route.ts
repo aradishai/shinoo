@@ -331,7 +331,7 @@ async function sendMatchSummaryMessages() {
           if ((r.resultPoints ?? 0) > 0) streak++
           else break
         }
-        if (streak >= 3) streakLines.push(`🔥 ${username} ON FIRE עם ${streak} ניחושים מוצלחים ברצף!`)
+        if (streak >= 5) streakLines.push(`🔥 ${username} ON FIRE עם ${streak} ניחושים מוצלחים ברצף!`)
       }
       if (streakLines.length > 0) {
         await db.message.create({ data: { leagueId, userId: adminUser.id, content: streakLines.join('\n'), isSystem: true } })
@@ -391,3 +391,4 @@ export async function GET() {
     return NextResponse.json({ ok: false }, { status: 500 })
   }
 }
+
