@@ -222,14 +222,14 @@ export async function recalculatePoints(matchId: string): Promise<void> {
     await db.predictionPoints.upsert({
       where: { predictionId: prediction.id },
       update: {
-        resultPoints: result.resultPoints,
+        resultPoints: basePoints,
         topScorerPoints: result.topScorerPoints,
         totalPoints,
         explanation,
       },
       create: {
         predictionId: prediction.id,
-        resultPoints: result.resultPoints,
+        resultPoints: basePoints,
         topScorerPoints: result.topScorerPoints,
         totalPoints,
         explanation,
