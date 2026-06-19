@@ -390,10 +390,10 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
 
     // Pre-match buttons (X3, GOALS+, SPLIT, ALL IN, DOUBLE) — only when match is open
     if (isOpen) {
-      const showX3 = powerup.x3Stock > 0
-      const showGoals = powerup.goalsStock > 0
-      const showSplit = powerup.splitStock > 0
-      const showAllin = powerup.allinStock > 0
+      const showX3 = powerup.x3Stock > 0 && !doubleSlot
+      const showGoals = powerup.goalsStock > 0 && !doubleSlot
+      const showSplit = powerup.splitStock > 0 && !doubleSlot
+      const showAllin = powerup.allinStock > 0 && !doubleSlot
       const showDouble = !doubleSlot && powerup.nextDoubleSlot !== null && powerup.nextDoubleSlot !== undefined
       const doubleRemoveSlot = doubleSlot
       if (!showX3 && !showGoals && !showSplit && !showAllin && !showDouble && !doubleRemoveSlot) return null
@@ -444,6 +444,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     }
 
     // Live buttons: X2/SHINOO only during halftime, 90' only when LIVE (not halftime)
+    if ((isLive || match.status === 'PAUSED') && doubleSlot) return null
     if (isLive || match.status === 'PAUSED') {
       const inHalftimeWindow = match.status === 'PAUSED' || liveMinute === 'מחצית'
       const before90 = (match.status === 'LIVE' || match.status === 'PAUSED') && liveMinute !== 'מחצית'

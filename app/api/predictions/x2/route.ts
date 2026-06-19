@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
+import { isInDoubleEntry } from '@/lib/double-guard'
 
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
@@ -24,6 +25,9 @@ export async function POST(request: Request) {
 
   if (!prediction || prediction.userId !== userId)
     return NextResponse.json({ error: 'ניחוש לא נמצא' }, { status: 404 })
+
+  if (await isInDoubleEntry(predictionId))
+    return NextResponse.json({ error: 'לא ניתן לשלב לחצן עם DOUBLE' }, { status: 400 })
 
   if (!['LIVE', 'PAUSED'].includes(prediction.match.status))
     return NextResponse.json({ error: 'X2 זמין רק במהלך משחק' }, { status: 400 })

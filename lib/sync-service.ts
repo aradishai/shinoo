@@ -335,7 +335,8 @@ export async function resolveDoubleEntries(matchId: string): Promise<void> {
 
     const pts1 = pred1.points?.resultPoints ?? 0
     const pts2 = pred2.points?.resultPoints ?? 0
-    const bonus = pts1 > 0 && pts2 > 0 ? (pred1.points?.totalPoints ?? 0) + (pred2.points?.totalPoints ?? 0) : 0
+    const rawBonus = (pred1.points?.totalPoints ?? 0) + (pred2.points?.totalPoints ?? 0)
+    const bonus = pts1 > 0 && pts2 > 0 ? Math.floor(rawBonus / 2) : 0
 
     await (db as any).doubleEntry.update({
       where: { id: entry.id },

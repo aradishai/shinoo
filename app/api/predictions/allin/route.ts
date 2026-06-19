@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
+import { isInDoubleEntry } from '@/lib/double-guard'
 
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
@@ -16,6 +17,9 @@ export async function POST(request: Request) {
 
   if (!prediction || prediction.userId !== userId)
     return NextResponse.json({ error: 'ניחוש לא נמצא' }, { status: 404 })
+
+  if (await isInDoubleEntry(predictionId))
+    return NextResponse.json({ error: 'לא ניתן לשלב לחצן עם DOUBLE' }, { status: 400 })
 
   if (prediction.match.status !== 'SCHEDULED' || new Date() >= prediction.match.lockAt)
     return NextResponse.json({ error: 'ALL IN זמין רק לפני נעילת המשחק' }, { status: 400 })
