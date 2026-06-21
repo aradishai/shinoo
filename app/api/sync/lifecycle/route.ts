@@ -385,6 +385,9 @@ export async function GET() {
     await syncMissingScoresFromApiSports()
     await autoFinishStaleMatches()
     await recalculateMissingPoints()
+    // Spain vs Saudi Arabia: API erroneously reports 5:0, real score was 4:0
+    await db.$executeRaw`UPDATE "Match" SET "homeScore" = 4 WHERE id = 'cmobmm5bu004l12r2e39r1pw2' AND "homeScore" = 5`
+    await recalculatePoints('cmobmm5bu004l12r2e39r1pw2')
     await sendMatchSummaryMessages()
     await sendMatchReminders()
     return NextResponse.json({ ok: true, ts: new Date().toISOString() })
