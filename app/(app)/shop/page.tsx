@@ -118,7 +118,7 @@ export default function ShopPage() {
                       style={{ mixBlendMode: 'lighten' }}
                     />
                     {item.comingSoon && (
-                      <span className="absolute -top-1.5 -right-1.5 bg-gray-700 text-gray-300 text-[9px] font-black rounded-full px-1.5 leading-5">בקרוב</span>
+                      <span className="absolute -top-1.5 -right-1.5 bg-gray-700 text-gray-300 text-[9px] font-black rounded-full px-1.5 leading-5">מושהה</span>
                     )}
                   </div>
                   {!item.comingSoon && (
