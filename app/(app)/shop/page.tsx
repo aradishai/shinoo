@@ -7,12 +7,12 @@ import toast from 'react-hot-toast'
 const SHOP_ITEMS = [
   { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false, cost: 4 },
   { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo-game.png', stockKey: 'shinooStock' as const, comingSoon: false, cost: 3 },
-  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.png', stockKey: 'x3Stock' as const, comingSoon: true, cost: 5 },
+  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.png', stockKey: 'x3Stock' as const, comingSoon: false, cost: 5 },
   { id: 'goals', name: 'גולס+', description: 'לשימוש לפני המשחק – ניקוד רק על שערים (חובה לנחש מגמה)', img: '/btn-goals.png', stockKey: 'goalsStock' as const, comingSoon: false, cost: 5 },
   { id: 'minute90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.png', stockKey: 'minute90Stock' as const, comingSoon: false, cost: 1 },
   { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.png', stockKey: 'splitStock' as const, comingSoon: false, cost: 3 },
-  { id: 'allin', name: 'ALL IN', description: 'לשימוש לפני המשחק – שים את הניקוד שלך בקופה משותפת. בעל הניקוד הגבוה ביותר זוכה בכל הקופה.', img: '/btn-allin.png', stockKey: 'allinStock' as const, comingSoon: false, cost: 1, imgClass: 'w-32 h-14' },
-  { id: 'double', name: 'דאבל', description: 'לשימוש לפני המשחק – שייך ל-2 משחקים שונים. אם שניהם מנוחשים נכון, תקבל בונוס נקודות על שניהם!', img: '/btn-double.png', stockKey: 'doubleStock' as const, comingSoon: true, cost: 3, imgClass: 'w-32 h-16' },
+  { id: 'allin', name: 'ALL IN', description: 'לשימוש לפני המשחק – שים את הניקוד שלך בקופה משותפת. בעל הניקוד הגבוה ביותר זוכה בכל הקופה.', img: '/btn-allin.png', stockKey: 'allinStock' as const, comingSoon: false, cost: 1, imgClass: 'w-32 h-14', hidden: true },
+  { id: 'double', name: 'דאבל', description: 'לשימוש לפני המשחק – שייך ל-2 משחקים שונים. אם שניהם מנוחשים נכון, תקבל בונוס נקודות על שניהם!', img: '/btn-double.png', stockKey: 'doubleStock' as const, comingSoon: true, cost: 3, imgClass: 'w-32 h-16', hidden: true },
 ]
 
 export default function ShopPage() {
@@ -99,7 +99,7 @@ export default function ShopPage() {
 
       {/* Items */}
       <div ref={tooltipRef} className="space-y-5">
-        {SHOP_ITEMS.map((item, i) => {
+        {SHOP_ITEMS.filter(item => !(item as any).hidden).map((item, i) => {
           const owned = item.stockKey ? stock[item.stockKey] : 0
           const canBuy = !item.comingSoon && (coins ?? 0) >= item.cost
           const isLoading = loading === item.id
