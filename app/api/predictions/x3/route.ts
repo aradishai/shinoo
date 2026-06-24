@@ -1,55 +1,6 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { postSystemMessage } from '@/lib/system-message'
-import { isInDoubleEntry } from '@/lib/double-guard'
 
-export async function POST(_request: Request) {
+// X3 temporarily disabled
+export async function POST() {
   return NextResponse.json({ error: 'לחצן כפול 3 אינו זמין' }, { status: 403 })
-}
-
-export async function POST_disabled(request: Request) {
-  const userId = request.headers.get('x-user-id')
-  if (!userId) return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
-
-  const { predictionId } = await request.json()
-  if (!predictionId) return NextResponse.json({ error: 'חסר predictionId' }, { status: 400 })
-
-  const prediction = await db.prediction.findUnique({
-    where: { id: predictionId },
-    include: { match: { include: { homeTeam: true, awayTeam: true } } },
-  })
-
-  if (!prediction || prediction.userId !== userId)
-    return NextResponse.json({ error: 'ניחוש לא נמצא' }, { status: 404 })
-
-  if (await isInDoubleEntry(predictionId))
-    return NextResponse.json({ error: 'לא ניתן לשלב לחצן עם DOUBLE' }, { status: 400 })
-
-  if (prediction.match.status !== 'SCHEDULED' || new Date() >= prediction.match.lockAt)
-    return NextResponse.json({ error: 'X3 זמין רק לפני נעילת המשחק' }, { status: 400 })
-
-  if ((prediction as any).x3Applied)
-    return NextResponse.json({ error: 'X3 כבר הופעל על משחק זה' }, { status: 400 })
-
-  if (prediction.x2Applied)
-    return NextResponse.json({ error: 'לא ניתן לשלב X2 ו-X3' }, { status: 400 })
-
-  const user = await db.user.findUnique({ where: { id: userId }, select: { x3Stock: true, username: true } })
-  if (!user || user.x3Stock < 1)
-    return NextResponse.json({ error: 'אין לך X3 — קנה בחנות' }, { status: 400 })
-
-  await db.user.update({ where: { id: userId }, data: { x3Stock: { decrement: 1 } } })
-  await db.prediction.updateMany({ where: { userId, matchId: prediction.matchId }, data: { x3Applied: true } as any })
-
-  await postSystemMessage(
-    prediction.leagueId,
-    userId,
-    `${user.username} הפעיל X3 על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
-  )
-
-  const updatedUser = await db.user.findUnique({
-    where: { id: userId },
-    select: { x2Stock: true, shinooStock: true, x3Stock: true, goalsStock: true, minute90Stock: true, splitStock: true },
-  })
-  return NextResponse.json({ success: true, ...updatedUser })
 }
