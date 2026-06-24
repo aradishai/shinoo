@@ -3,8 +3,11 @@ import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
 import { isInDoubleEntry } from '@/lib/double-guard'
 
-export async function POST(request: Request) {
+export async function POST(_request: Request) {
   return NextResponse.json({ error: 'לחצן כפול 3 אינו זמין' }, { status: 403 })
+}
+
+export async function POST_disabled(request: Request) {
   const userId = request.headers.get('x-user-id')
   if (!userId) return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
 
