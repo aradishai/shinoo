@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 const SHOP_ITEMS = [
   { id: 'x2', name: 'כפול 2', description: 'לשימוש במחצית - הכפלת ניקוד המשחק', img: '/btn-x2.png', stockKey: 'x2Stock' as const, comingSoon: false, cost: 4 },
   { id: 'shinoo', name: 'שינוי', description: 'לשימוש במחצית, שינוי של גול אחד מתוצאת המשחק', img: '/btn-shinoo-game.png', stockKey: 'shinooStock' as const, comingSoon: false, cost: 3 },
-  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.png', stockKey: 'x3Stock' as const, comingSoon: true, cost: 5, hidden: true },
+  { id: 'x3', name: 'כפול 3', description: 'לשימוש לפני המשחק – שילוש ניקוד המשחק', img: '/btn-x3.png', stockKey: 'x3Stock' as const, comingSoon: false, cost: 5 },
   { id: 'goals', name: 'גולס+', description: 'לשימוש לפני המשחק – ניקוד רק על שערים (חובה לנחש מגמה)', img: '/btn-goals.png', stockKey: 'goalsStock' as const, comingSoon: false, cost: 5 },
   { id: 'minute90', name: 'דקה 90', description: "לשימוש עד דקה 90' – הגרלת ניחוש", img: '/btn-90.png', stockKey: 'minute90Stock' as const, comingSoon: false, cost: 1 },
   { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.png', stockKey: 'splitStock' as const, comingSoon: false, cost: 3 },
@@ -18,6 +18,7 @@ const SHOP_ITEMS = [
 export default function ShopPage() {
   const [coins, setCoins] = useState<number | null>(null)
   const [stock, setStock] = useState({ x2Stock: 0, shinooStock: 0, x3Stock: 0, goalsStock: 0, minute90Stock: 0, splitStock: 0, allinStock: 0, doubleStock: 0 })
+  const [lowerPlayoff, setLowerPlayoff] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
   const [tooltip, setTooltip] = useState<string | null>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
@@ -27,6 +28,7 @@ export default function ShopPage() {
       .then(r => r.json())
       .then(d => {
         setCoins(d.data?.coins ?? 0)
+        setLowerPlayoff(d.data?.lowerPlayoff ?? false)
         setStock({
           x2Stock: d.data?.x2Stock ?? 0,
           shinooStock: d.data?.shinooStock ?? 0,
@@ -99,7 +101,7 @@ export default function ShopPage() {
 
       {/* Items */}
       <div ref={tooltipRef} className="space-y-5">
-        {SHOP_ITEMS.filter(item => !(item as any).hidden).map((item, i) => {
+        {SHOP_ITEMS.filter(item => !(item as any).hidden && (item.id !== 'x3' || lowerPlayoff)).map((item, i) => {
           const owned = item.stockKey ? stock[item.stockKey] : 0
           const canBuy = !item.comingSoon && (coins ?? 0) >= item.cost
           const isLoading = loading === item.id

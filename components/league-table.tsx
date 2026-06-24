@@ -50,6 +50,15 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
 
   return (
     <div className="bg-dark-card border border-dark-border rounded-2xl overflow-hidden">
+      {/* Playoff upper header */}
+      {standings.length >= 7 && (
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 border-b border-primary/20">
+          <div className="flex-1 h-px bg-primary/20" />
+          <span className="text-primary text-[10px] font-black tracking-widest">פליאוף עליון</span>
+          <div className="flex-1 h-px bg-primary/20" />
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center px-3 py-2 gap-2 border-b border-dark-border">
         <div className="w-7 flex-shrink-0" />
@@ -70,9 +79,17 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
       {/* Rows */}
       {standings.map((entry, i) => {
         const isCurrentUser = entry.userId === currentUserId
+        const isPlayoffSplit = entry.rank === 7
         return (
+          <div key={entry.userId}>
+            {isPlayoffSplit && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border-y border-red-500/30">
+                <div className="flex-1 h-px bg-red-500/30" />
+                <span className="text-red-400 text-[10px] font-black tracking-widest">פליאוף תחתון</span>
+                <div className="flex-1 h-px bg-red-500/30" />
+              </div>
+            )}
           <div
-            key={entry.userId}
             className={`flex items-center px-3 py-2.5 gap-2 ${
               i < standings.length - 1 ? 'border-b border-dark-border/50' : ''
             } ${isCurrentUser ? 'bg-primary/10' : ''}`}
@@ -95,6 +112,7 @@ export function LeagueTable({ standings, currentUserId }: LeagueTableProps) {
             <div className={`w-8 text-center font-black text-lg ${isCurrentUser ? 'text-primary' : 'text-white'}`}>
               {entry.totalPoints}
             </div>
+          </div>
           </div>
         )
       })}
