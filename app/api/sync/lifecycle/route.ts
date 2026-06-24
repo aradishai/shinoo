@@ -181,6 +181,8 @@ async function syncMissingScoresFromApiSports() {
   }
 
   const finishedStatuses = ['FT', 'AET', 'PEN', 'AWD', 'WO']
+  const liveStatuses = ['1H', '2H', 'ET', 'P', 'INT', 'LIVE']
+  const pausedStatuses = ['HT', 'BT']
 
   for (const [dateStr, dayMatches] of Object.entries(byDate)) {
     try {
@@ -215,7 +217,10 @@ async function syncMissingScoresFromApiSports() {
         // For scoreless finished matches: fill in the score
         if (homeScore === null || homeScore === undefined) continue
 
-        const newStatus = isFinishedByApi ? 'FINISHED' : match.status
+        const newStatus = isFinishedByApi ? 'FINISHED'
+          : liveStatuses.includes(afStatus) ? 'LIVE'
+          : pausedStatuses.includes(afStatus) ? 'PAUSED'
+          : match.status
         await db.match.update({
           where: { id: match.id },
           data: { homeScore, awayScore, status: newStatus, providerMatchId: String(fixture.fixture.id) },
