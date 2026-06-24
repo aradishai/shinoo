@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 const PRICES: Record<string, number> = {
   x2: 4,
   shinoo: 3,
-  x3: 5,
+  x3: 10,
   goals: 5,
   minute90: 1,
   split: 3,
