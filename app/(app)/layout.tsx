@@ -1,5 +1,6 @@
 import { BottomNav } from '@/components/bottom-nav'
 import { PushRegister } from '@/components/push-register'
+import { InstallGuide } from '@/components/install-guide'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,6 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
       <BottomNav />
       <PushRegister />
+      <InstallGuide />
     </div>
   )
 }
