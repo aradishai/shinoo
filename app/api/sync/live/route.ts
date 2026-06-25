@@ -31,6 +31,8 @@ const FD_STATUS_MAP: Record<string, string> = {
   'AWARDED': 'FINISHED',
 }
 
+let lastSyncDebug: any = null
+
 async function syncFootballData() {
   if (!FD_KEY) return
 
@@ -59,6 +61,15 @@ async function syncFootballData() {
   const recentMatches = fetchResults
     .filter((_, i) => i % 2 === 1)
     .flatMap(r => r.status === 'fulfilled' ? (r.value.data?.matches ?? []) : [])
+
+  lastSyncDebug = {
+    ts: new Date().toISOString(),
+    competitions,
+    slugs,
+    apiErrors: fetchResults.filter(r => r.status === 'rejected').map(r => (r as any).reason?.message),
+    liveFromApi: liveMatches.map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime, halfTime: m.score?.halfTime })),
+    finishedFromApi: recentMatches.slice(0, 5).map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime })),
+  }
 
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
   const recentFinished = recentMatches.filter((m: any) => new Date(m.lastUpdated) > cutoff)
@@ -374,6 +385,7 @@ export async function GET() {
       activeMatches: activeCount,
       nextSyncIn: synced ? minInterval : Math.max(0, minInterval - timeSinceLast),
       liveMatchData,
+      lastSyncDebug,
     })
   } catch (error) {
     console.error('[sync/live] Error:', error)
