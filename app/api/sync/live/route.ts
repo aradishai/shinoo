@@ -69,6 +69,7 @@ async function syncFootballData() {
     ts: new Date().toISOString(),
     competitions,
     apiErrors: fetchResults.filter(r => r.status === 'rejected').map(r => (r as any).reason?.message),
+    allFromApiToday: allFromApi.filter((m: any) => new Date(m.utcDate).toISOString().slice(0,10) === today).map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime })),
     liveFromApi: liveMatches.map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime })),
     finishedFromApi: recentFinished.slice(0, 5).map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime })),
   }
