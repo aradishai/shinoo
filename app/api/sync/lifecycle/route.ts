@@ -29,6 +29,14 @@ async function lockExpiredMatches() {
   })
 }
 
+async function liveStartedMatches() {
+  // Transition LOCKED → LIVE when kickoff time has passed (no API key needed)
+  await db.match.updateMany({
+    where: { status: 'LOCKED', kickoffAt: { lte: new Date() } },
+    data: { status: 'LIVE' },
+  })
+}
+
 async function syncFootballData() {
   if (!FD_KEY) return
   const activeTournaments = await db.tournament.findMany({ where: { isActive: true } })
@@ -386,6 +394,7 @@ export async function GET() {
     await db.$executeRaw`UPDATE "User" SET coins = GREATEST(0, coins - 10) WHERE id IN (SELECT "userId" FROM "PowerupUsage" WHERE type = 'coins_matchday_999')`
     await db.$executeRaw`DELETE FROM "PowerupUsage" WHERE type = 'coins_matchday_999'`
     await lockExpiredMatches()
+    await liveStartedMatches()
     await syncFootballData()
     await syncMissingScoresFromApiSports()
     await autoFinishStaleMatches()
