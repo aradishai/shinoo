@@ -43,36 +43,36 @@ async function syncFootballData() {
     ...(slugs.some(s => s.includes('la-liga')) ? ['PD'] : []),
   ]
   if (competitions.length === 0) competitions.push('PD')
+
+  // Fetch by date range (today + yesterday) — covers LIVE, PAUSED, and recent FINISHED
+  // The status=IN_PLAY,PAUSED filter returns empty for WC on free tier; date-based works
+  const today = new Date().toISOString().slice(0, 10)
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
   const fetchResults = await Promise.allSettled(
-    competitions.flatMap(comp => [
-      axios.get(`${FD_API}/competitions/${comp}/matches?status=IN_PLAY,PAUSED`, {
+    competitions.map(comp =>
+      axios.get(`${FD_API}/competitions/${comp}/matches?dateFrom=${yesterday}&dateTo=${today}`, {
         headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
-      }),
-      axios.get(`${FD_API}/competitions/${comp}/matches?status=FINISHED`, {
-        headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
-      }),
-    ])
+      })
+    )
   )
 
-  const liveMatches = fetchResults
-    .filter((_, i) => i % 2 === 0)
+  const allFromApi: any[] = fetchResults
     .flatMap(r => r.status === 'fulfilled' ? (r.value.data?.matches ?? []) : [])
 
-  const recentMatches = fetchResults
-    .filter((_, i) => i % 2 === 1)
-    .flatMap(r => r.status === 'fulfilled' ? (r.value.data?.matches ?? []) : [])
+  const liveStatuses = new Set(['IN_PLAY', 'PAUSED'])
+  const finishedStatuses = new Set(['FINISHED', 'AWARDED'])
+  const liveMatches = allFromApi.filter((m: any) => liveStatuses.has(m.status))
+  const recentFinished = allFromApi.filter((m: any) => finishedStatuses.has(m.status))
 
   lastSyncDebug = {
     ts: new Date().toISOString(),
     competitions,
-    slugs,
     apiErrors: fetchResults.filter(r => r.status === 'rejected').map(r => (r as any).reason?.message),
-    liveFromApi: liveMatches.map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime, halfTime: m.score?.halfTime })),
-    finishedFromApi: recentMatches.slice(0, 5).map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime })),
+    liveFromApi: liveMatches.map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime })),
+    finishedFromApi: recentFinished.slice(0, 5).map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime })),
   }
 
-  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
-  const recentFinished = recentMatches.filter((m: any) => new Date(m.lastUpdated) > cutoff)
   const allMatches = [...liveMatches, ...recentFinished]
 
   for (const m of allMatches) {

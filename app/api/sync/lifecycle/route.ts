@@ -47,26 +47,25 @@ async function syncFootballData() {
     ...(slugs.some(s => s.includes('champions-league')) ? ['CL'] : []),
   ]
   if (competitions.length === 0) return
+
+  const today = new Date().toISOString().slice(0, 10)
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
   const fetchResults = await Promise.allSettled(
-    competitions.flatMap(comp => [
-      axios.get(`${FD_API}/competitions/${comp}/matches?status=IN_PLAY,PAUSED`, {
+    competitions.map(comp =>
+      axios.get(`${FD_API}/competitions/${comp}/matches?dateFrom=${yesterday}&dateTo=${today}`, {
         headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
-      }),
-      axios.get(`${FD_API}/competitions/${comp}/matches?status=FINISHED`, {
-        headers: { 'X-Auth-Token': FD_KEY }, timeout: 8000,
-      }),
-    ])
+      })
+    )
   )
 
-  const liveMatches = fetchResults
-    .filter((_, i) => i % 2 === 0)
-    .flatMap(r => r.status === 'fulfilled' ? (r.value.data?.matches ?? []) : [])
-  const recentMatches = fetchResults
-    .filter((_, i) => i % 2 === 1)
+  const allFromApi: any[] = fetchResults
     .flatMap(r => r.status === 'fulfilled' ? (r.value.data?.matches ?? []) : [])
 
-  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
-  const recentFinished = recentMatches.filter((m: any) => new Date(m.lastUpdated) > cutoff)
+  const liveStatuses = new Set(['IN_PLAY', 'PAUSED'])
+  const finishedStatuses = new Set(['FINISHED', 'AWARDED'])
+  const liveMatches = allFromApi.filter((m: any) => liveStatuses.has(m.status))
+  const recentFinished = allFromApi.filter((m: any) => finishedStatuses.has(m.status))
   const allMatches = [...liveMatches, ...recentFinished]
 
   const SKIP = new Set(['FC', 'AC', 'AS', 'CD', 'CF', 'RC', 'RCD', 'SD', 'UD', 'SC', 'FK'])
