@@ -31,8 +31,6 @@ const FD_STATUS_MAP: Record<string, string> = {
   'AWARDED': 'FINISHED',
 }
 
-let lastSyncDebug: any = null
-
 async function syncFootballData() {
   if (!FD_KEY) return
 
@@ -64,15 +62,6 @@ async function syncFootballData() {
   const finishedStatuses = new Set(['FINISHED', 'AWARDED'])
   const liveMatches = allFromApi.filter((m: any) => liveStatuses.has(m.status))
   const recentFinished = allFromApi.filter((m: any) => finishedStatuses.has(m.status))
-
-  lastSyncDebug = {
-    ts: new Date().toISOString(),
-    competitions,
-    apiErrors: fetchResults.filter(r => r.status === 'rejected').map(r => (r as any).reason?.message),
-    allFromApiToday: allFromApi.filter((m: any) => new Date(m.utcDate).toISOString().slice(0,10) === today).map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime })),
-    liveFromApi: liveMatches.map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime })),
-    finishedFromApi: recentFinished.slice(0, 5).map((m: any) => ({ id: m.id, home: m.homeTeam?.name, away: m.awayTeam?.name, status: m.status, fullTime: m.score?.fullTime })),
-  }
 
   const allMatches = [...liveMatches, ...recentFinished]
 
@@ -386,7 +375,6 @@ export async function GET() {
       activeMatches: activeCount,
       nextSyncIn: synced ? minInterval : Math.max(0, minInterval - timeSinceLast),
       liveMatchData,
-      lastSyncDebug,
     })
   } catch (error) {
     console.error('[sync/live] Error:', error)
