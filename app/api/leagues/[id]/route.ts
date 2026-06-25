@@ -151,10 +151,16 @@ export async function GET(
           include: { user: { select: { id: true, username: true } } },
         })
       : []
+    const rankMap: Record<string, number> = {}
+    for (const s of standings) rankMap[s.userId] = s.rank
+
     const memberPredMap: Record<string, any[]> = {}
     for (const p of memberPredictions) {
       if (!memberPredMap[p.matchId]) memberPredMap[p.matchId] = []
       memberPredMap[p.matchId].push(p)
+    }
+    for (const matchId of Object.keys(memberPredMap)) {
+      memberPredMap[matchId].sort((a, b) => (rankMap[a.userId] ?? 999) - (rankMap[b.userId] ?? 999))
     }
 
     // Powerup usage for LIVE/PAUSED matches

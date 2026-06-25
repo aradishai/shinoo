@@ -54,6 +54,21 @@ export async function GET(
           points: true,
         },
       })
+
+      // Sort by league standings (first league the user is in)
+      if (leagueIds.length > 0) {
+        const standingsRows = await db.$queryRaw<{ userId: string }[]>`
+          SELECT p."userId"
+          FROM "Prediction" p
+          LEFT JOIN "PredictionPoints" pp ON pp."predictionId" = p.id
+          WHERE p."leagueId" = ${leagueIds[0]}
+          GROUP BY p."userId"
+          ORDER BY COALESCE(SUM(pp."totalPoints"), 0) DESC
+        `
+        const rankMap: Record<string, number> = {}
+        standingsRows.forEach((r, i) => { rankMap[r.userId] = i + 1 })
+        memberPredictions.sort((a, b) => (rankMap[a.userId] ?? 999) - (rankMap[b.userId] ?? 999))
+      }
     }
 
     return NextResponse.json({ data: { match, predictions, memberPredictions } })
