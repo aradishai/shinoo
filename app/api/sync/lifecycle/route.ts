@@ -62,7 +62,7 @@ async function syncFootballData() {
   const allFromApi: any[] = fetchResults
     .flatMap(r => r.status === 'fulfilled' ? (r.value.data?.matches ?? []) : [])
 
-  const liveStatuses = new Set(['IN_PLAY', 'PAUSED'])
+  const liveStatuses = new Set(['IN_PLAY', 'PAUSED', 'LIVE'])
   const finishedStatuses = new Set(['FINISHED', 'AWARDED'])
   const liveMatches = allFromApi.filter((m: any) => liveStatuses.has(m.status))
   const recentFinished = allFromApi.filter((m: any) => finishedStatuses.has(m.status))
