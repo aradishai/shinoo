@@ -86,6 +86,15 @@ const HEBREW_NAMES: Record<string, string> = {
   COD: 'קונגו',
 }
 
+const STAGE_NAMES: Record<string, string> = {
+  'LAST_32': 'שלב 32',
+  'LAST_16': 'שמינית גמר',
+  'QUARTER_FINALS': 'רבע גמר',
+  'SEMI_FINALS': 'חצי גמר',
+  'THIRD_PLACE': 'משחק גמר 3-4',
+  'FINAL': 'גמר',
+}
+
 export async function GET() {
   try {
     const res = await axios.get(`${FD_API}/competitions/WC/matches?status=SCHEDULED,TIMED`, {
@@ -110,10 +119,23 @@ export async function GET() {
       },
     })
 
-    // Remove unlinked matches (no providerMatchId) from June 2026+
-    await db.match.deleteMany({
+    // Remove unlinked matches (no providerMatchId, no predictions) from June 2026+
+    const unlinked = await db.match.findMany({
       where: { kickoffAt: { gte: new Date('2026-06-01') }, providerMatchId: null },
+      select: { id: true },
     })
+    if (unlinked.length > 0) {
+      const withPreds = await db.prediction.findMany({
+        where: { matchId: { in: unlinked.map(m => m.id) } },
+        select: { matchId: true },
+        distinct: ['matchId'],
+      })
+      const predMatchIds = new Set(withPreds.map(p => p.matchId))
+      const safeToDelete = unlinked.filter(m => !predMatchIds.has(m.id)).map(m => m.id)
+      if (safeToDelete.length > 0) {
+        await db.match.deleteMany({ where: { id: { in: safeToDelete } } })
+      }
+    }
 
     const apiProviderIds: string[] = []
     let inserted = 0
@@ -182,9 +204,13 @@ export async function GET() {
         deduped++
       }
 
+      const round = m.stage === 'GROUP_STAGE'
+        ? `בית ${m.group?.replace('GROUP_', '') || ''}`
+        : STAGE_NAMES[m.stage] || m.stage
+
       await db.match.upsert({
         where: { providerMatchId },
-        update: { status: 'SCHEDULED', kickoffAt, lockAt },
+        update: { status: 'SCHEDULED', kickoffAt, lockAt, homeTeamId: homeTeam.id, awayTeamId: awayTeam.id, round },
         create: {
           tournamentId: tournament.id,
           homeTeamId: homeTeam.id,
@@ -193,9 +219,7 @@ export async function GET() {
           lockAt,
           status: 'SCHEDULED',
           providerMatchId,
-          round: m.stage === 'GROUP_STAGE'
-            ? `בית ${m.group?.replace('GROUP_', '') || ''}`
-            : m.stage,
+          round,
         },
       })
       inserted++
