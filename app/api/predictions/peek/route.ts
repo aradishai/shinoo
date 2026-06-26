@@ -23,10 +23,6 @@ export async function POST(request: Request) {
 
   const now = new Date()
   const lockAt = prediction.match.lockAt
-  const peekWindowStart = new Date(lockAt.getTime() - 60 * 60 * 1000) // 1 hour before lock
-
-  if (now < peekWindowStart)
-    return NextResponse.json({ error: 'PEEK זמין רק בשעה האחרונה לפני נעילת המשחק' }, { status: 400 })
 
   if (now >= lockAt)
     return NextResponse.json({ error: 'המשחק כבר ננעל' }, { status: 400 })
