@@ -100,7 +100,7 @@ export async function GET() {
     const allHebrewMatches = await db.match.findMany({
       where: { round: { in: hebrewRounds } },
       select: { id: true, round: true, homeTeamId: true, awayTeamId: true, providerMatchId: true, homeScore: true, awayScore: true },
-      orderBy: { kickoffAt: 'asc' },
+      orderBy: [{ kickoffAt: 'asc' }, { id: 'asc' }],
     })
 
     // Group by round+teams key
@@ -146,7 +146,7 @@ export async function GET() {
     }
 
     if (results.length === 0) results.push('Nothing to fix')
-    return NextResponse.json({ ok: true, v: 8, results })
+    return NextResponse.json({ ok: true, v: 9, results })
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message, stack: e.stack?.slice(0, 600) }, { status: 200 })
   }
