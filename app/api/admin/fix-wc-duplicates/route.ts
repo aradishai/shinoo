@@ -25,24 +25,19 @@ export async function GET() {
 
     // Step 1: Fix Hebrew names
     for (const [code, nameHe] of Object.entries(HEBREW_NAMES)) {
-      try {
-        const team = await db.team.findFirst({ where: { code } })
-        if (team && team.nameHe !== nameHe) {
-          await db.team.update({ where: { id: team.id }, data: { nameHe } })
-          results.push(`Fixed team ${code}`)
-        }
-      } catch (e: any) {
-        results.push(`Error fixing team ${code}: ${e.message}`)
+      const team = await db.team.findFirst({ where: { code } })
+      if (team && team.nameHe !== nameHe) {
+        await db.team.update({ where: { id: team.id }, data: { nameHe } })
+        results.push(`Fixed team ${code}`)
       }
     }
 
     // Step 2: Find all Latin-letter group round matches
     const latinRounds = Object.keys(GROUP_LETTERS).map(l => `בית ${l}`)
-    results.push(`Searching rounds: ${JSON.stringify(latinRounds)}`)
 
     const latinMatches = await db.match.findMany({
       where: { round: { in: latinRounds } },
-      select: { id: true, round: true, homeTeamId: true, awayTeamId: true },
+      select: { id: true, round: true, homeTeamId: true, awayTeamId: true, providerMatchId: true },
       orderBy: { kickoffAt: 'asc' },
     })
 
@@ -60,7 +55,7 @@ export async function GET() {
             { homeTeamId: latin.awayTeamId, awayTeamId: latin.homeTeamId },
           ],
         },
-        select: { id: true },
+        select: { id: true, providerMatchId: true },
       })
 
       if (hebrewMatch) {
@@ -68,27 +63,27 @@ export async function GET() {
         const latinPreds = await db.prediction.count({ where: { matchId: latin.id } })
 
         if (hebrewPreds > 0) {
-          if (latin.round && !hebrewMatch.id) {
-            await db.match.update({ where: { id: hebrewMatch.id }, data: { providerMatchId: undefined } })
-          }
-          const latinMatch = await db.match.findUnique({ where: { id: latin.id }, select: { providerMatchId: true } })
-          if (latinMatch?.providerMatchId) {
-            const hebrewFull = await db.match.findUnique({ where: { id: hebrewMatch.id }, select: { providerMatchId: true } })
-            if (!hebrewFull?.providerMatchId) {
-              await db.match.update({ where: { id: hebrewMatch.id }, data: { providerMatchId: latinMatch.providerMatchId } })
-            }
-          }
+          // Hebrew has predictions → it's the keeper
+          // Delete Latin FIRST (to free up the providerMatchId unique constraint)
+          const latinProviderId = latin.providerMatchId
           await db.match.delete({ where: { id: latin.id } })
-          results.push(`Deleted Latin dup ${latin.id} (${latin.round}), Hebrew keeper ${hebrewMatch.id}`)
+          // Now link the providerMatchId to the Hebrew record
+          if (latinProviderId && !hebrewMatch.providerMatchId) {
+            await db.match.update({ where: { id: hebrewMatch.id }, data: { providerMatchId: latinProviderId } })
+          }
+          results.push(`Deleted Latin dup ${latin.id} (${latin.round}), linked ${latinProviderId} to Hebrew ${hebrewMatch.id}`)
         } else if (latinPreds > 0) {
+          // Latin has predictions → rename Latin to Hebrew, delete empty Hebrew
           await db.match.update({ where: { id: latin.id }, data: { round: hebrewRound } })
           await db.match.delete({ where: { id: hebrewMatch.id } })
           results.push(`Renamed Latin ${latin.id} → ${hebrewRound}, deleted empty Hebrew ${hebrewMatch.id}`)
         } else {
+          // Neither has predictions → delete the Latin one
           await db.match.delete({ where: { id: latin.id } })
-          results.push(`Deleted empty Latin dup ${latin.id}`)
+          results.push(`Deleted empty Latin dup ${latin.id} (${latin.round})`)
         }
       } else {
+        // No Hebrew counterpart — just rename
         await db.match.update({ where: { id: latin.id }, data: { round: hebrewRound } })
         results.push(`Renamed: "${latin.round}" → "${hebrewRound}"`)
       }
