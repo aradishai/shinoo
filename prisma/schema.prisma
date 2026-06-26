@@ -21,6 +21,7 @@ model User {
   splitStock        Int                @default(0)
   allinStock        Int                @default(0)
   doubleStock       Int                @default(0)
+  peekStock         Int                @default(0)
   interests         String[]           @default([])
   avatar            String             @default("⚽")
   leagueMembers     LeagueMember[]
@@ -174,6 +175,8 @@ model Prediction {
   allinApplied               Boolean  @default(false)
   splitHomeScore2            Int?
   splitAwayScore2            Int?
+  peekApplied                Boolean  @default(false)
+  peekLockAt                 DateTime?
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
   lockedSnapshot             String?

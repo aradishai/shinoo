@@ -1,0 +1,5 @@
+const { Pool } = require('pg')
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+pool.query(`SELECT id, username, coins FROM "User" WHERE username = 'ערד'`)
+  .then(r => { console.log(JSON.stringify(r.rows, null, 2)); pool.end() })
+  .catch(e => { console.error(e.message); pool.end() })

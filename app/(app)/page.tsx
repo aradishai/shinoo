@@ -21,6 +21,7 @@ interface User {
   splitStock?: number
   allinStock?: number
   doubleStock?: number
+  peekStock?: number
 }
 
 interface Match {
@@ -36,7 +37,7 @@ interface Match {
   minuteAt?: string | null
   round?: string | null
   tournament?: { type: string } | null
-  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; allinApplied?: boolean; splitHomeScore2?: number | null; splitAwayScore2?: number | null } | null
+  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; allinApplied?: boolean; peekApplied?: boolean; peekLockAt?: string | null; splitHomeScore2?: number | null; splitAwayScore2?: number | null } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; user: { id: string; username: string } }[]
   powerupUsage?: { x2Used: number; shinooUsed: number } | null
 }
@@ -182,6 +183,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [powerupLoading, setPowerupLoading] = useState<string | null>(null)
+  const [peekedPredictions, setPeekedPredictions] = useState<Record<string, { username: string; avatar: string; predictedHomeScore: number; predictedAwayScore: number }[]>>({})
   const [shinooModal, setShinooModal] = useState<Match | null>(null)
   const [splitModal, setSplitModal] = useState<Match | null>(null)
   const [splitScores, setSplitScores] = useState({ home: '0', away: '0' })
@@ -556,6 +558,24 @@ export default function HomePage() {
     const data = await res.json()
     if (res.ok) { powerupToast('/btn-goals.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id); await refreshUser() }
     else toast.error(data.error || 'שגיאה')
+  }
+
+  const applyPeek = async (match: Match) => {
+    if (!match.userPrediction) { openInlinePredict(match); toast('הכנס ניחוש קודם ↑', { icon: '💡' }); return }
+    setPowerupLoading(`peek-${match.id}`)
+    const res = await fetch('/api/predictions/peek', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ predictionId: match.userPrediction.id }),
+    })
+    setPowerupLoading(null)
+    const data = await res.json()
+    if (res.ok) {
+      powerupToast('/btn-peek.png')
+      setPeekedPredictions(prev => ({ ...prev, [match.id]: data.otherPredictions || [] }))
+      if (primaryLeague) fetchPrimaryLeague(primaryLeague.id)
+      await refreshUser()
+    } else toast.error(data.error || 'שגיאה')
   }
 
   const applyAllin = async (match: Match, leagueId: string) => {
@@ -1227,6 +1247,9 @@ export default function HomePage() {
                       minute90Applied: !!match.userPrediction.minute90Applied,
                       splitApplied: !!match.userPrediction.splitApplied,
                       allinApplied: !!match.userPrediction.allinApplied,
+                      peekApplied: !!match.userPrediction.peekApplied,
+                      peekLockAt: match.userPrediction.peekLockAt,
+                      peekedPredictions: peekedPredictions[match.id],
                       x2Stock: user?.x2Stock ?? 0,
                       shinooStock: user?.shinooStock ?? 0,
                       x3Stock: user?.x3Stock ?? 0,
@@ -1235,6 +1258,7 @@ export default function HomePage() {
                       splitStock: user?.splitStock ?? 0,
                       allinStock: user?.allinStock ?? 0,
                       doubleStock: user?.doubleStock ?? 0,
+                      peekStock: user?.peekStock ?? 0,
                       doubleSlot: primaryLeague.activeDoubleEntry?.predictionId1 === match.userPrediction.id ? 1 : primaryLeague.activeDoubleEntry?.predictionId2 === match.userPrediction.id ? 2 : null,
                       nextDoubleSlot: null,
                       usage: match.powerupUsage || null,
@@ -1246,6 +1270,7 @@ export default function HomePage() {
                       onSplit: () => { setSplitModal(match); setSplitScores({ home: '0', away: '0' }) },
                       onAllin: () => applyAllin(match, primaryLeague.id),
                       onAllinInfo: () => showAllinPool(match, primaryLeague.id),
+                      onPeek: () => applyPeek(match),
                       onDoubleRemove: (slot) => removeDouble(slot, primaryLeague.id),
                       loading: powerupLoading,
                     } : null}
@@ -1297,6 +1322,9 @@ export default function HomePage() {
                             minute90Applied: !!match.userPrediction?.minute90Applied,
                             splitApplied: !!match.userPrediction?.splitApplied,
                             allinApplied: !!match.userPrediction?.allinApplied,
+                            peekApplied: !!match.userPrediction?.peekApplied,
+                            peekLockAt: match.userPrediction?.peekLockAt,
+                            peekedPredictions: peekedPredictions[match.id],
                             x2Stock: user?.x2Stock ?? 0,
                             shinooStock: user?.shinooStock ?? 0,
                             x3Stock: user?.x3Stock ?? 0,
@@ -1305,6 +1333,7 @@ export default function HomePage() {
                             splitStock: user?.splitStock ?? 0,
                             allinStock: user?.allinStock ?? 0,
                             doubleStock: user?.doubleStock ?? 0,
+                            peekStock: user?.peekStock ?? 0,
                             doubleSlot: thisSlot,
                             nextDoubleSlot: thisSlot ? null : nextSlot,
                             usage: match.powerupUsage || null,
@@ -1316,6 +1345,7 @@ export default function HomePage() {
                             onSplit: () => { if (!match.userPrediction) { openInlinePredict(match); toast('הכנס ניחוש קודם ↑', { icon: '💡' }); return }; setSplitModal(match); setSplitScores({ home: '0', away: '0' }) },
                             onAllin: () => applyAllin(match, primaryLeague.id),
                             onAllinInfo: () => showAllinPool(match, primaryLeague.id),
+                            onPeek: () => applyPeek(match),
                             onDouble: nextSlot ? () => applyDouble(match, nextSlot) : undefined,
                             onDoubleRemove: thisSlot ? (slot) => removeDouble(slot, primaryLeague.id) : undefined,
                             loading: powerupLoading,

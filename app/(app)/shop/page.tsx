@@ -13,11 +13,12 @@ const SHOP_ITEMS = [
   { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.png', stockKey: 'splitStock' as const, comingSoon: false, cost: 3 },
   { id: 'allin', name: 'ALL IN', description: 'לשימוש לפני המשחק – שים את הניקוד שלך בקופה משותפת. בעל הניקוד הגבוה ביותר זוכה בכל הקופה.', img: '/btn-allin.png', stockKey: 'allinStock' as const, comingSoon: false, cost: 1, imgClass: 'w-32 h-14', hidden: true },
   { id: 'double', name: 'דאבל', description: 'לשימוש לפני המשחק – שייך ל-2 משחקים שונים. אם שניהם מנוחשים נכון, תקבל בונוס נקודות על שניהם!', img: '/btn-double.png', stockKey: 'doubleStock' as const, comingSoon: true, cost: 3, imgClass: 'w-32 h-16', hidden: true },
+  { id: 'peek', name: 'PEEK', description: 'לשימוש שעה לפני הנעילה – ראה את ניחושי כל השחקנים ונשאר פתוח לניחוש 30 דקות נוספות', img: '/btn-peek.png', stockKey: 'peekStock' as const, comingSoon: false, cost: 2 },
 ]
 
 export default function ShopPage() {
   const [coins, setCoins] = useState<number | null>(null)
-  const [stock, setStock] = useState({ x2Stock: 0, shinooStock: 0, x3Stock: 0, goalsStock: 0, minute90Stock: 0, splitStock: 0, allinStock: 0, doubleStock: 0 })
+  const [stock, setStock] = useState({ x2Stock: 0, shinooStock: 0, x3Stock: 0, goalsStock: 0, minute90Stock: 0, splitStock: 0, allinStock: 0, doubleStock: 0, peekStock: 0 })
   const [lowerPlayoff, setLowerPlayoff] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
   const [tooltip, setTooltip] = useState<string | null>(null)
@@ -38,6 +39,7 @@ export default function ShopPage() {
           splitStock: d.data?.splitStock ?? 0,
           allinStock: d.data?.allinStock ?? 0,
           doubleStock: d.data?.doubleStock ?? 0,
+          peekStock: d.data?.peekStock ?? 0,
         })
       })
   }, [])
@@ -72,6 +74,7 @@ export default function ShopPage() {
         splitStock: data.splitStock ?? 0,
         allinStock: data.allinStock ?? 0,
         doubleStock: data.doubleStock ?? 0,
+        peekStock: data.peekStock ?? 0,
       })
       toast.success('נקנה!')
     } catch {

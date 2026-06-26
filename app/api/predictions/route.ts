@@ -71,12 +71,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'משחק לא נמצא' }, { status: 404 })
     }
 
-    if (match.status === 'LOCKED' || match.status === 'LIVE' || match.status === 'FINISHED') {
+    // Check if user has an active PEEK extension for this match
+    const memberships2 = await db.leagueMember.findMany({ where: { userId }, select: { leagueId: true } })
+    const peekPred = memberships2.length > 0 ? await db.prediction.findFirst({
+      where: { userId, matchId, leagueId: { in: memberships2.map(m => m.leagueId) }, peekApplied: true } as any,
+      select: { peekLockAt: true } as any,
+    }) : null
+    const peekLockAt: Date | null = (peekPred as any)?.peekLockAt ?? null
+
+    if (match.status === 'LIVE' || match.status === 'FINISHED') {
       return NextResponse.json({ error: 'זמן הניחוש נעל' }, { status: 400 })
     }
 
-    if (new Date() >= match.lockAt) {
-      return NextResponse.json({ error: 'זמן הניחוש עבר' }, { status: 400 })
+    const now = new Date()
+    // Allow prediction past normal lockAt only if user has active PEEK extension
+    if (match.status === 'LOCKED') {
+      if (!peekLockAt || now >= peekLockAt) {
+        return NextResponse.json({ error: 'זמן הניחוש עבר' }, { status: 400 })
+      }
+    } else if (now >= match.lockAt) {
+      if (!peekLockAt || now >= peekLockAt) {
+        return NextResponse.json({ error: 'זמן הניחוש עבר' }, { status: 400 })
+      }
     }
 
     // Get all leagues the user is a member of

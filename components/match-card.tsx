@@ -53,6 +53,10 @@ interface PowerupProps {
   splitStock: number
   allinStock: number
   doubleStock: number
+  peekStock: number
+  peekApplied?: boolean
+  peekLockAt?: Date | string | null
+  peekedPredictions?: { username: string; avatar: string; predictedHomeScore: number; predictedAwayScore: number }[]
   doubleSlot?: 1 | 2 | null
   nextDoubleSlot?: 1 | 2 | null
   usage: { x2Used: number; shinooUsed: number } | null
@@ -64,6 +68,7 @@ interface PowerupProps {
   onSplit: () => void
   onAllin: () => void
   onAllinInfo: () => void
+  onPeek: () => void
   onDouble?: () => void
   onDoubleRemove?: (slot: 1 | 2) => void
   loading?: string | null
@@ -391,19 +396,25 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     // Pre-match buttons (X2, X3, GOALS+, SPLIT, ALL IN, DOUBLE) — only when match is open
     if (isOpen) {
       const showX2 = powerup.x2Stock > 0 && !powerup.x2Applied && !doubleSlot
+      const showPeek = powerup.peekStock > 0 && !powerup.peekApplied && !doubleSlot
       const showX3 = powerup.x3Stock > 0 && !doubleSlot
       const showGoals = powerup.goalsStock > 0 && !doubleSlot
       const showSplit = powerup.splitStock > 0 && !doubleSlot
       const showAllin = powerup.allinStock > 0 && !doubleSlot
       const showDouble = !doubleSlot && powerup.nextDoubleSlot !== null && powerup.nextDoubleSlot !== undefined
       const doubleRemoveSlot = doubleSlot
-      if (!showX2 && !showX3 && !showGoals && !showSplit && !showAllin && !showDouble && !doubleRemoveSlot) return null
+      if (!showX2 && !showPeek && !showX3 && !showGoals && !showSplit && !showAllin && !showDouble && !doubleRemoveSlot) return null
       return (
         <div className="flex flex-col gap-1">
           <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
             {showX2 && (
               <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX2() }} className="transition-all active:scale-95">
                 <img src="/btn-x2.png" alt="X2" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              </button>
+            )}
+            {showPeek && (
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onPeek() }} className="transition-all active:scale-95">
+                <img src="/btn-peek.png" alt="PEEK" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
               </button>
             )}
             {showX3 && (
@@ -482,6 +493,20 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     return null
   })()
 
+  const peekArea = powerup?.peekApplied && powerup.peekedPredictions && powerup.peekedPredictions.length > 0 ? (
+    <div className="px-4 pb-3 pt-2 border-t border-blue-500/30 bg-blue-950/20">
+      <p className="text-blue-400 text-xs font-bold text-right mb-2">👁️ ניחושי השחקנים</p>
+      <div className="space-y-1">
+        {powerup.peekedPredictions.map((p, i) => (
+          <div key={i} className="flex items-center justify-between text-xs">
+            <span className="text-white font-bold">{p.predictedHomeScore} - {p.predictedAwayScore}</span>
+            <span className="text-gray-400">{p.avatar} {p.username}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  ) : null
+
   const outerClass = 'bg-dark-card border border-dark-border rounded-2xl hover:border-primary/30 transition-all duration-200 overflow-hidden'
 
   if (onPredictClick) {
@@ -491,6 +516,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           {cardContent}
         </button>
         {powerupArea}
+        {peekArea}
       </div>
     )
   }
@@ -501,6 +527,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         {cardContent}
       </Link>
       {powerupArea}
+      {peekArea}
     </div>
   )
 }
