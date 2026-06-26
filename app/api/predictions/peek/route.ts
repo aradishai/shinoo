@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { postSystemMessage } from '@/lib/system-message'
 
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
@@ -47,12 +46,6 @@ export async function POST(request: Request) {
     where: { userId, matchId: prediction.matchId },
     data: { peekApplied: true, peekLockAt } as any,
   })
-
-  await postSystemMessage(
-    prediction.leagueId,
-    userId,
-    `${user.username} הפעיל PEEK על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
-  )
 
   // Fetch other league members' predictions for this match
   const otherPredictions = await db.prediction.findMany({
