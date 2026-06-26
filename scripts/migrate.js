@@ -136,6 +136,14 @@ async function main() {
       "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
       CONSTRAINT "DoubleEntry_pkey" PRIMARY KEY ("id")
     )`)
+    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "peekStock" INTEGER NOT NULL DEFAULT 0`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "peekApplied" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "peekLockAt" TIMESTAMP(3)`)
+    await pool.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "et120Stock" INTEGER NOT NULL DEFAULT 0`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "et120Applied" BOOLEAN NOT NULL DEFAULT false`)
+    await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "homeScoreET" INTEGER`)
+    await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "awayScoreET" INTEGER`)
+    await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "lockedSnapshot" TEXT`)
     console.log('Column check complete')
   } finally {
     await pool.end()
