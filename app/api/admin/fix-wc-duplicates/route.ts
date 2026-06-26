@@ -21,39 +21,25 @@ export async function GET() {
     }
   }
 
-  // 2. Fix duplicate matches: "בית H" records are duplicates of "בית ח'" records
-  // "בית ח'" records with null providerMatchId have predictions → adopt the providerMatchId
-  // "בית H" records with providerMatchId → delete them after adoption
+  // 2. Fix specific known duplicate matches
+  // "בית H" duplicates: vjnz1xs5 (Uruguay vs Spain, fd-537373) and lx7acl96 (Cape Verde vs Saudi Arabia, fd-537374)
+  // "בית ח'" originals with predictions: 8sn7elw5 (Uruguay vs Spain) and ba8jj9dy (Cape Verde vs Saudi Arabia)
+  const fixes = [
+    { originalSuffix: '8sn7elw5', dupSuffix: 'vjnz1xs5', providerMatchId: 'fd-537373' },
+    { originalSuffix: 'ba8jj9dy', dupSuffix: 'lx7acl96', providerMatchId: 'fd-537374' },
+  ]
 
-  const bitHDups = await db.match.findMany({
-    where: { round: 'בית H' },
-    include: { homeTeam: true, awayTeam: true },
-  })
-
-  for (const dup of bitHDups) {
-    if (!dup.providerMatchId) continue
-
-    // Find corresponding "בית ח'" record (same teams, null providerMatchId)
-    const original = await db.match.findFirst({
-      where: {
-        round: 'בית ח\'',
-        homeTeamId: dup.homeTeamId,
-        awayTeamId: dup.awayTeamId,
-        providerMatchId: null,
-      },
-    })
+  for (const fix of fixes) {
+    const original = await db.match.findFirst({ where: { id: { endsWith: fix.originalSuffix } } })
+    const dup = await db.match.findFirst({ where: { id: { endsWith: fix.dupSuffix } } })
 
     if (original) {
-      // Adopt the providerMatchId into the original (which has predictions)
-      await db.match.update({
-        where: { id: original.id },
-        data: { providerMatchId: dup.providerMatchId },
-      })
-      results.push(`Linked providerMatchId ${dup.providerMatchId} to original match ${original.id}`)
-
-      // Delete the duplicate
+      await db.match.update({ where: { id: original.id }, data: { providerMatchId: fix.providerMatchId } })
+      results.push(`Linked ${fix.providerMatchId} to original ${original.id}`)
+    }
+    if (dup) {
       await db.match.delete({ where: { id: dup.id } })
-      results.push(`Deleted duplicate match ${dup.id} (${dup.homeTeam.nameEn} vs ${dup.awayTeam.nameEn})`)
+      results.push(`Deleted duplicate ${dup.id}`)
     }
   }
 

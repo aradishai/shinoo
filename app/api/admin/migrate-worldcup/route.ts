@@ -102,6 +102,12 @@ const STAGE_NAMES: Record<string, string> = {
   'FINAL': 'גמר',
 }
 
+const GROUP_LETTERS: Record<string, string> = {
+  A: "א'", B: "ב'", C: "ג'", D: "ד'",
+  E: "ה'", F: "ו'", G: "ז'", H: "ח'",
+  I: "ט'", J: "י'", K: "כ'", L: "ל'",
+}
+
 export async function GET() {
   try {
     const res = await axios.get(`${FD_API}/competitions/WC/matches?status=SCHEDULED,TIMED`, {
@@ -233,8 +239,9 @@ export async function GET() {
         deduped++
       }
 
+      const groupLetter = m.group?.replace('GROUP_', '') || ''
       const round = m.stage === 'GROUP_STAGE'
-        ? `בית ${m.group?.replace('GROUP_', '') || ''}`
+        ? `בית ${GROUP_LETTERS[groupLetter] ?? groupLetter}`
         : STAGE_NAMES[m.stage] || m.stage
 
       await db.match.upsert({
