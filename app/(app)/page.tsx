@@ -22,6 +22,7 @@ interface User {
   allinStock?: number
   doubleStock?: number
   peekStock?: number
+  et120Stock?: number
 }
 
 interface Match {
@@ -37,7 +38,7 @@ interface Match {
   minuteAt?: string | null
   round?: string | null
   tournament?: { type: string } | null
-  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; allinApplied?: boolean; peekApplied?: boolean; peekLockAt?: string | null; splitHomeScore2?: number | null; splitAwayScore2?: number | null } | null
+  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; allinApplied?: boolean; peekApplied?: boolean; peekLockAt?: string | null; et120Applied?: boolean; splitHomeScore2?: number | null; splitAwayScore2?: number | null } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; user: { id: string; username: string } }[]
   powerupUsage?: { x2Used: number; shinooUsed: number } | null
 }
@@ -576,6 +577,20 @@ export default function HomePage() {
       if (primaryLeague) fetchPrimaryLeague(primaryLeague.id)
       await refreshUser()
     } else toast.error(data.error || 'שגיאה')
+  }
+
+  const applyEt120 = async (match: Match) => {
+    if (!match.userPrediction) return
+    setPowerupLoading(`et120-${match.id}`)
+    const res = await fetch('/api/predictions/et120', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ predictionId: match.userPrediction.id }),
+    })
+    setPowerupLoading(null)
+    const data = await res.json()
+    if (res.ok) { powerupToast('/btn-et120.png'); if (primaryLeague) fetchPrimaryLeague(primaryLeague.id); await refreshUser() }
+    else toast.error(data.error || 'שגיאה')
   }
 
   const applyAllin = async (match: Match, leagueId: string) => {
@@ -1250,6 +1265,8 @@ export default function HomePage() {
                       peekApplied: !!match.userPrediction.peekApplied,
                       peekLockAt: match.userPrediction.peekLockAt,
                       peekedPredictions: peekedPredictions[match.id],
+                      et120Stock: user?.et120Stock ?? 0,
+                      et120Applied: !!match.userPrediction.et120Applied,
                       x2Stock: user?.x2Stock ?? 0,
                       shinooStock: user?.shinooStock ?? 0,
                       x3Stock: user?.x3Stock ?? 0,
@@ -1271,6 +1288,7 @@ export default function HomePage() {
                       onAllin: () => applyAllin(match, primaryLeague.id),
                       onAllinInfo: () => showAllinPool(match, primaryLeague.id),
                       onPeek: () => applyPeek(match),
+                      onEt120: () => applyEt120(match),
                       onDoubleRemove: (slot) => removeDouble(slot, primaryLeague.id),
                       loading: powerupLoading,
                     } : null}
@@ -1325,6 +1343,8 @@ export default function HomePage() {
                             peekApplied: !!match.userPrediction?.peekApplied,
                             peekLockAt: match.userPrediction?.peekLockAt,
                             peekedPredictions: peekedPredictions[match.id],
+                            et120Stock: user?.et120Stock ?? 0,
+                            et120Applied: !!match.userPrediction?.et120Applied,
                             x2Stock: user?.x2Stock ?? 0,
                             shinooStock: user?.shinooStock ?? 0,
                             x3Stock: user?.x3Stock ?? 0,
@@ -1346,6 +1366,7 @@ export default function HomePage() {
                             onAllin: () => applyAllin(match, primaryLeague.id),
                             onAllinInfo: () => showAllinPool(match, primaryLeague.id),
                             onPeek: () => applyPeek(match),
+                            onEt120: () => applyEt120(match),
                             onDouble: nextSlot ? () => applyDouble(match, nextSlot) : undefined,
                             onDoubleRemove: thisSlot ? (slot) => removeDouble(slot, primaryLeague.id) : undefined,
                             loading: powerupLoading,

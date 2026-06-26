@@ -99,10 +99,16 @@ async function syncFootballData() {
     const homeScore = m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore
     const awayScore = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? match.awayScore
     const hasScore = homeScore !== null && awayScore !== null
+    const homeScoreET: number | null = m.score?.extraTime?.home ?? null
+    const awayScoreET: number | null = m.score?.extraTime?.away ?? null
 
     await db.match.update({
       where: { id: match.id },
-      data: { status, homeScore, awayScore },
+      data: {
+        status, homeScore, awayScore,
+        ...(homeScoreET !== null ? { homeScoreET } as any : {}),
+        ...(awayScoreET !== null ? { awayScoreET } as any : {}),
+      },
     })
 
     if (hasScore) await recalculatePoints(match.id)

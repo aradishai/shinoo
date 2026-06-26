@@ -23,6 +23,7 @@ export async function GET(request: Request) {
         allinStock: true,
         doubleStock: true,
         peekStock: true,
+        et120Stock: true,
         avatar: true,
         createdAt: true,
         _count: {

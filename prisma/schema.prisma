@@ -22,6 +22,7 @@ model User {
   allinStock        Int                @default(0)
   doubleStock       Int                @default(0)
   peekStock         Int                @default(0)
+  et120Stock        Int                @default(0)
   interests         String[]           @default([])
   avatar            String             @default("⚽")
   leagueMembers     LeagueMember[]
@@ -77,6 +78,8 @@ model Match {
   status          String @default("SCHEDULED")
   homeScore       Int?
   awayScore       Int?
+  homeScoreET     Int?
+  awayScoreET     Int?
   minute          Int?
   minuteAt        DateTime?
   coinsGranted    Boolean     @default(false)
@@ -177,6 +180,7 @@ model Prediction {
   splitAwayScore2            Int?
   peekApplied                Boolean  @default(false)
   peekLockAt                 DateTime?
+  et120Applied               Boolean  @default(false)
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
   lockedSnapshot             String?

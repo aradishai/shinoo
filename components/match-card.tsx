@@ -57,6 +57,8 @@ interface PowerupProps {
   peekApplied?: boolean
   peekLockAt?: Date | string | null
   peekedPredictions?: { username: string; avatar: string; predictedHomeScore: number; predictedAwayScore: number }[]
+  et120Stock: number
+  et120Applied?: boolean
   doubleSlot?: 1 | 2 | null
   nextDoubleSlot?: 1 | 2 | null
   usage: { x2Used: number; shinooUsed: number } | null
@@ -69,6 +71,7 @@ interface PowerupProps {
   onAllin: () => void
   onAllinInfo: () => void
   onPeek: () => void
+  onEt120: () => void
   onDouble?: () => void
   onDoubleRemove?: (slot: 1 | 2) => void
   loading?: string | null
@@ -206,7 +209,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const anyApplied = !!powerup && (
     powerup.x2Applied || powerup.shinooApplied || powerup.x3Applied ||
     powerup.goalsApplied || powerup.minute90Applied || powerup.splitApplied ||
-    powerup.allinApplied
+    powerup.allinApplied || powerup.et120Applied
   )
   const appliedImg = !powerup ? null :
     powerup.x2Applied ? '/btn-x2.png' :
@@ -215,7 +218,8 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     powerup.goalsApplied ? '/btn-goals.png' :
     powerup.minute90Applied ? '/btn-90.png' :
     powerup.splitApplied ? '/btn-split.png' :
-    powerup.allinApplied ? '/btn-allin.png' : null
+    powerup.allinApplied ? '/btn-allin.png' :
+    powerup.et120Applied ? '/btn-et120.png' : null
   const doubleSlot = powerup?.doubleSlot ?? null
 
   const matchUrl = leagueId
@@ -458,17 +462,20 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       )
     }
 
-    // Live buttons: X2/SHINOO only during halftime, 90' only when LIVE (not halftime)
+    // Live buttons: X2/SHINOO only during halftime, 90' only when LIVE (not halftime), ET120 within 137min window
     if ((isLive || match.status === 'PAUSED') && doubleSlot) return null
     if (isLive || match.status === 'PAUSED') {
       const inHalftimeWindow = match.status === 'PAUSED' || liveMinute === 'מחצית'
       const before90 = (match.status === 'LIVE' || match.status === 'PAUSED') && liveMinute !== 'מחצית'
+      const elapsed = Date.now() - kickoff.getTime()
+      const withinET120Window = elapsed < 137 * 60 * 1000
 
       const showX2 = powerup.x2Stock > 0 && inHalftimeWindow
       const showShinoo = powerup.shinooStock > 0 && inHalftimeWindow
       const showM90 = powerup.minute90Stock > 0 && before90 && !liveMinute?.startsWith('90+')
+      const showEt120 = powerup.et120Stock > 0 && !powerup.et120Applied && withinET120Window
 
-      if (!showX2 && !showShinoo && !showM90) return null
+      if (!showX2 && !showShinoo && !showM90 && !showEt120) return null
       return (
         <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
           {showX2 && (
@@ -484,6 +491,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           {showM90 && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
               <img src="/btn-90.png" alt="90'" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+            </button>
+          )}
+          {showEt120 && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onEt120() }} className="transition-all active:scale-95">
+              <img src="/btn-et120.png" alt="120 ET" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
         </div>

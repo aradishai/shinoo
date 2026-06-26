@@ -11,6 +11,7 @@ const PRICES: Record<string, number> = {
   allin: 1,
   double: 3,
   peek: 2,
+  et120: 2,
 }
 
 const STOCK_FIELDS: Record<string, string> = {
@@ -23,6 +24,7 @@ const STOCK_FIELDS: Record<string, string> = {
   allin: 'allinStock',
   double: 'doubleStock',
   peek: 'peekStock',
+  et120: 'et120Stock',
 }
 
 export async function POST(request: Request) {
@@ -35,7 +37,7 @@ export async function POST(request: Request) {
   const cost = PRICES[item]
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { coins: true, x2Stock: true, shinooStock: true, x3Stock: true, goalsStock: true, minute90Stock: true, splitStock: true, allinStock: true, doubleStock: true, peekStock: true } as any,
+    select: { coins: true, x2Stock: true, shinooStock: true, x3Stock: true, goalsStock: true, minute90Stock: true, splitStock: true, allinStock: true, doubleStock: true, peekStock: true, et120Stock: true } as any,
   })
   if (!user) return NextResponse.json({ error: 'משתמש לא נמצא' }, { status: 404 })
   if ((user as any).coins < cost) return NextResponse.json({ error: `אין מספיק מטבעות — עולה 🪙${cost}` }, { status: 400 })
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
   const updated = await db.user.update({
     where: { id: userId },
     data: { coins: { decrement: cost }, [stockField]: { increment: 1 } } as any,
-    select: { coins: true, x2Stock: true, shinooStock: true, x3Stock: true, goalsStock: true, minute90Stock: true, splitStock: true, allinStock: true, doubleStock: true, peekStock: true } as any,
+    select: { coins: true, x2Stock: true, shinooStock: true, x3Stock: true, goalsStock: true, minute90Stock: true, splitStock: true, allinStock: true, doubleStock: true, peekStock: true, et120Stock: true } as any,
   })
 
   return NextResponse.json({
@@ -59,5 +61,6 @@ export async function POST(request: Request) {
     allinStock: (updated as any).allinStock,
     doubleStock: (updated as any).doubleStock,
     peekStock: (updated as any).peekStock,
+    et120Stock: (updated as any).et120Stock,
   })
 }

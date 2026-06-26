@@ -152,6 +152,9 @@ export async function recalculatePoints(matchId: string): Promise<void> {
     return
   }
 
+  const homeScoreET: number | null = (match as any).homeScoreET ?? null
+  const awayScoreET: number | null = (match as any).awayScoreET ?? null
+
   const actualTopScorerIds = match.scorers.map((s) => s.playerId)
 
   const predictions = await db.prediction.findMany({
@@ -176,6 +179,31 @@ export async function recalculatePoints(matchId: string): Promise<void> {
 
     let basePoints: number
     let baseExplanation: string
+
+    // ET120: score based on extra time result; 0 points if no ET
+    if ((prediction as any).et120Applied) {
+      let etBasePoints = 0
+      let etExplanation = '120 ET'
+      if (homeScoreET !== null && awayScoreET !== null) {
+        const etResult = calculatePoints(
+          prediction.predictedHomeScore,
+          prediction.predictedAwayScore,
+          homeScoreET,
+          awayScoreET,
+        )
+        etBasePoints = etResult.resultPoints
+        etExplanation = `120 ET: ${etResult.explanation}`
+      } else {
+        etExplanation = '120 ET: ללא הארכה — 0 נקודות'
+      }
+      const etTotal = etBasePoints + result.topScorerPoints
+      await db.predictionPoints.upsert({
+        where: { predictionId: prediction.id },
+        update: { resultPoints: etBasePoints, topScorerPoints: result.topScorerPoints, totalPoints: etTotal, explanation: etExplanation },
+        create: { predictionId: prediction.id, resultPoints: etBasePoints, topScorerPoints: result.topScorerPoints, totalPoints: etTotal, explanation: etExplanation },
+      })
+      continue
+    }
 
     if ((prediction as any).goalsApplied) {
       // GOALS+: only score if trend correct, points based on goal accuracy only
