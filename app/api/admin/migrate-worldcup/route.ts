@@ -21,6 +21,7 @@ const HEBREW_NAMES: Record<string, string> = {
   BEL: 'בלגיה',
   ITA: 'איטליה',
   URU: 'אורוגוואי',
+  URY: 'אורוגוואי',
   MEX: 'מקסיקו',
   USA: 'ארה"ב',
   CAN: 'קנדה',
@@ -41,6 +42,7 @@ const HEBREW_NAMES: Record<string, string> = {
   AUS: 'אוסטרליה',
   IRN: 'איראן',
   SAU: 'ערב הסעודית',
+  KSA: 'ערב הסעודית',
   QAT: 'קטאר',
   IRQ: 'עיראק',
   JOR: 'ירדן',
@@ -80,10 +82,15 @@ const HEBREW_NAMES: Record<string, string> = {
   TRI: 'טרינידד וטובגו',
   HTI: 'האיטי',
   CUW: 'קורסאו',
+  CUR: 'קורסאו',
   SLV: 'אל סלבדור',
   CPV: 'כף ורדה',
   NZL: 'ניו זילנד',
   COD: 'קונגו',
+  BIH: 'בוסניה-הרצגובינה',
+  BIH_SHORT: 'בוסניה',
+  SVK_FIXED: 'סלובקיה',
+  SLO: 'סלובניה',
 }
 
 const STAGE_NAMES: Record<string, string> = {
@@ -149,16 +156,20 @@ export async function GET() {
       const homeCode = NORM[homeData.tla] ?? homeData.tla
       const awayCode = NORM[awayData.tla] ?? awayData.tla
 
+      const hebrewHome = HEBREW_NAMES[homeData.tla]
+      const hebrewAway = HEBREW_NAMES[awayData.tla]
+
       const homeTeam = await db.team.upsert({
         where: { code: homeCode },
         update: {
           nameEn: homeData.shortName || homeData.name,
-          nameHe: HEBREW_NAMES[homeData.tla] || homeData.shortName || homeData.name,
+          // Only overwrite Hebrew name if we have a mapping — never overwrite with English
+          ...(hebrewHome ? { nameHe: hebrewHome } : {}),
           flagUrl: homeData.crest,
         },
         create: {
           nameEn: homeData.shortName || homeData.name,
-          nameHe: HEBREW_NAMES[homeData.tla] || homeData.shortName || homeData.name,
+          nameHe: hebrewHome || homeData.shortName || homeData.name,
           code: homeCode,
           flagUrl: homeData.crest,
         },
@@ -168,12 +179,12 @@ export async function GET() {
         where: { code: awayCode },
         update: {
           nameEn: awayData.shortName || awayData.name,
-          nameHe: HEBREW_NAMES[awayData.tla] || awayData.shortName || awayData.name,
+          ...(hebrewAway ? { nameHe: hebrewAway } : {}),
           flagUrl: awayData.crest,
         },
         create: {
           nameEn: awayData.shortName || awayData.name,
-          nameHe: HEBREW_NAMES[awayData.tla] || awayData.shortName || awayData.name,
+          nameHe: hebrewAway || awayData.shortName || awayData.name,
           code: awayCode,
           flagUrl: awayData.crest,
         },
@@ -185,7 +196,8 @@ export async function GET() {
       const providerMatchId = `fd-${m.id}`
       apiProviderIds.push(providerMatchId)
 
-      // In-loop dedup: delete any match with same two teams (any order) within 48h
+      // In-loop dedup: if a match with same teams/date exists (even with predictions),
+      // update it to use the correct providerMatchId instead of creating a duplicate
       const from = new Date(kickoffAt.getTime() - 48 * 60 * 60_000)
       const to = new Date(kickoffAt.getTime() + 48 * 60 * 60_000)
       const dups = await db.match.findMany({
@@ -200,7 +212,16 @@ export async function GET() {
         },
       })
       for (const dup of dups) {
-        await db.match.delete({ where: { id: dup.id } })
+        const hasPreds = await db.prediction.count({ where: { matchId: dup.id } })
+        if (hasPreds > 0) {
+          // Has predictions — link this record to the correct providerMatchId instead of deleting it
+          await db.match.update({
+            where: { id: dup.id },
+            data: { providerMatchId, kickoffAt, lockAt, homeTeamId: homeTeam.id, awayTeamId: awayTeam.id },
+          })
+        } else {
+          await db.match.delete({ where: { id: dup.id } })
+        }
         deduped++
       }
 
