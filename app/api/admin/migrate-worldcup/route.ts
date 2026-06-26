@@ -202,15 +202,12 @@ export async function GET() {
       const providerMatchId = `fd-${m.id}`
       apiProviderIds.push(providerMatchId)
 
-      // In-loop dedup: if a match with same teams/date exists (even with predictions),
-      // update it to use the correct providerMatchId instead of creating a duplicate
+      // In-loop dedup: find any existing match with same teams regardless of tournament
       const from = new Date(kickoffAt.getTime() - 48 * 60 * 60_000)
       const to = new Date(kickoffAt.getTime() + 48 * 60 * 60_000)
       const dups = await db.match.findMany({
         where: {
-          tournamentId: tournament.id,
           kickoffAt: { gte: from, lte: to },
-          // Include both null providerMatchId and different providerMatchId
           OR: [
             { providerMatchId: null },
             { providerMatchId: { not: providerMatchId } },
@@ -259,27 +256,6 @@ export async function GET() {
         },
       })
       inserted++
-    }
-
-    // Final cleanup: after all upserts, delete any WC match that is NOT from the
-    // current API response but shares teams+date with one that IS.
-    // This catches duplicates that slipped through the in-loop dedup.
-    if (apiProviderIds.length > 0) {
-      const idList = apiProviderIds.map(id => `'${id}'`).join(',')
-      await db.$executeRawUnsafe(`
-        DELETE FROM "Match" AS stale
-        USING "Match" AS valid
-        WHERE valid."tournamentId" = '${tournament.id}'
-          AND valid."providerMatchId" IN (${idList})
-          AND stale."tournamentId" = '${tournament.id}'
-          AND (stale."providerMatchId" IS NULL OR stale."providerMatchId" NOT IN (${idList}))
-          AND stale.id <> valid.id
-          AND ABS(EXTRACT(EPOCH FROM (stale."kickoffAt" - valid."kickoffAt"))) < 172800
-          AND (
-            (stale."homeTeamId" = valid."homeTeamId" AND stale."awayTeamId" = valid."awayTeamId")
-            OR (stale."homeTeamId" = valid."awayTeamId" AND stale."awayTeamId" = valid."homeTeamId")
-          )
-      `)
     }
 
     return NextResponse.json({

@@ -95,8 +95,53 @@ export async function GET() {
       }
     }
 
+    // Step 4: Fix Hebrew-round duplicates (same "בית X'" round, same teams, two records)
+    const hebrewRounds = Object.values(GROUP_LETTERS).map(l => `בית ${l}`)
+    const allHebrewMatches = await db.match.findMany({
+      where: { round: { in: hebrewRounds } },
+      select: { id: true, round: true, homeTeamId: true, awayTeamId: true, providerMatchId: true, homeScore: true, awayScore: true },
+      orderBy: { kickoffAt: 'asc' },
+    })
+
+    // Group by round+teams key
+    const seen = new Map<string, typeof allHebrewMatches[0]>()
+    for (const m of allHebrewMatches) {
+      const teamKey = [m.homeTeamId, m.awayTeamId].sort().join('-')
+      const key = `${m.round}-${teamKey}`
+      const existing = seen.get(key)
+      if (!existing) {
+        seen.set(key, m)
+        continue
+      }
+      // Duplicate found — keep the one with predictions/score
+      const existingPreds = await db.prediction.count({ where: { matchId: existing.id } })
+      const newPreds = await db.prediction.count({ where: { matchId: m.id } })
+
+      let keepId: string, deleteId: string
+
+      if (existingPreds >= newPreds) {
+        keepId = existing.id
+        deleteId = m.id
+      } else {
+        keepId = m.id
+        deleteId = existing.id
+        seen.set(key, m) // update seen to the one we're keeping
+      }
+
+      // Adopt providerMatchId if keeper doesn't have one
+      const keeper = await db.match.findUnique({ where: { id: keepId }, select: { providerMatchId: true } })
+      const toDelete = await db.match.findUnique({ where: { id: deleteId }, select: { providerMatchId: true } })
+      if (!keeper?.providerMatchId && toDelete?.providerMatchId) {
+        await db.match.update({ where: { id: keepId }, data: { providerMatchId: toDelete.providerMatchId } })
+      }
+
+      await db.prediction.deleteMany({ where: { matchId: deleteId } })
+      await db.match.delete({ where: { id: deleteId } })
+      results.push(`Merged Hebrew dup: deleted ${deleteId}, kept ${keepId}`)
+    }
+
     if (results.length === 0) results.push('Nothing to fix')
-    return NextResponse.json({ ok: true, v: 6, results })
+    return NextResponse.json({ ok: true, v: 7, results })
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message, stack: e.stack?.slice(0, 600) }, { status: 200 })
   }
