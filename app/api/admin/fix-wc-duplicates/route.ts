@@ -90,7 +90,7 @@ export async function GET() {
     }
 
     if (results.length === 0) results.push('Nothing to fix')
-    return NextResponse.json({ ok: true, results })
+    return NextResponse.json({ ok: true, v: 4, results })
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message, stack: e.stack?.slice(0, 500) }, { status: 200 })
   }
