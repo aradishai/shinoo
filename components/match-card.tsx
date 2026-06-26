@@ -209,7 +209,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const anyApplied = !!powerup && (
     powerup.x2Applied || powerup.shinooApplied || powerup.x3Applied ||
     powerup.goalsApplied || powerup.minute90Applied || powerup.splitApplied ||
-    powerup.allinApplied || powerup.et120Applied
+    powerup.allinApplied || powerup.peekApplied || powerup.et120Applied
   )
   const appliedImg = !powerup ? null :
     powerup.x2Applied ? '/btn-x2.png' :
@@ -219,6 +219,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     powerup.minute90Applied ? '/btn-90.png' :
     powerup.splitApplied ? '/btn-split.png' :
     powerup.allinApplied ? '/btn-allin.png' :
+    powerup.peekApplied ? '/btn-peek.png' :
     powerup.et120Applied ? '/btn-et120.png' : null
   const doubleSlot = powerup?.doubleSlot ?? null
 
@@ -418,7 +419,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
             )}
             {showPeek && (
               <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onPeek() }} className="transition-all active:scale-95">
-                <img src="/btn-peek.png" alt="PEEK" className="h-7 w-28 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+                <img src="/btn-peek.png" alt="PEEK" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
               </button>
             )}
             {showX3 && (
@@ -506,7 +507,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           )}
           {showEt120 && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onEt120() }} className="transition-all active:scale-95">
-              <img src="/btn-et120.png" alt="120 ET" className="h-7 w-24 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              <img src="/btn-et120.png" alt="120 ET" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
         </div>
