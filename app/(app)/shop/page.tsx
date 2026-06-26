@@ -13,8 +13,8 @@ const SHOP_ITEMS = [
   { id: 'split', name: 'ספליט', description: 'לשימוש לפני המשחק – ניחוש 2 תוצאות', img: '/btn-split.png', stockKey: 'splitStock' as const, comingSoon: false, cost: 3 },
   { id: 'allin', name: 'ALL IN', description: 'לשימוש לפני המשחק – שים את הניקוד שלך בקופה משותפת. בעל הניקוד הגבוה ביותר זוכה בכל הקופה.', img: '/btn-allin.png', stockKey: 'allinStock' as const, comingSoon: false, cost: 1, imgClass: 'w-32 h-14', hidden: true },
   { id: 'double', name: 'דאבל', description: 'לשימוש לפני המשחק – שייך ל-2 משחקים שונים. אם שניהם מנוחשים נכון, תקבל בונוס נקודות על שניהם!', img: '/btn-double.png', stockKey: 'doubleStock' as const, comingSoon: true, cost: 3, imgClass: 'w-32 h-16', hidden: true },
-  { id: 'peek', name: 'PEEK', description: 'לשימוש לפני נעילת המשחק – ראה את ניחושי כל השחקנים ונשאר פתוח לניחוש 30 דקות נוספות', img: '/btn-peek.png', stockKey: 'peekStock' as const, comingSoon: false, cost: 2 },
-  { id: 'et120', name: '120 ET', description: 'לשימוש במהלך המשחק עד דקה 75. הופך את הניחוש שלך ל-120 במקום ל-90\'', img: '/btn-et120.png', stockKey: 'et120Stock' as const, comingSoon: false, cost: 2 },
+  { id: 'peek', name: 'PEEK', description: 'לשימוש לפני נעילת המשחק – ראה את ניחושי כל השחקנים ונשאר פתוח לניחוש 30 דקות נוספות', img: '/btn-peek.png', stockKey: 'peekStock' as const, comingSoon: false, cost: 2, imgClass: 'w-48 h-12' },
+  { id: 'et120', name: '120 ET', description: 'לשימוש במהלך המשחק עד דקה 75. הופך את הניחוש שלך ל-120 במקום ל-90\'', img: '/btn-et120.png', stockKey: 'et120Stock' as const, comingSoon: false, cost: 2, imgClass: 'w-48 h-12' },
 ]
 
 export default function ShopPage() {
