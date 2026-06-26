@@ -71,17 +71,18 @@ export async function GET() {
         // Duplicate pair: delete Latin, keep Hebrew (providerMatchId will be re-linked by migrate-worldcup)
         const latinPreds = await db.prediction.count({ where: { matchId: latin.id } })
         if (latinPreds > 0) {
-          // Rare: users predicted on the Latin record — rename it, delete Hebrew
           const hebrewPreds = await db.prediction.count({ where: { matchId: hebrewMatch.id } })
           if (hebrewPreds === 0) {
+            // Only Latin has predictions — rename Latin to Hebrew, delete empty Hebrew
             await db.match.update({ where: { id: latin.id }, data: { round: hebrewRound } })
             await db.match.delete({ where: { id: hebrewMatch.id } })
             results.push(`Renamed Latin ${latin.id} → ${hebrewRound}, deleted empty Hebrew ${hebrewMatch.id}`)
           } else {
-            // Both have predictions — keep Hebrew, migrate predictions from Latin
-            await db.prediction.updateMany({ where: { matchId: latin.id }, data: { matchId: hebrewMatch.id } })
+            // Both have predictions — Hebrew is the canonical record
+            // Delete Latin predictions (they are duplicates), then delete Latin match
+            await db.prediction.deleteMany({ where: { matchId: latin.id } })
             await db.match.delete({ where: { id: latin.id } })
-            results.push(`Migrated predictions from Latin ${latin.id} to Hebrew ${hebrewMatch.id}, deleted Latin`)
+            results.push(`Deleted ${latinPreds} Latin predictions + Latin match ${latin.id}, kept Hebrew ${hebrewMatch.id}`)
           }
         } else {
           await db.match.delete({ where: { id: latin.id } })
@@ -95,7 +96,7 @@ export async function GET() {
     }
 
     if (results.length === 0) results.push('Nothing to fix')
-    return NextResponse.json({ ok: true, v: 5, results })
+    return NextResponse.json({ ok: true, v: 6, results })
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message, stack: e.stack?.slice(0, 600) }, { status: 200 })
   }
