@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
 
-const ET120_WINDOW_MINUTES = 137 // 137 min after kickoff = ~75th real minute
+const ET120_WINDOW_MINUTES = 96 // closes at real minute 96 (90+6')
 
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const kickoff = prediction.match.kickoffAt
   const windowEnd = new Date(kickoff.getTime() + ET120_WINDOW_MINUTES * 60 * 1000)
   if (now >= windowEnd)
-    return NextResponse.json({ error: 'לא ניתן להפעיל 120 ET לאחר הדקה ה-75' }, { status: 400 })
+    return NextResponse.json({ error: 'לא ניתן להפעיל 120 ET לאחר דקה 96' }, { status: 400 })
 
   // Cannot combine with other powerups
   const p = prediction as any

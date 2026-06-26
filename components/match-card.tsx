@@ -468,7 +468,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       const inHalftimeWindow = match.status === 'PAUSED' || liveMinute === 'מחצית'
       const before90 = (match.status === 'LIVE' || match.status === 'PAUSED') && liveMinute !== 'מחצית'
       const elapsed = Date.now() - kickoff.getTime()
-      const withinET120Window = elapsed < 137 * 60 * 1000
+      const withinET120Window = elapsed < 96 * 60 * 1000
 
       const showX2 = powerup.x2Stock > 0 && inHalftimeWindow
       const showShinoo = powerup.shinooStock > 0 && inHalftimeWindow
