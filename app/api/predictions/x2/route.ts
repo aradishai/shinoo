@@ -29,18 +29,23 @@ export async function POST(request: Request) {
   if (await isInDoubleEntry(predictionId))
     return NextResponse.json({ error: 'לא ניתן לשלב לחצן עם DOUBLE' }, { status: 400 })
 
-  if (!['LIVE', 'PAUSED'].includes(prediction.match.status))
-    return NextResponse.json({ error: 'X2 זמין רק במהלך משחק' }, { status: 400 })
+  const isPreMatch = ['SCHEDULED', 'LOCKED'].includes(prediction.match.status)
+  const isLive = ['LIVE', 'PAUSED'].includes(prediction.match.status)
 
-  const kickoff = prediction.match.kickoffAt
-  const now = new Date()
-  const extra = (prediction.match as any).tournament?.type === 'world_cup' ? 5 : 3
-  const windowOpenMin = 45 + extra
-  const windowCloseMin = 45 + extra + 15
-  const windowStart = new Date(kickoff.getTime() + windowOpenMin * 60 * 1000)
-  const windowEnd = new Date(kickoff.getTime() + windowCloseMin * 60 * 1000)
-  if (now < windowStart || now > windowEnd)
-    return NextResponse.json({ error: `X2 זמין רק בחלון ההפסקה (דקה ${windowOpenMin}-${windowCloseMin})` }, { status: 400 })
+  if (!isPreMatch && !isLive)
+    return NextResponse.json({ error: 'X2 זמין לפני המשחק או בהפסקה' }, { status: 400 })
+
+  if (isLive) {
+    const kickoff = prediction.match.kickoffAt
+    const now = new Date()
+    const extra = (prediction.match as any).tournament?.type === 'world_cup' ? 5 : 3
+    const windowOpenMin = 45 + extra
+    const windowCloseMin = 45 + extra + 15
+    const windowStart = new Date(kickoff.getTime() + windowOpenMin * 60 * 1000)
+    const windowEnd = new Date(kickoff.getTime() + windowCloseMin * 60 * 1000)
+    if (now < windowStart || now > windowEnd)
+      return NextResponse.json({ error: `X2 זמין לפני המשחק או בהפסקה (דקה ${windowOpenMin}-${windowCloseMin})` }, { status: 400 })
+  }
 
   if (prediction.shinooApplied)
     return NextResponse.json({ error: 'לא ניתן להשתמש ב-X2 ובשינוי על אותו משחק' }, { status: 400 })

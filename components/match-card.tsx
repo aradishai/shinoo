@@ -388,18 +388,24 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       return null
     }
 
-    // Pre-match buttons (X3, GOALS+, SPLIT, ALL IN, DOUBLE) — only when match is open
+    // Pre-match buttons (X2, X3, GOALS+, SPLIT, ALL IN, DOUBLE) — only when match is open
     if (isOpen) {
+      const showX2 = powerup.x2Stock > 0 && !powerup.x2Applied && !doubleSlot
       const showX3 = powerup.x3Stock > 0 && !doubleSlot
       const showGoals = powerup.goalsStock > 0 && !doubleSlot
       const showSplit = powerup.splitStock > 0 && !doubleSlot
       const showAllin = powerup.allinStock > 0 && !doubleSlot
       const showDouble = !doubleSlot && powerup.nextDoubleSlot !== null && powerup.nextDoubleSlot !== undefined
       const doubleRemoveSlot = doubleSlot
-      if (!showX3 && !showGoals && !showSplit && !showAllin && !showDouble && !doubleRemoveSlot) return null
+      if (!showX2 && !showX3 && !showGoals && !showSplit && !showAllin && !showDouble && !doubleRemoveSlot) return null
       return (
         <div className="flex flex-col gap-1">
           <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
+            {showX2 && (
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX2() }} className="transition-all active:scale-95">
+                <img src="/btn-x2.png" alt="X2" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              </button>
+            )}
             {showX3 && (
               <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onX3() }} className="transition-all active:scale-95">
                 <img src="/btn-x3.png" alt="X3" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
