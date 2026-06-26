@@ -204,10 +204,18 @@ export async function GET() {
         where: {
           tournamentId: tournament.id,
           kickoffAt: { gte: from, lte: to },
-          NOT: { providerMatchId },
+          // Include both null providerMatchId and different providerMatchId
           OR: [
-            { homeTeamId: homeTeam.id, awayTeamId: awayTeam.id },
-            { homeTeamId: awayTeam.id, awayTeamId: homeTeam.id },
+            { providerMatchId: null },
+            { providerMatchId: { not: providerMatchId } },
+          ],
+          AND: [
+            {
+              OR: [
+                { homeTeamId: homeTeam.id, awayTeamId: awayTeam.id },
+                { homeTeamId: awayTeam.id, awayTeamId: homeTeam.id },
+              ],
+            },
           ],
         },
       })
