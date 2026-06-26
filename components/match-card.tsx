@@ -462,6 +462,17 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       )
     }
 
+    // Locked match: show 90' button only
+    if (status === 'LOCKED' && powerup.minute90Stock > 0) {
+      return (
+        <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
+          <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
+            <img src="/btn-90.png" alt="90'" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+          </button>
+        </div>
+      )
+    }
+
     // Live buttons: X2/SHINOO only during halftime, 90' only when LIVE (not halftime), ET120 within 137min window
     if ((isLive || match.status === 'PAUSED') && doubleSlot) return null
     if (isLive || match.status === 'PAUSED') {

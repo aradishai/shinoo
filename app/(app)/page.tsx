@@ -616,12 +616,12 @@ export default function HomePage() {
   }
 
   const applyMinute90 = async (match: Match) => {
-    if (!match.userPrediction) return
+    if (!primaryLeague) return
     setPowerupLoading(`90-${match.id}`)
     const res = await fetch('/api/predictions/minute90', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ predictionId: match.userPrediction.id }),
+      body: JSON.stringify({ matchId: match.id, leagueId: primaryLeague.id }),
     })
     setPowerupLoading(null)
     const data = await res.json()
@@ -1253,20 +1253,20 @@ export default function HomePage() {
                     prediction={match.userPrediction}
                     memberPredictions={match.memberPredictions}
                     leagueId={primaryLeague.id}
-                    powerup={match.userPrediction ? {
-                      predictionId: match.userPrediction.id,
-                      x2Applied: !!match.userPrediction.x2Applied,
-                      shinooApplied: !!match.userPrediction.shinooApplied,
-                      x3Applied: !!match.userPrediction.x3Applied,
-                      goalsApplied: !!match.userPrediction.goalsApplied,
-                      minute90Applied: !!match.userPrediction.minute90Applied,
-                      splitApplied: !!match.userPrediction.splitApplied,
-                      allinApplied: !!match.userPrediction.allinApplied,
-                      peekApplied: !!match.userPrediction.peekApplied,
-                      peekLockAt: match.userPrediction.peekLockAt,
+                    powerup={{
+                      predictionId: match.userPrediction?.id ?? '',
+                      x2Applied: !!match.userPrediction?.x2Applied,
+                      shinooApplied: !!match.userPrediction?.shinooApplied,
+                      x3Applied: !!match.userPrediction?.x3Applied,
+                      goalsApplied: !!match.userPrediction?.goalsApplied,
+                      minute90Applied: !!match.userPrediction?.minute90Applied,
+                      splitApplied: !!match.userPrediction?.splitApplied,
+                      allinApplied: !!match.userPrediction?.allinApplied,
+                      peekApplied: !!match.userPrediction?.peekApplied,
+                      peekLockAt: match.userPrediction?.peekLockAt,
                       peekedPredictions: peekedPredictions[match.id],
                       et120Stock: user?.et120Stock ?? 0,
-                      et120Applied: !!match.userPrediction.et120Applied,
+                      et120Applied: !!match.userPrediction?.et120Applied,
                       x2Stock: user?.x2Stock ?? 0,
                       shinooStock: user?.shinooStock ?? 0,
                       x3Stock: user?.x3Stock ?? 0,
@@ -1276,7 +1276,7 @@ export default function HomePage() {
                       allinStock: user?.allinStock ?? 0,
                       doubleStock: user?.doubleStock ?? 0,
                       peekStock: user?.peekStock ?? 0,
-                      doubleSlot: primaryLeague.activeDoubleEntry?.predictionId1 === match.userPrediction.id ? 1 : primaryLeague.activeDoubleEntry?.predictionId2 === match.userPrediction.id ? 2 : null,
+                      doubleSlot: match.userPrediction?.id && primaryLeague.activeDoubleEntry?.predictionId1 === match.userPrediction.id ? 1 : match.userPrediction?.id && primaryLeague.activeDoubleEntry?.predictionId2 === match.userPrediction.id ? 2 : null,
                       nextDoubleSlot: null,
                       usage: match.powerupUsage || null,
                       onX2: () => applyX2(match),
@@ -1291,7 +1291,7 @@ export default function HomePage() {
                       onEt120: () => applyEt120(match),
                       onDoubleRemove: (slot) => removeDouble(slot, primaryLeague.id),
                       loading: powerupLoading,
-                    } : null}
+                    }}
                   />
                 ))}
               </div>
