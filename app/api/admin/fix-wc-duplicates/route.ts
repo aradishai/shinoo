@@ -128,20 +128,25 @@ export async function GET() {
         seen.set(key, m) // update seen to the one we're keeping
       }
 
-      // Adopt providerMatchId if keeper doesn't have one
       const keeper = await db.match.findUnique({ where: { id: keepId }, select: { providerMatchId: true } })
       const toDelete = await db.match.findUnique({ where: { id: deleteId }, select: { providerMatchId: true } })
-      if (!keeper?.providerMatchId && toDelete?.providerMatchId) {
-        await db.match.update({ where: { id: keepId }, data: { providerMatchId: toDelete.providerMatchId } })
-      }
+      const adoptProviderId = !keeper?.providerMatchId ? toDelete?.providerMatchId : null
 
+      // Null deleteId's providerMatchId first to release the unique constraint
+      if (adoptProviderId) {
+        await db.match.update({ where: { id: deleteId }, data: { providerMatchId: null } })
+      }
       await db.prediction.deleteMany({ where: { matchId: deleteId } })
       await db.match.delete({ where: { id: deleteId } })
+      // Now safe to adopt the providerMatchId
+      if (adoptProviderId) {
+        await db.match.update({ where: { id: keepId }, data: { providerMatchId: adoptProviderId } })
+      }
       results.push(`Merged Hebrew dup: deleted ${deleteId}, kept ${keepId}`)
     }
 
     if (results.length === 0) results.push('Nothing to fix')
-    return NextResponse.json({ ok: true, v: 7, results })
+    return NextResponse.json({ ok: true, v: 8, results })
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message, stack: e.stack?.slice(0, 600) }, { status: 200 })
   }
