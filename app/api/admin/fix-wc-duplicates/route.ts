@@ -13,90 +13,90 @@ const HEBREW_NAMES: Record<string, string> = {
   SAU: 'ערב הסעודית',
   KSA: 'ערב הסעודית',
   BIH: 'בוסניה-הרצגובינה',
-  URU: 'אורוגוואי',
-  URY: 'אורוגוואי',
+  URU: 'אורוגואי',
+  URY: 'אורוגואי',
   CUW: 'קורסאו',
   CUR: 'קורסאו',
 }
 
 export async function GET() {
-  const results: string[] = []
+  try {
+    const results: string[] = []
 
-  // 1. Fix Hebrew names for teams that got overwritten with English
-  for (const [code, nameHe] of Object.entries(HEBREW_NAMES)) {
-    const team = await db.team.findFirst({ where: { code } })
-    if (team && team.nameHe !== nameHe) {
-      await db.team.update({ where: { id: team.id }, data: { nameHe } })
-      results.push(`Fixed team ${code} → ${nameHe}`)
+    // Step 1: Fix Hebrew names
+    for (const [code, nameHe] of Object.entries(HEBREW_NAMES)) {
+      try {
+        const team = await db.team.findFirst({ where: { code } })
+        if (team && team.nameHe !== nameHe) {
+          await db.team.update({ where: { id: team.id }, data: { nameHe } })
+          results.push(`Fixed team ${code}`)
+        }
+      } catch (e: any) {
+        results.push(`Error fixing team ${code}: ${e.message}`)
+      }
     }
-  }
 
-  // 2. Find all group matches with Latin-letter round names (e.g. "בית H", "בית A")
-  const latinRounds = Object.keys(GROUP_LETTERS).map(l => `בית ${l}`)
-  const latinMatches = await db.match.findMany({
-    where: { round: { in: latinRounds } },
-    include: { homeTeam: true, awayTeam: true },
-    orderBy: { kickoffAt: 'asc' },
-  })
+    // Step 2: Find all Latin-letter group round matches
+    const latinRounds = Object.keys(GROUP_LETTERS).map(l => `בית ${l}`)
+    results.push(`Searching rounds: ${JSON.stringify(latinRounds)}`)
 
-  results.push(`Found ${latinMatches.length} matches with Latin-letter round names`)
-
-  for (const latin of latinMatches) {
-    const letter = latin.round!.replace('בית ', '')
-    const hebrewRound = `בית ${GROUP_LETTERS[letter] ?? letter}`
-
-    // Look for a Hebrew-round match with same teams (could be in either order)
-    const hebrewMatch = await db.match.findFirst({
-      where: {
-        round: hebrewRound,
-        OR: [
-          { homeTeamId: latin.homeTeamId, awayTeamId: latin.awayTeamId },
-          { homeTeamId: latin.awayTeamId, awayTeamId: latin.homeTeamId },
-        ],
-      },
+    const latinMatches = await db.match.findMany({
+      where: { round: { in: latinRounds } },
+      select: { id: true, round: true, homeTeamId: true, awayTeamId: true },
+      orderBy: { kickoffAt: 'asc' },
     })
 
-    if (hebrewMatch) {
-      // Duplicate pair: one Hebrew (original), one Latin (new)
-      const hebrewPreds = await db.prediction.count({ where: { matchId: hebrewMatch.id } })
-      const latinPreds = await db.prediction.count({ where: { matchId: latin.id } })
+    results.push(`Found ${latinMatches.length} Latin-round matches`)
 
-      if (hebrewPreds > 0) {
-        // Hebrew record has predictions → it's the keeper
-        // Adopt the providerMatchId from the Latin record if it has one
-        if (latin.providerMatchId && !hebrewMatch.providerMatchId) {
-          await db.match.update({
-            where: { id: hebrewMatch.id },
-            data: { providerMatchId: latin.providerMatchId },
-          })
-          results.push(`Linked ${latin.providerMatchId} to Hebrew match ${hebrewMatch.id}`)
-        }
-        await db.match.delete({ where: { id: latin.id } })
-        results.push(`Deleted Latin duplicate ${latin.id} (${latin.homeTeam.nameEn} vs ${latin.awayTeam.nameEn}, ${latin.round})`)
-      } else if (latinPreds > 0) {
-        // Latin record has predictions → rename it to Hebrew, delete the Hebrew one
-        await db.match.update({
-          where: { id: latin.id },
-          data: { round: hebrewRound },
-        })
-        await db.match.delete({ where: { id: hebrewMatch.id } })
-        results.push(`Renamed Latin ${latin.id} to ${hebrewRound}, deleted empty Hebrew ${hebrewMatch.id}`)
-      } else {
-        // Neither has predictions → keep the Hebrew one, delete the Latin
-        await db.match.delete({ where: { id: latin.id } })
-        results.push(`Deleted empty Latin duplicate ${latin.id} (${latin.round})`)
-      }
-    } else {
-      // No Hebrew counterpart — just rename
-      await db.match.update({
-        where: { id: latin.id },
-        data: { round: hebrewRound },
+    for (const latin of latinMatches) {
+      const letter = latin.round!.replace('בית ', '')
+      const hebrewRound = `בית ${GROUP_LETTERS[letter] ?? letter}`
+
+      const hebrewMatch = await db.match.findFirst({
+        where: {
+          round: hebrewRound,
+          OR: [
+            { homeTeamId: latin.homeTeamId, awayTeamId: latin.awayTeamId },
+            { homeTeamId: latin.awayTeamId, awayTeamId: latin.homeTeamId },
+          ],
+        },
+        select: { id: true },
       })
-      results.push(`Renamed ${latin.id}: "${latin.round}" → "${hebrewRound}" (${latin.homeTeam.nameEn} vs ${latin.awayTeam.nameEn})`)
+
+      if (hebrewMatch) {
+        const hebrewPreds = await db.prediction.count({ where: { matchId: hebrewMatch.id } })
+        const latinPreds = await db.prediction.count({ where: { matchId: latin.id } })
+
+        if (hebrewPreds > 0) {
+          if (latin.round && !hebrewMatch.id) {
+            await db.match.update({ where: { id: hebrewMatch.id }, data: { providerMatchId: undefined } })
+          }
+          const latinMatch = await db.match.findUnique({ where: { id: latin.id }, select: { providerMatchId: true } })
+          if (latinMatch?.providerMatchId) {
+            const hebrewFull = await db.match.findUnique({ where: { id: hebrewMatch.id }, select: { providerMatchId: true } })
+            if (!hebrewFull?.providerMatchId) {
+              await db.match.update({ where: { id: hebrewMatch.id }, data: { providerMatchId: latinMatch.providerMatchId } })
+            }
+          }
+          await db.match.delete({ where: { id: latin.id } })
+          results.push(`Deleted Latin dup ${latin.id} (${latin.round}), Hebrew keeper ${hebrewMatch.id}`)
+        } else if (latinPreds > 0) {
+          await db.match.update({ where: { id: latin.id }, data: { round: hebrewRound } })
+          await db.match.delete({ where: { id: hebrewMatch.id } })
+          results.push(`Renamed Latin ${latin.id} → ${hebrewRound}, deleted empty Hebrew ${hebrewMatch.id}`)
+        } else {
+          await db.match.delete({ where: { id: latin.id } })
+          results.push(`Deleted empty Latin dup ${latin.id}`)
+        }
+      } else {
+        await db.match.update({ where: { id: latin.id }, data: { round: hebrewRound } })
+        results.push(`Renamed: "${latin.round}" → "${hebrewRound}"`)
+      }
     }
+
+    if (results.length === 0) results.push('Nothing to fix')
+    return NextResponse.json({ ok: true, results })
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e.message, stack: e.stack?.slice(0, 500) }, { status: 200 })
   }
-
-  if (results.length === 0) results.push('Nothing to fix')
-
-  return NextResponse.json({ ok: true, results })
 }
