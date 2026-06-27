@@ -419,7 +419,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
             )}
             {showPeek && (
               <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onPeek() }} className="transition-all active:scale-95">
-                <img src="/btn-peek.png" alt="PEEK" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+                <img src="/btn-peek.png" alt="PEEK" className="h-7 w-28 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
               </button>
             )}
             {showX3 && (
@@ -507,7 +507,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           )}
           {showEt120 && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onEt120() }} className="transition-all active:scale-95">
-              <img src="/btn-et120.png" alt="120 ET" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              <img src="/btn-et120.png" alt="120 ET" className="h-7 w-24 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
         </div>
