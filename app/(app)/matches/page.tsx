@@ -36,7 +36,7 @@ interface Match {
   homeScore?: number | null
   awayScore?: number | null
   round?: string | null
-  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; predictedTopScorerPlayerId?: string | null; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; splitApplied?: boolean } | null
+  userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; predictedTopScorerPlayerId?: string | null; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; splitApplied?: boolean; allinApplied?: boolean; peekApplied?: boolean; et120Applied?: boolean; minute90Applied?: boolean } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; user: { id: string; username: string } }[]
   powerupUsage?: { x2Used: number; shinooUsed: number } | null
 }
@@ -341,9 +341,9 @@ export default function MatchesPage() {
                 {/* Pre-match powerup buttons */}
                 {(() => {
                   if (!isOpen || !hasPrediction) return null
-                  const anyApplied = match.userPrediction?.x3Applied || match.userPrediction?.goalsApplied || match.userPrediction?.splitApplied || (match.userPrediction as any)?.allinApplied
+                  const anyApplied = match.userPrediction?.x2Applied || match.userPrediction?.x3Applied || match.userPrediction?.goalsApplied || match.userPrediction?.splitApplied || match.userPrediction?.allinApplied || match.userPrediction?.peekApplied || match.userPrediction?.et120Applied
                   if (anyApplied) {
-                    const img = match.userPrediction?.x3Applied ? '/btn-x3.png' : match.userPrediction?.goalsApplied ? '/btn-goals.png' : match.userPrediction?.splitApplied ? '/btn-split.png' : '/btn-allin.png'
+                    const img = match.userPrediction?.x2Applied ? '/btn-x2.png' : match.userPrediction?.x3Applied ? '/btn-x3.png' : match.userPrediction?.goalsApplied ? '/btn-goals.png' : match.userPrediction?.splitApplied ? '/btn-split.png' : match.userPrediction?.peekApplied ? '/btn-peek.png' : match.userPrediction?.et120Applied ? '/btn-et120.png' : '/btn-allin.png'
                     return (
                       <div className="flex items-center justify-center gap-1.5 px-4 pb-2 pt-1 border-t border-dark-border/40">
                         <img src={img} className="h-5 w-auto rounded" style={{ mixBlendMode: 'lighten' }} />
