@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
-import { isInDoubleEntry } from '@/lib/double-guard'
+import { isInDoubleEntry, hasAnyPowerupApplied } from '@/lib/double-guard'
 
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
@@ -46,11 +46,8 @@ export async function POST(request: Request) {
   if (now < windowStart || now > windowEnd)
     return NextResponse.json({ error: `שינוי זמין רק בחלון ההפסקה (דקה ${windowOpenMin}-${windowCloseMin})` }, { status: 400 })
 
-  if (prediction.x2Applied)
-    return NextResponse.json({ error: 'לא ניתן להשתמש ב-X2 ובשינוי על אותו משחק' }, { status: 400 })
-
-  if (prediction.shinooApplied)
-    return NextResponse.json({ error: 'שינוי כבר הופעל על משחק זה' }, { status: 400 })
+  if (hasAnyPowerupApplied(prediction))
+    return NextResponse.json({ error: 'ניתן להפעיל לחצן אחד בלבד על כל משחק' }, { status: 400 })
 
   const newHome = prediction.predictedHomeScore + (team === 'home' ? delta : 0)
   const newAway = prediction.predictedAwayScore + (team === 'away' ? delta : 0)

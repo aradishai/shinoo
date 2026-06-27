@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
+import { hasAnyPowerupApplied } from '@/lib/double-guard'
 
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
@@ -30,8 +31,8 @@ export async function POST(request: Request) {
     where: { userId, matchId, leagueId },
   })
 
-  if (existingPrediction && (existingPrediction as any).minute90Applied)
-    return NextResponse.json({ error: 'דקה 90 כבר הופעל על משחק זה' }, { status: 400 })
+  if (existingPrediction && hasAnyPowerupApplied(existingPrediction))
+    return NextResponse.json({ error: 'ניתן להפעיל לחצן אחד בלבד על כל משחק' }, { status: 400 })
 
   const user = await db.user.findUnique({ where: { id: userId }, select: { minute90Stock: true, username: true } })
   if (!user || user.minute90Stock < 1)

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
-import { isInDoubleEntry } from '@/lib/double-guard'
+import { isInDoubleEntry, hasAnyPowerupApplied } from '@/lib/double-guard'
 
 const BAILANDOZ_ID = 'cmo7p04ly000001oc97z3uwbs'
 
@@ -45,11 +45,8 @@ export async function POST(request: Request) {
   if (prediction.match.status !== 'SCHEDULED' || new Date() >= prediction.match.lockAt)
     return NextResponse.json({ error: 'X3 זמין רק לפני נעילת המשחק' }, { status: 400 })
 
-  if ((prediction as any).x3Applied)
-    return NextResponse.json({ error: 'X3 כבר הופעל על משחק זה' }, { status: 400 })
-
-  if (prediction.x2Applied)
-    return NextResponse.json({ error: 'לא ניתן לשלב X2 ו-X3' }, { status: 400 })
+  if (hasAnyPowerupApplied(prediction))
+    return NextResponse.json({ error: 'ניתן להפעיל לחצן אחד בלבד על כל משחק' }, { status: 400 })
 
   const user = await db.user.findUnique({ where: { id: userId }, select: { x3Stock: true, username: true } })
   if (!user || user.x3Stock < 1)

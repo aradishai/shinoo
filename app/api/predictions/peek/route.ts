@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { hasAnyPowerupApplied } from '@/lib/double-guard'
 
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
@@ -26,13 +27,8 @@ export async function POST(request: Request) {
   if (now >= lockAt)
     return NextResponse.json({ error: 'המשחק כבר ננעל' }, { status: 400 })
 
-  // Cannot combine with other powerups
-  const anyApplied = (prediction as any).x2Applied || (prediction as any).x3Applied ||
-    (prediction as any).goalsApplied || (prediction as any).splitApplied ||
-    (prediction as any).allinApplied || (prediction as any).peekApplied
-
-  if (anyApplied)
-    return NextResponse.json({ error: 'לא ניתן לשלב PEEK עם פאווראפ אחר' }, { status: 400 })
+  if (hasAnyPowerupApplied(prediction))
+    return NextResponse.json({ error: 'ניתן להפעיל לחצן אחד בלבד על כל משחק' }, { status: 400 })
 
   const user = await db.user.findUnique({ where: { id: userId }, select: { peekStock: true, username: true } })
   if (!user || (user as any).peekStock < 1)

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
-import { isInDoubleEntry } from '@/lib/double-guard'
+import { isInDoubleEntry, hasAnyPowerupApplied } from '@/lib/double-guard'
 
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
@@ -47,11 +47,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `X2 זמין לפני המשחק או בהפסקה (דקה ${windowOpenMin}-${windowCloseMin})` }, { status: 400 })
   }
 
-  if (prediction.shinooApplied)
-    return NextResponse.json({ error: 'לא ניתן להשתמש ב-X2 ובשינוי על אותו משחק' }, { status: 400 })
-
-  if (prediction.x2Applied)
-    return NextResponse.json({ error: 'X2 כבר הופעל על משחק זה' }, { status: 400 })
+  if (hasAnyPowerupApplied(prediction))
+    return NextResponse.json({ error: 'ניתן להפעיל לחצן אחד בלבד על כל משחק' }, { status: 400 })
 
   const user = await db.user.findUnique({ where: { id: userId }, select: { x2Stock: true, username: true } })
   if (!user || user.x2Stock < 1)

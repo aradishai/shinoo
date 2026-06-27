@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
-import { isInDoubleEntry } from '@/lib/double-guard'
+import { isInDoubleEntry, hasAnyPowerupApplied } from '@/lib/double-guard'
 
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
@@ -24,8 +24,8 @@ export async function POST(request: Request) {
   if (prediction.match.status !== 'SCHEDULED' || new Date() >= prediction.match.lockAt)
     return NextResponse.json({ error: 'גולס+ זמין רק לפני נעילת המשחק' }, { status: 400 })
 
-  if ((prediction as any).goalsApplied)
-    return NextResponse.json({ error: 'גולס+ כבר הופעל על משחק זה' }, { status: 400 })
+  if (hasAnyPowerupApplied(prediction))
+    return NextResponse.json({ error: 'ניתן להפעיל לחצן אחד בלבד על כל משחק' }, { status: 400 })
 
   const user = await db.user.findUnique({ where: { id: userId }, select: { goalsStock: true, username: true } })
   if (!user || user.goalsStock < 1)
