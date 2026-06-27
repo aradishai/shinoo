@@ -148,7 +148,7 @@ export async function GET(
     const peekMatchIds = matches
       .filter(m => m.status === 'SCHEDULED' && (predMap[m.id] as any)?.peekApplied)
       .map(m => m.id)
-    const memberPredMatchIds = [...new Set([...lockedMatchIds, ...peekMatchIds])]
+    const memberPredMatchIds = Array.from(new Set([...lockedMatchIds, ...peekMatchIds]))
     const memberPredictions = memberPredMatchIds.length > 0
       ? await db.prediction.findMany({
           where: { leagueId: params.id, matchId: { in: memberPredMatchIds }, userId: { not: userId } },
