@@ -143,11 +143,15 @@ export async function GET(
     })
     const predMap = Object.fromEntries(userPredictions.map((p) => [p.matchId, p]))
 
-    // Member predictions (visible only after match locks)
+    // Member predictions (visible after match locks, or immediately for peek users)
     const lockedMatchIds = matches.filter(m => lockedStatuses.includes(m.status)).map(m => m.id)
-    const memberPredictions = lockedMatchIds.length > 0
+    const peekMatchIds = matches
+      .filter(m => m.status === 'SCHEDULED' && (predMap[m.id] as any)?.peekApplied)
+      .map(m => m.id)
+    const memberPredMatchIds = [...new Set([...lockedMatchIds, ...peekMatchIds])]
+    const memberPredictions = memberPredMatchIds.length > 0
       ? await db.prediction.findMany({
-          where: { leagueId: params.id, matchId: { in: lockedMatchIds }, userId: { not: userId } },
+          where: { leagueId: params.id, matchId: { in: memberPredMatchIds }, userId: { not: userId } },
           include: { user: { select: { id: true, username: true } } },
         })
       : []

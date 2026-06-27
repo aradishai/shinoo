@@ -304,6 +304,16 @@ export default function HomePage() {
       setPrimaryLeague(data.data)
       primaryLeagueRef.current = data.data
       setLastUpdated(new Date())
+      const peekMatches = (data.data?.matches ?? []).filter(
+        (m: any) => m.status === 'SCHEDULED' && m.userPrediction?.peekApplied && m.memberPredictions?.length > 0
+      )
+      if (peekMatches.length > 0) {
+        setPeekedPredictions(prev => {
+          const next = { ...prev }
+          for (const m of peekMatches) next[m.id] = m.memberPredictions
+          return next
+        })
+      }
     } catch (err) {
       console.error(err)
     }
