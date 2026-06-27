@@ -120,7 +120,7 @@ export default function ShopPage() {
                 <div className="flex-1 flex items-center justify-start gap-2 pl-2">
                   <div className={`relative flex-shrink-0 w-full max-w-[9rem] sm:max-w-[11rem] ${
                     (item.id === 'peek' || item.id === 'et120')
-                      ? 'h-9 mr-2 sm:mr-0 sm:h-auto sm:aspect-[11/3]'
+                      ? 'aspect-[11/3] mr-4 sm:mr-0'
                       : 'aspect-[11/3]'
                   }`}>
                     <img
