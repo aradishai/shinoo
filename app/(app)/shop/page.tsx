@@ -114,15 +114,24 @@ export default function ShopPage() {
           const showTooltip = tooltip === item.id
           return (
             <div key={item.id}>
-              <div className={`flex items-center ${item.comingSoon ? 'opacity-40' : ''}`}>
+              <div
+                className={`flex items-center ${item.comingSoon ? 'opacity-40' : ''}`}
+                style={(item.id === 'peek' || item.id === 'et120') ? { outline: '2px solid blue' } : {}}
+              >
 
                 {/* Logo + ? */}
-                <div className="flex-1 flex items-center justify-start gap-2 pl-2">
-                  <div className={`relative flex-shrink-0 max-w-[9rem] sm:max-w-[11rem] ${
-                    (item.id === 'peek' || item.id === 'et120')
-                      ? 'h-9 sm:h-auto sm:aspect-[11/3] sm:w-full'
-                      : 'aspect-[11/3] w-full'
-                  }`}>
+                <div
+                  className="flex-1 flex items-center justify-start gap-2 pl-2"
+                  style={(item.id === 'peek' || item.id === 'et120') ? { outline: '2px solid green' } : {}}
+                >
+                  <div
+                    className={`relative flex-shrink-0 max-w-[9rem] sm:max-w-[11rem] ${
+                      (item.id === 'peek' || item.id === 'et120')
+                        ? 'h-9 sm:h-auto sm:aspect-[11/3] sm:w-full'
+                        : 'aspect-[11/3] w-full'
+                    }`}
+                    style={(item.id === 'peek' || item.id === 'et120') ? { outline: '2px solid red' } : {}}
+                  >
                     <img
                       src={item.img}
                       alt={item.name}
@@ -131,7 +140,7 @@ export default function ShopPage() {
                           ? 'h-full w-auto max-w-[9rem] sm:max-w-full sm:w-full sm:object-contain'
                           : 'w-full h-full object-contain'
                       }`}
-                      style={{ mixBlendMode: 'lighten' }}
+                      style={{ mixBlendMode: 'lighten', ...((item.id === 'peek' || item.id === 'et120') ? { outline: '2px solid yellow' } : {}) }}
                     />
                     {item.comingSoon && (
                       <span className="absolute -top-1.5 -right-1.5 bg-gray-700 text-gray-300 text-[9px] font-black rounded-full px-1.5 leading-5">מושהה</span>
