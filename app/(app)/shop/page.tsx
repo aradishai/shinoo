@@ -114,33 +114,20 @@ export default function ShopPage() {
           const showTooltip = tooltip === item.id
           return (
             <div key={item.id}>
-              <div
-                className={`flex items-center ${item.comingSoon ? 'opacity-40' : ''}`}
-                style={(item.id === 'peek' || item.id === 'et120') ? { outline: '2px solid blue' } : {}}
-              >
+              <div className={`flex items-center ${item.comingSoon ? 'opacity-40' : ''}`}>
 
                 {/* Logo + ? */}
-                <div
-                  className="flex-1 flex items-center justify-start gap-2 pl-2"
-                  style={(item.id === 'peek' || item.id === 'et120') ? { outline: '2px solid green' } : {}}
-                >
-                  <div
-                    className={`relative flex-shrink-0 max-w-[9rem] sm:max-w-[11rem] ${
-                      (item.id === 'peek' || item.id === 'et120')
-                        ? 'h-9 sm:h-auto sm:aspect-[11/3] sm:w-full'
-                        : 'aspect-[11/3] w-full'
-                    }`}
-                    style={(item.id === 'peek' || item.id === 'et120') ? { outline: '2px solid red' } : {}}
-                  >
+                <div className="flex-1 flex items-center justify-start gap-2 pl-2">
+                  <div className={`relative flex-shrink-0 w-full max-w-[9rem] sm:max-w-[11rem] ${
+                    (item.id === 'peek' || item.id === 'et120')
+                      ? 'h-9 mr-2 sm:mr-0 sm:h-auto sm:aspect-[11/3]'
+                      : 'aspect-[11/3]'
+                  }`}>
                     <img
                       src={item.img}
                       alt={item.name}
-                      className={`block rounded-xl ${
-                        (item.id === 'peek' || item.id === 'et120')
-                          ? 'h-full w-auto max-w-[9rem] sm:max-w-full sm:w-full sm:object-contain'
-                          : 'w-full h-full object-contain'
-                      }`}
-                      style={{ mixBlendMode: 'lighten', ...((item.id === 'peek' || item.id === 'et120') ? { outline: '2px solid yellow' } : {}) }}
+                      className="block w-full h-full object-contain rounded-xl"
+                      style={{ mixBlendMode: 'lighten' }}
                     />
                     {item.comingSoon && (
                       <span className="absolute -top-1.5 -right-1.5 bg-gray-700 text-gray-300 text-[9px] font-black rounded-full px-1.5 leading-5">מושהה</span>
