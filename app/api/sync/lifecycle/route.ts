@@ -1,5 +1,6 @@
 ﻿import { NextResponse } from 'next/server'
 import { recalculatePoints } from '@/lib/sync-service'
+import { syncKnockoutMatches } from '@/lib/sync-knockout'
 import { db } from '@/lib/db'
 import axios from 'axios'
 import webpush from 'web-push'
@@ -395,6 +396,7 @@ export async function GET() {
     await lockExpiredMatches()
     await liveStartedMatches()
     await syncFootballData()
+    await syncKnockoutMatches().catch(e => console.error('[sync-knockout]', e?.response?.data || e.message))
     await syncMissingScoresFromApiSports()
     await autoFinishStaleMatches()
     await recalculateMissingPoints()
