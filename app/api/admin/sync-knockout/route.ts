@@ -3,9 +3,11 @@ import { syncKnockoutMatches } from '@/lib/sync-knockout'
 
 export const dynamic = 'force-dynamic'
 
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'shinoo-admin-2026'
+
 export async function GET(request: Request) {
   const secret = request.headers.get('x-admin-secret')
-  if (secret !== process.env.ADMIN_SECRET) {
+  if (secret !== ADMIN_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {
