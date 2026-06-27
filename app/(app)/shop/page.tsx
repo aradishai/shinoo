@@ -118,15 +118,19 @@ export default function ShopPage() {
 
                 {/* Logo + ? */}
                 <div className="flex-1 flex items-center justify-start gap-2 pl-2">
-                  <div className={`relative flex-shrink-0 w-full max-w-[9rem] sm:max-w-[11rem] ${
+                  <div className={`relative flex-shrink-0 max-w-[9rem] sm:max-w-[11rem] ${
                     (item.id === 'peek' || item.id === 'et120')
-                      ? 'h-9 sm:h-auto sm:aspect-[11/3]'
-                      : 'aspect-[11/3]'
+                      ? 'h-9 sm:h-auto sm:aspect-[11/3] sm:w-full'
+                      : 'aspect-[11/3] w-full'
                   }`}>
                     <img
                       src={item.img}
                       alt={item.name}
-                      className="block w-full h-full object-contain rounded-xl"
+                      className={`block rounded-xl ${
+                        (item.id === 'peek' || item.id === 'et120')
+                          ? 'h-full w-auto max-w-[9rem] sm:max-w-full sm:w-full sm:object-contain'
+                          : 'w-full h-full object-contain'
+                      }`}
                       style={{ mixBlendMode: 'lighten' }}
                     />
                     {item.comingSoon && (
