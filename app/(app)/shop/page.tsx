@@ -88,7 +88,7 @@ export default function ShopPage() {
   }
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 overflow-x-hidden">
       <h1 className="text-white font-black text-xl text-center mb-6">ברוכים הבאים למרקט!</h1>
 
       {/* Balance */}
@@ -119,9 +119,7 @@ export default function ShopPage() {
                 {/* Logo + ? */}
                 <div className="flex-1 flex items-center justify-start gap-2 pl-2">
                   <div className={`relative flex-shrink-0 w-full max-w-[9rem] sm:max-w-[11rem] ${
-                    (item.id === 'peek' || item.id === 'et120')
-                      ? 'aspect-[11/3] mr-2 sm:mr-0'
-                      : 'aspect-[11/3]'
+                    'aspect-[11/3]'
                   }`}>
                     <img
                       src={item.img}
