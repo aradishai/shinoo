@@ -118,8 +118,8 @@ export default function ShopPage() {
 
                 {/* Logo + ? */}
                 <div className="flex-1 flex items-center justify-start gap-2 pl-2">
-                  <div className={`relative flex-shrink-0 w-full max-w-[9rem] sm:max-w-[11rem] ${
-                    'aspect-[11/3]'
+                  <div className={`relative flex-shrink-0 w-full max-w-[9rem] sm:max-w-[11rem] aspect-[11/3] ${
+                    item.id === 'peek' ? 'mr-1 sm:mr-0' : ''
                   }`}>
                     <img
                       src={item.img}
