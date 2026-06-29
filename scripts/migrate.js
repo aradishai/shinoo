@@ -169,6 +169,34 @@ async function main() {
         AND "peekLockAt" > NOW() - INTERVAL '3 hours'
         AND "peekLockAt" < NOW() + INTERVAL '30 minutes'
     `)
+    // One-time fix: apply PEEK for ערד and ET120 for אבו-ערד on Brazil vs Japan
+    await pool.query(`
+      UPDATE "Prediction" p
+      SET "peekApplied" = true,
+          "peekLockAt" = NOW() + INTERVAL '45 minutes'
+      FROM "Match" m, "User" u
+      WHERE p."matchId" = m.id
+        AND p."userId" = u.id
+        AND u.username = 'ערד'
+        AND (
+          (m."homeTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%') AND m."awayTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%'))
+          OR
+          (m."homeTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%') AND m."awayTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%'))
+        )
+    `)
+    await pool.query(`
+      UPDATE "Prediction" p
+      SET "et120Applied" = true
+      FROM "Match" m, "User" u
+      WHERE p."matchId" = m.id
+        AND p."userId" = u.id
+        AND u.username = 'אבו- ערד'
+        AND (
+          (m."homeTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%') AND m."awayTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%'))
+          OR
+          (m."homeTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%') AND m."awayTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%'))
+        )
+    `)
     console.log('Column check complete')
   } finally {
     await pool.end()
