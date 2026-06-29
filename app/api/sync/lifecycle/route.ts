@@ -224,9 +224,9 @@ async function syncMissingScoresFromApiSports() {
         if (!fixture) continue
 
         const afStatus = fixture.fixture?.status?.short
-        // Don't trust FT if < 100 minutes elapsed — match may be heading to ET (stoppage can reach 97+)
+        // Don't trust FT if < 130 minutes elapsed — covers regulation + full ET (30 min)
         const elapsedMinutes = (Date.now() - new Date(match.kickoffAt).getTime()) / 60_000
-        const briefFT = afStatus === 'FT' && elapsedMinutes < 100
+        const briefFT = afStatus === 'FT' && elapsedMinutes < 130
         const isFinishedByApi = finishedStatuses.includes(afStatus) && !briefFT
         // Use fulltime (90 min) score, not goals which includes extra time
         const homeScore = fixture.score?.fulltime?.home ?? fixture.goals?.home
