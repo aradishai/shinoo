@@ -119,7 +119,7 @@ export async function GET(
     const matches = await db.match.findMany({
       where: {
         OR: [
-          { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
+          { status: { in: ['LIVE', 'PAUSED', 'LOCKED', 'PENALTY'] } },
           { status: 'SCHEDULED', kickoffAt: { gte: now } },
           { status: 'SCHEDULED', lockAt: { gte: now } },
           ...(userPredictedMatchIds.length > 0 ? [{ id: { in: userPredictedMatchIds }, status: { not: 'FINISHED' } }] : []),
@@ -135,7 +135,7 @@ export async function GET(
     })
 
     const matchIds = matches.map((m) => m.id)
-    const lockedStatuses = ['LOCKED', 'LIVE', 'PAUSED', 'FINISHED']
+    const lockedStatuses = ['LOCKED', 'LIVE', 'PAUSED', 'PENALTY', 'FINISHED']
 
     // User predictions
     const userPredictions = await db.prediction.findMany({
@@ -183,11 +183,23 @@ export async function GET(
       }
     }
 
+    // Penalty bets for PENALTY-status matches
+    const penaltyMatchIds = matches.filter(m => m.status === 'PENALTY').map(m => m.id)
+    const userPenaltyBets = penaltyMatchIds.length > 0
+      ? await (db as any).penaltyBet.findMany({
+          where: { userId, matchId: { in: penaltyMatchIds } },
+          select: { matchId: true, team: true },
+        })
+      : []
+    const penaltyBetMap: Record<string, string> = {}
+    for (const b of userPenaltyBets) penaltyBetMap[b.matchId] = b.team
+
     const matchesWithPredictions = matches.map((match) => ({
       ...match,
       userPrediction: predMap[match.id] || null,
       memberPredictions: memberPredMap[match.id] || [],
       powerupUsage: powerupMap[match.id] || null,
+      penaltyBet: penaltyBetMap[match.id] || null,
     }))
 
     const activeDoubleEntry = await (db as any).doubleEntry.findFirst({

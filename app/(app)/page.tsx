@@ -619,6 +619,22 @@ export default function HomePage() {
     else toast.error(data.error || 'שגיאה')
   }
 
+  const applyPenaltyBet = async (matchId: string, team: 'HOME' | 'AWAY') => {
+    const res = await fetch('/api/predictions/penalty-bet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matchId, team }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      toast.success('הימור נרשם! 🪙')
+      if (primaryLeague) fetchPrimaryLeague(primaryLeague.id)
+      await refreshUser()
+    } else {
+      toast.error(data.error || 'שגיאה')
+    }
+  }
+
   const applyAllin = async (match: Match, leagueId: string) => {
     if (!match.userPrediction) { openInlinePredict(match); toast('הכנס ניחוש קודם ↑', { icon: '💡' }); return }
     setPowerupLoading(`allin-${match.id}`)
@@ -1279,6 +1295,8 @@ export default function HomePage() {
                     prediction={match.userPrediction}
                     memberPredictions={match.memberPredictions}
                     leagueId={primaryLeague.id}
+                    penaltyBet={match.penaltyBet || null}
+                    onPenaltyBet={(team) => applyPenaltyBet(match.id, team)}
                     powerup={{
                       predictionId: match.userPrediction?.id ?? '',
                       x2Applied: !!match.userPrediction?.x2Applied,
@@ -1351,6 +1369,8 @@ export default function HomePage() {
                         prediction={match.userPrediction}
                         memberPredictions={match.memberPredictions}
                         leagueId={primaryLeague.id}
+                        penaltyBet={match.penaltyBet || null}
+                        onPenaltyBet={(team) => applyPenaltyBet(match.id, team)}
                         onPredictClick={isOpen ? () => openInlinePredict(match) : undefined}
                         powerup={(() => {
                           const de = primaryLeague.activeDoubleEntry

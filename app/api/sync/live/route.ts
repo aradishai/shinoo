@@ -136,7 +136,7 @@ async function syncRedCards() {
   lastRedCardSyncTime = now
 
   const liveMatches = await db.match.findMany({
-    where: { status: { in: ['LIVE', 'PAUSED'] } },
+    where: { status: { in: ['LIVE', 'PAUSED', 'PENALTY'] } },
     include: { homeTeam: true, awayTeam: true },
   })
   if (liveMatches.length === 0) return
@@ -173,6 +173,14 @@ async function syncRedCards() {
     const homeScore = fixture.goals?.home ?? null
     const awayScore = fixture.goals?.away ?? null
     const afId = String(fixture.fixture.id)
+    const afStatus = fixture.fixture?.status?.short
+
+    // Detect penalty shootout in progress
+    const isPenalty = afStatus === 'P'
+    const penaltyHome: number | null = fixture.score?.penalty?.home ?? null
+    const penaltyAway: number | null = fixture.score?.penalty?.away ?? null
+
+    const newStatus = isPenalty ? 'PENALTY' : undefined
 
     await db.match.update({
       where: { id: match.id },
@@ -180,6 +188,9 @@ async function syncRedCards() {
         homeRedCards, awayRedCards,
         ...(homeScore !== null ? { homeScore } : {}),
         ...(awayScore !== null ? { awayScore } : {}),
+        ...(newStatus ? { status: newStatus } : {}),
+        ...(penaltyHome !== null ? { penaltyHomeScore: penaltyHome } as any : {}),
+        ...(penaltyAway !== null ? { penaltyAwayScore: penaltyAway } as any : {}),
         // Fix providerMatchId to api-sports.io format so updateMatchStatuses works
         ...(match.providerMatchId?.startsWith('fd-') ? { providerMatchId: afId } : {}),
       },

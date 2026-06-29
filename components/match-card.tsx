@@ -99,6 +99,8 @@ interface MatchCardProps {
   leagueId?: string
   onPredictClick?: () => void
   powerup?: PowerupProps | null
+  penaltyBet?: 'HOME' | 'AWAY' | null
+  onPenaltyBet?: (team: 'HOME' | 'AWAY') => void
 }
 
 // FIFA code → ISO 3166-1 alpha-2 (for flagcdn.com)
@@ -185,7 +187,7 @@ function useLiveMinute(status: string, kickoffAt: Date | string) {
   return display
 }
 
-export function MatchCard({ match, prediction, memberPredictions = [], leagueId, onPredictClick, powerup }: MatchCardProps) {
+export function MatchCard({ match, prediction, memberPredictions = [], leagueId, onPredictClick, powerup, penaltyBet, onPenaltyBet }: MatchCardProps) {
   const kickoff = new Date(match.kickoffAt)
   const lockAt = new Date(match.lockAt)
   const status = match.status
@@ -326,6 +328,41 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           )}
         </div>
       </div>
+
+      {/* Penalty bet */}
+      {status === 'PENALTY' && onPenaltyBet && (
+        <div className="mt-3 pt-3 border-t border-yellow-500/30">
+          {penaltyBet ? (
+            <div className="flex justify-center">
+              <div className={`flex flex-col items-center gap-1 flex-1 ${penaltyBet === 'HOME' ? '' : 'opacity-0 pointer-events-none'}`}>
+                <span className="text-lg">🪙</span>
+                <span className="text-green-400 font-black text-sm">✓</span>
+              </div>
+              <div className="flex-1" />
+              <div className={`flex flex-col items-center gap-1 flex-1 ${penaltyBet === 'AWAY' ? '' : 'opacity-0 pointer-events-none'}`}>
+                <span className="text-lg">🪙</span>
+                <span className="text-green-400 font-black text-sm">✓</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center">
+              <div className="flex-1 flex justify-center">
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPenaltyBet('HOME') }} className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform">
+                  <span className="text-2xl">🪙</span>
+                </button>
+              </div>
+              <div className="flex-1 text-center">
+                <span className="text-yellow-400 text-xs font-bold">פנדלים!</span>
+              </div>
+              <div className="flex-1 flex justify-center">
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPenaltyBet('AWAY') }} className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform">
+                  <span className="text-2xl">🪙</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Predictions */}
       {(prediction || memberPredictions.length > 0) && (
