@@ -463,15 +463,26 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       )
     }
 
-    // Locked match: show 90' button only
-    if (status === 'LOCKED' && powerup.minute90Stock > 0) {
-      return (
-        <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
-          <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
-            <img src="/btn-90.png" alt="90'" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
-          </button>
-        </div>
-      )
+    // Locked match: show 90' and ET120 buttons
+    if (status === 'LOCKED') {
+      const elapsedLocked = Date.now() - kickoff.getTime()
+      const showEt120Locked = powerup.et120Stock > 0 && !powerup.et120Applied && elapsedLocked < 75 * 60 * 1000
+      if (powerup.minute90Stock > 0 || showEt120Locked) {
+        return (
+          <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
+            {powerup.minute90Stock > 0 && (
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
+                <img src="/btn-90.png" alt="90'" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              </button>
+            )}
+            {showEt120Locked && (
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onEt120() }} className="transition-all active:scale-95">
+                <img src="/btn-et120.png" alt="120 ET" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+              </button>
+            )}
+          </div>
+        )
+      }
     }
 
     // Live buttons: X2/SHINOO only during halftime, 90' only when LIVE (not halftime), ET120 within 137min window

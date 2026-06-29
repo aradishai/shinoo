@@ -19,8 +19,12 @@ export async function POST(request: Request) {
   if (!prediction || prediction.userId !== userId)
     return NextResponse.json({ error: 'ניחוש לא נמצא' }, { status: 404 })
 
-  // Must be LIVE or PAUSED
-  if (!['LIVE', 'PAUSED'].includes(prediction.match.status))
+  // Must be LIVE, PAUSED, or LOCKED (sync delay — match started but DB not yet updated)
+  if (!['LIVE', 'PAUSED', 'LOCKED'].includes(prediction.match.status))
+    return NextResponse.json({ error: '120 ET זמין רק במהלך המשחק' }, { status: 400 })
+
+  // For LOCKED status, verify kickoff has actually passed
+  if (prediction.match.status === 'LOCKED' && new Date() < prediction.match.kickoffAt)
     return NextResponse.json({ error: '120 ET זמין רק במהלך המשחק' }, { status: 400 })
 
   // Must be within 137 minutes of kickoff
@@ -28,7 +32,7 @@ export async function POST(request: Request) {
   const kickoff = prediction.match.kickoffAt
   const windowEnd = new Date(kickoff.getTime() + ET120_WINDOW_MINUTES * 60 * 1000)
   if (now >= windowEnd)
-    return NextResponse.json({ error: 'לא ניתן להפעיל 120 ET לאחר דקה 96' }, { status: 400 })
+    return NextResponse.json({ error: 'לא ניתן להפעיל 120 ET לאחר דקה 75' }, { status: 400 })
 
   // Cannot combine with other powerups
   const p = prediction as any
