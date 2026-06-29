@@ -107,9 +107,16 @@ async function syncFootballData() {
     const awayScore = alreadyFinished ? match.awayScore : (m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? match.awayScore)
     const hasScore = homeScore !== null && awayScore !== null
 
+    const homeScoreET: number | null = m.score?.extraTime?.home ?? null
+    const awayScoreET: number | null = m.score?.extraTime?.away ?? null
     await db.match.update({
       where: { id: match.id },
-      data: { status, homeScore, awayScore, ...(m.minute != null ? { minute: m.minute } : {}) },
+      data: {
+        status, homeScore, awayScore,
+        ...(m.minute != null ? { minute: m.minute } : {}),
+        ...(homeScoreET !== null ? { homeScoreET } as any : {}),
+        ...(awayScoreET !== null ? { awayScoreET } as any : {}),
+      },
     })
 
     if (hasScore) await recalculatePoints(match.id)
@@ -131,7 +138,7 @@ async function syncFootballData() {
 }
 
 async function autoFinishStaleMatches() {
-  const staleTime = new Date(Date.now() - 150 * 60 * 1000)
+  const staleTime = new Date(Date.now() - 195 * 60 * 1000)
   const staleMatches = await db.match.findMany({
     where: { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] }, kickoffAt: { lte: staleTime } },
     select: { id: true },
