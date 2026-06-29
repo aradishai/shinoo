@@ -180,7 +180,7 @@ export async function recalculatePoints(matchId: string): Promise<void> {
     let basePoints: number
     let baseExplanation: string
 
-    // ET120: score based on extra time result; 0 points if no ET
+    // ET120: score based on extra time result; 0 points if no ET; +1 bonus if trend correct
     if ((prediction as any).et120Applied) {
       let etBasePoints = 0
       let etExplanation = '120 ET'
@@ -192,7 +192,12 @@ export async function recalculatePoints(matchId: string): Promise<void> {
           awayScoreET,
         )
         etBasePoints = etResult.resultPoints
-        etExplanation = `120 ET: ${etResult.explanation}`
+        if (etBasePoints > 0) {
+          etBasePoints += 1
+          etExplanation = `120 ET: ${etResult.explanation} +1 מגמה`
+        } else {
+          etExplanation = `120 ET: ${etResult.explanation}`
+        }
       } else {
         etExplanation = '120 ET: ללא הארכה — 0 נקודות'
       }
