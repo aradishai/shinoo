@@ -144,6 +144,24 @@ async function main() {
     await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "homeScoreET" INTEGER`)
     await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "awayScoreET" INTEGER`)
     await pool.query(`ALTER TABLE "Prediction" ADD COLUMN IF NOT EXISTS "lockedSnapshot" TEXT`)
+    await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "penaltyHomeScore" INTEGER`)
+    await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "penaltyAwayScore" INTEGER`)
+    await pool.query(`ALTER TABLE "Match" ADD COLUMN IF NOT EXISTS "penaltyBetExpiresAt" TIMESTAMP(3)`)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "PenaltyBet" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "matchId" TEXT NOT NULL,
+        "team" TEXT NOT NULL,
+        "resolved" BOOLEAN NOT NULL DEFAULT false,
+        "won" BOOLEAN,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "PenaltyBet_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "PenaltyBet_userId_matchId_key" UNIQUE ("userId", "matchId"),
+        CONSTRAINT "PenaltyBet_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE,
+        CONSTRAINT "PenaltyBet_matchId_fkey" FOREIGN KEY ("matchId") REFERENCES "Match"("id") ON DELETE CASCADE
+      )
+    `)
     console.log('Column check complete')
   } finally {
     await pool.end()
