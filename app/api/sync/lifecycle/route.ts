@@ -138,7 +138,7 @@ async function syncFootballData() {
 }
 
 async function autoFinishStaleMatches() {
-  const staleTime = new Date(Date.now() - 195 * 60 * 1000)
+  const staleTime = new Date(Date.now() - 270 * 60 * 1000)
   const staleMatches = await db.match.findMany({
     where: { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] }, kickoffAt: { lte: staleTime } },
     select: { id: true },

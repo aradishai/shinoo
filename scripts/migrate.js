@@ -179,9 +179,9 @@ async function main() {
         AND p."userId" = u.id
         AND u.username = 'ערד'
         AND (
-          (m."homeTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%') AND m."awayTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%'))
+          (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%'))
           OR
-          (m."homeTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%') AND m."awayTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%'))
+          (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%'))
         )
     `)
     await pool.query(`
@@ -192,10 +192,18 @@ async function main() {
         AND p."userId" = u.id
         AND u.username = 'אבו- ערד'
         AND (
-          (m."homeTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%') AND m."awayTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%'))
+          (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%'))
           OR
-          (m."homeTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%') AND m."awayTeam" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%'))
+          (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%'))
         )
+    `)
+    // Reset Brazil vs Japan back to LIVE if prematurely finished
+    await pool.query(`
+      UPDATE "Match" SET status = 'LIVE'
+      WHERE status = 'FINISHED'
+        AND "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%')
+        AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%')
+        AND "kickoffAt" > NOW() - INTERVAL '6 hours'
     `)
     console.log('Column check complete')
   } finally {
