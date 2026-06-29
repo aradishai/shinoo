@@ -101,9 +101,10 @@ async function syncFootballData() {
     if (!match) continue
 
     const fdStatus = FD_STATUS_MAP[m.status] ?? match.status
-    // Don't trust FINISHED from FD while match is LIVE in DB and < 165 min elapsed (may be in ET)
     const elapsedMinFD = (Date.now() - new Date(match.kickoffAt).getTime()) / 60_000
-    const status = (fdStatus === 'FINISHED' && match.status === 'LIVE' && elapsedMinFD < 165) ? 'LIVE' : fdStatus
+    const isKnockoutFD = match.round != null && isNaN(Number(match.round))
+    // For knockout rounds: never trust FINISHED from FD if match is LIVE or < 165 min elapsed
+    const status = (fdStatus === 'FINISHED' && (match.status === 'LIVE' || isKnockoutFD) && elapsedMinFD < 165) ? 'LIVE' : fdStatus
     // Don't overwrite score of an already-finished match — only update live/in-progress scores
     const alreadyFinished = match.status === 'FINISHED' && match.homeScore !== null && match.awayScore !== null
     const homeScore = alreadyFinished ? match.homeScore : (m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore)
@@ -227,14 +228,19 @@ async function syncMissingScoresFromApiSports() {
         if (!fixture) continue
 
         const afStatus = fixture.fixture?.status?.short
-        // Don't trust FT if: elapsed < 165 min (covers 90 min + full ET 30 min + stoppage)
-        // OR if match is currently LIVE in DB (live sync may know it's in ET)
         const elapsedMinutes = (Date.now() - new Date(match.kickoffAt).getTime()) / 60_000
-        const briefFT = afStatus === 'FT' && (elapsedMinutes < 165 || match.status === 'LIVE')
+        // Knockout rounds (non-numeric round names) can have ET — never trust bare FT from AF
+        const isKnockoutRound = match.round != null && isNaN(Number(match.round))
+        const briefFT = afStatus === 'FT' && (elapsedMinutes < 165 || match.status === 'LIVE' || isKnockoutRound)
         const isFinishedByApi = finishedStatuses.includes(afStatus) && !briefFT
-        // Use fulltime (90 min) score, not goals which includes extra time
-        const homeScore = fixture.score?.fulltime?.home ?? fixture.goals?.home
-        const awayScore = fixture.score?.fulltime?.away ?? fixture.goals?.away
+        // During ET/penalties: keep existing 90-min score; goals includes ET goals
+        const isInET = ['ET', 'P'].includes(afStatus)
+        const homeScore = isInET
+          ? (fixture.score?.fulltime?.home ?? match.homeScore)
+          : (fixture.score?.fulltime?.home ?? fixture.goals?.home)
+        const awayScore = isInET
+          ? (fixture.score?.fulltime?.away ?? match.awayScore)
+          : (fixture.score?.fulltime?.away ?? fixture.goals?.away)
 
         // For active matches: update score and mark FINISHED only when api says FT
         // For scoreless finished matches: fill in the score
