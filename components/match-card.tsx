@@ -236,6 +236,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     powerup.goalsApplied || powerup.minute90Applied || powerup.splitApplied ||
     powerup.allinApplied || powerup.peekApplied || powerup.et120Applied
   )
+  const anyNonMinute90Applied = !!powerup && (
+    powerup.x2Applied || powerup.shinooApplied || powerup.x3Applied ||
+    powerup.goalsApplied || powerup.splitApplied ||
+    powerup.allinApplied || powerup.peekApplied || powerup.et120Applied
+  )
   const appliedImg = !powerup ? null :
     powerup.x2Applied ? '/btn-x2.png' :
     powerup.shinooApplied ? '/btn-shinoo-game.png' :
@@ -443,8 +448,8 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const powerupArea = (() => {
     if (!powerup || isFinished) return null
 
-    // If any powerup already applied — show info button for ALL IN, otherwise nothing
-    if (anyApplied) {
+    // If any powerup already applied (excluding minute90 which can be used multiple times) — show info button for ALL IN, otherwise nothing
+    if (anyNonMinute90Applied) {
       if (powerup.allinApplied) {
         return (
           <div className="flex justify-center px-4 pb-3 pt-2 border-t border-dark-border/40">
