@@ -216,6 +216,7 @@ export default function HomePage() {
   const [inlineScores, setInlineScores] = useState<Record<string, { home: string; away: string }>>({})
   const [inlineSaving, setInlineSaving] = useState<string | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const peekIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const primaryLeagueRef = useRef<LeagueDetail | null>(null)
   const userRef = useRef<User | null>(null)
 
@@ -429,6 +430,21 @@ export default function HomePage() {
       if (syncIntervalRef.current) clearInterval(syncIntervalRef.current)
     }
   }, [pollLiveSync])
+
+  // PEEK polling — refresh every 30 min when any match has peekApplied
+  useEffect(() => {
+    const hasActivePeek = primaryLeague?.matches?.some(
+      (m: any) => m.status === 'SCHEDULED' && m.userPrediction?.peekApplied
+    )
+    if (hasActivePeek && primaryLeague) {
+      peekIntervalRef.current = setInterval(() => {
+        fetchPrimaryLeague(primaryLeague.id)
+      }, 30 * 60 * 1000)
+    }
+    return () => {
+      if (peekIntervalRef.current) clearInterval(peekIntervalRef.current)
+    }
+  }, [primaryLeague, fetchPrimaryLeague])
 
   const handleJoinLeague = async (e: React.FormEvent) => {
     e.preventDefault()
