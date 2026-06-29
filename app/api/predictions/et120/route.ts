@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   if (anyApplied)
     return NextResponse.json({ error: 'לא ניתן לשלב 120 ET עם פאווראפ אחר' }, { status: 400 })
 
-  const user = await db.user.findUnique({ where: { id: userId }, select: { et120Stock: true, username: true } as any })
+  const user = await (db as any).user.findUnique({ where: { id: userId }, select: { et120Stock: true, username: true } })
   if (!user || (user as any).et120Stock < 1)
     return NextResponse.json({ error: 'אין לך 120 ET — קנה בחנות' }, { status: 400 })
 
@@ -58,6 +58,6 @@ export async function POST(request: Request) {
     `${user.username} הפעיל 120 ET על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
   )
 
-  const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { et120Stock: true } as any })
+  const updatedUser = await (db as any).user.findUnique({ where: { id: userId }, select: { et120Stock: true } })
   return NextResponse.json({ success: true, et120Stock: (updatedUser as any)?.et120Stock ?? 0 })
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { hasAnyPowerupApplied } from '@/lib/double-guard'
+import { postSystemMessage } from '@/lib/system-message'
 
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
   if (hasAnyPowerupApplied(prediction))
     return NextResponse.json({ error: 'ניתן להפעיל לחצן אחד בלבד על כל משחק' }, { status: 400 })
 
-  const user = await db.user.findUnique({ where: { id: userId }, select: { peekStock: true, username: true } })
+  const user = await db.user.findUnique({ where: { id: userId }, select: { peekStock: true, coins: true, username: true } as any })
   if (!user || (user as any).peekStock < 1)
     return NextResponse.json({ error: 'אין לך PEEK — קנה בחנות' }, { status: 400 })
 
@@ -52,6 +53,12 @@ export async function POST(request: Request) {
       user: { select: { username: true, avatar: true } },
     },
   })
+
+  await postSystemMessage(
+    prediction.leagueId,
+    userId,
+    `${(user as any).username} הפעיל PEEK על ${prediction.match.homeTeam.nameHe} נגד ${prediction.match.awayTeam.nameHe}`
+  )
 
   const updatedUser = await db.user.findUnique({ where: { id: userId }, select: { peekStock: true } })
 
