@@ -34,8 +34,8 @@ export async function POST(request: Request) {
   if (!user || (user as any).peekStock < 1)
     return NextResponse.json({ error: 'אין לך PEEK — קנה בחנות' }, { status: 400 })
 
-  // Extended lock: 30 minutes after normal lockAt
-  const peekLockAt = new Date(lockAt.getTime() + 30 * 60 * 1000)
+  // Extended lock: 45 minutes after normal lockAt
+  const peekLockAt = new Date(lockAt.getTime() + 45 * 60 * 1000)
 
   await db.user.update({ where: { id: userId }, data: { peekStock: { decrement: 1 } } as any })
   await db.prediction.updateMany({

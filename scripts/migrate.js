@@ -162,6 +162,13 @@ async function main() {
         CONSTRAINT "PenaltyBet_matchId_fkey" FOREIGN KEY ("matchId") REFERENCES "Match"("id") ON DELETE CASCADE
       )
     `)
+    // One-time: extend active peek windows to NOW + 30 min (fixes users who couldn't edit due to bug)
+    await pool.query(`
+      UPDATE "Prediction" SET "peekLockAt" = NOW() + INTERVAL '30 minutes'
+      WHERE "peekApplied" = true AND "peekLockAt" IS NOT NULL
+        AND "peekLockAt" > NOW() - INTERVAL '3 hours'
+        AND "peekLockAt" < NOW() + INTERVAL '30 minutes'
+    `)
     console.log('Column check complete')
   } finally {
     await pool.end()
