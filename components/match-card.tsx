@@ -359,7 +359,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           ) : penaltyBetOpen ? (
             <div className="flex items-center">
               <div className="flex-1 flex justify-center">
-                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPenaltyBet('HOME') }} className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform">
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPenaltyBet?.('HOME') }} className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform">
                   <span className="text-2xl">🪙</span>
                 </button>
               </div>
@@ -367,7 +367,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
                 <span className="text-yellow-400 text-xs font-bold">פנדלים!</span>
               </div>
               <div className="flex-1 flex justify-center">
-                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPenaltyBet('AWAY') }} className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform">
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPenaltyBet?.('AWAY') }} className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform">
                   <span className="text-2xl">🪙</span>
                 </button>
               </div>

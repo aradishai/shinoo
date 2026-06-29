@@ -9,8 +9,8 @@ export async function POST(request: Request) {
   if (!matchId || !['HOME', 'AWAY'].includes(team))
     return NextResponse.json({ error: 'נתונים שגויים' }, { status: 400 })
 
-  const match = await db.match.findUnique({ where: { id: matchId }, select: { status: true, penaltyBetExpiresAt: true } as any })
-  if (!match || !['LIVE', 'PAUSED', 'PENALTY'].includes(match.status))
+  const match = await (db as any).match.findUnique({ where: { id: matchId }, select: { status: true, penaltyBetExpiresAt: true } })
+  if (!match || !['LIVE', 'PAUSED', 'PENALTY'].includes(String(match.status)))
     return NextResponse.json({ error: 'ניתן להמר רק בזמן הארכה לפני פנדלים' }, { status: 400 })
   const expiresAt: Date | null = (match as any).penaltyBetExpiresAt ?? null
   if (!expiresAt || new Date() > expiresAt)

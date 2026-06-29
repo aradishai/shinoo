@@ -41,6 +41,8 @@ interface Match {
   userPrediction?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; allinApplied?: boolean; peekApplied?: boolean; peekLockAt?: string | null; et120Applied?: boolean; splitHomeScore2?: number | null; splitAwayScore2?: number | null } | null
   memberPredictions?: { id: string; predictedHomeScore: number; predictedAwayScore: number; x2Applied?: boolean; shinooApplied?: boolean; x3Applied?: boolean; goalsApplied?: boolean; minute90Applied?: boolean; splitApplied?: boolean; user: { id: string; username: string } }[]
   powerupUsage?: { x2Used: number; shinooUsed: number } | null
+  penaltyBet?: string | null
+  penaltyBetExpiresAt?: string | null
 }
 
 interface StandingEntry {
@@ -1295,7 +1297,7 @@ export default function HomePage() {
                     prediction={match.userPrediction}
                     memberPredictions={match.memberPredictions}
                     leagueId={primaryLeague.id}
-                    penaltyBet={match.penaltyBet || null}
+                    penaltyBet={(match.penaltyBet as 'HOME' | 'AWAY' | null) || null}
                     onPenaltyBet={(team) => applyPenaltyBet(match.id, team)}
                     powerup={{
                       predictionId: match.userPrediction?.id ?? '',
@@ -1369,7 +1371,7 @@ export default function HomePage() {
                         prediction={match.userPrediction}
                         memberPredictions={match.memberPredictions}
                         leagueId={primaryLeague.id}
-                        penaltyBet={match.penaltyBet || null}
+                        penaltyBet={(match.penaltyBet as 'HOME' | 'AWAY' | null) || null}
                         onPenaltyBet={(team) => applyPenaltyBet(match.id, team)}
                         onPredictClick={isOpen ? () => openInlinePredict(match) : undefined}
                         powerup={(() => {
