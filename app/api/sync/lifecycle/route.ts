@@ -100,7 +100,10 @@ async function syncFootballData() {
 
     if (!match) continue
 
-    const status = FD_STATUS_MAP[m.status] ?? match.status
+    const fdStatus = FD_STATUS_MAP[m.status] ?? match.status
+    // Don't trust FINISHED from FD while match is LIVE in DB and < 165 min elapsed (may be in ET)
+    const elapsedMinFD = (Date.now() - new Date(match.kickoffAt).getTime()) / 60_000
+    const status = (fdStatus === 'FINISHED' && match.status === 'LIVE' && elapsedMinFD < 165) ? 'LIVE' : fdStatus
     // Don't overwrite score of an already-finished match — only update live/in-progress scores
     const alreadyFinished = match.status === 'FINISHED' && match.homeScore !== null && match.awayScore !== null
     const homeScore = alreadyFinished ? match.homeScore : (m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore)
@@ -224,9 +227,10 @@ async function syncMissingScoresFromApiSports() {
         if (!fixture) continue
 
         const afStatus = fixture.fixture?.status?.short
-        // Don't trust FT if < 130 minutes elapsed — covers regulation + full ET (30 min)
+        // Don't trust FT if: elapsed < 165 min (covers 90 min + full ET 30 min + stoppage)
+        // OR if match is currently LIVE in DB (live sync may know it's in ET)
         const elapsedMinutes = (Date.now() - new Date(match.kickoffAt).getTime()) / 60_000
-        const briefFT = afStatus === 'FT' && elapsedMinutes < 130
+        const briefFT = afStatus === 'FT' && (elapsedMinutes < 165 || match.status === 'LIVE')
         const isFinishedByApi = finishedStatuses.includes(afStatus) && !briefFT
         // Use fulltime (90 min) score, not goals which includes extra time
         const homeScore = fixture.score?.fulltime?.home ?? fixture.goals?.home
