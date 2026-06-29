@@ -72,12 +72,11 @@ export async function POST(request: Request) {
     }
 
     // Check if user has an active PEEK extension for this match
-    const memberships2 = await db.leagueMember.findMany({ where: { userId }, select: { leagueId: true } })
-    const peekPred = memberships2.length > 0 ? await db.prediction.findFirst({
-      where: { userId, matchId, leagueId: { in: memberships2.map(m => m.leagueId) }, peekApplied: true } as any,
-      select: { peekLockAt: true } as any,
-    }) : null
-    const peekLockAt: Date | null = (peekPred as any)?.peekLockAt ?? null
+    const peekPred = await db.prediction.findFirst({
+      where: { userId, matchId, peekApplied: true },
+      select: { peekLockAt: true },
+    })
+    const peekLockAt: Date | null = peekPred?.peekLockAt ?? null
 
     if (match.status === 'LIVE' || match.status === 'FINISHED') {
       return NextResponse.json({ error: 'זמן הניחוש נעל' }, { status: 400 })
