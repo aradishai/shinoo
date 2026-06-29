@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
-import { hasAnyPowerupApplied } from '@/lib/double-guard'
+import { hasNonMinute90PowerupApplied } from '@/lib/double-guard'
 
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     where: { userId, matchId, leagueId },
   })
 
-  if (existingPrediction && hasAnyPowerupApplied(existingPrediction))
+  if (existingPrediction && hasNonMinute90PowerupApplied(existingPrediction))
     return NextResponse.json({ error: 'ניתן להפעיל לחצן אחד בלבד על כל משחק' }, { status: 400 })
 
   const user = await db.user.findUnique({ where: { id: userId }, select: { minute90Stock: true, username: true } })
@@ -65,11 +65,8 @@ export async function POST(request: Request) {
   }
 
   if (matchday > 0) {
-    const predictionId = existingPrediction?.id ?? `${userId}-${matchId}`
-    await db.powerupUsage.upsert({
-      where: { id: `90-${predictionId}` },
-      update: {},
-      create: { id: `90-${predictionId}`, userId, leagueId, matchday, type: 'MINUTE90' },
+    await (db as any).powerupUsage.create({
+      data: { userId, leagueId, matchday, type: 'MINUTE90' },
     })
   }
 
