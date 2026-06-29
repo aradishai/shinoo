@@ -204,15 +204,29 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   const isLive = status === 'LIVE'
   const isLocked = status === 'LOCKED' || status === 'LIVE' || status === 'PAUSED'
 
-  const [isOpen, setIsOpen] = useState(status === 'SCHEDULED' && new Date() < lockAt)
+  const peekLockAtDate = powerup?.peekLockAt ? new Date(powerup.peekLockAt) : null
+  const isPeekWindowOpen = !!powerup?.peekApplied && peekLockAtDate !== null && new Date() < peekLockAtDate
+
+  const [isOpen, setIsOpen] = useState(
+    (status === 'SCHEDULED' && new Date() < lockAt) || isPeekWindowOpen
+  )
   useEffect(() => {
+    if (isPeekWindowOpen) {
+      setIsOpen(true)
+      const remaining = peekLockAtDate!.getTime() - Date.now()
+      if (remaining > 0) {
+        const t = setTimeout(() => setIsOpen(false), remaining)
+        return () => clearTimeout(t)
+      }
+      return
+    }
     if (status !== 'SCHEDULED') { setIsOpen(false); return }
     const remaining = lockAt.getTime() - Date.now()
     if (remaining <= 0) { setIsOpen(false); return }
     setIsOpen(true)
     const t = setTimeout(() => setIsOpen(false), remaining)
     return () => clearTimeout(t)
-  }, [status, lockAt.getTime()])
+  }, [status, lockAt.getTime(), isPeekWindowOpen])
   const effectiveStatus = !isOpen && status === 'SCHEDULED' ? 'LOCKED' : status
   const badgeVariant = matchStatusToBadgeVariant(effectiveStatus)
   const liveMinute = useLiveMinute(status, match.kickoffAt, match.minute)
