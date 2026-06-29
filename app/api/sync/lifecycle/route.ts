@@ -181,6 +181,7 @@ async function syncMissingScoresFromApiSports() {
       OR: [
         { homeScore: null },
         { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] } },
+        { status: 'FINISHED', kickoffAt: { gte: new Date(Date.now() - 4 * 60 * 60 * 1000) } },
       ],
     },
     include: { homeTeam: true, awayTeam: true },
