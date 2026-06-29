@@ -197,6 +197,14 @@ async function main() {
           (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%'))
         )
     `)
+    // Reset Germany vs Paraguay back to LIVE if prematurely finished (heading to ET)
+    await pool.query(`
+      UPDATE "Match" SET status = 'LIVE'
+      WHERE status = 'FINISHED'
+        AND "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%')
+        AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%')
+        AND "kickoffAt" > NOW() - INTERVAL '6 hours'
+    `)
     // Reset Brazil vs Japan back to LIVE if prematurely finished
     await pool.query(`
       UPDATE "Match" SET status = 'LIVE'
