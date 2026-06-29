@@ -528,7 +528,11 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     return null
   })()
 
-  const outerClass = 'bg-dark-card border border-dark-border rounded-2xl hover:border-primary/30 transition-all duration-200 overflow-hidden'
+  const outerClass = `bg-dark-card border rounded-2xl transition-all duration-200 overflow-hidden ${
+    powerup?.peekApplied
+      ? 'border-blue-500/50 bg-blue-950/15 hover:border-blue-400/70'
+      : 'border-dark-border hover:border-primary/30'
+  }`
 
   if (onPredictClick) {
     return (
