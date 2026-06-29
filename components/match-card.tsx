@@ -528,20 +528,6 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     return null
   })()
 
-  const peekArea = powerup?.peekApplied && powerup.peekedPredictions && powerup.peekedPredictions.length > 0 ? (
-    <div className="px-4 pb-3 pt-2 border-t border-blue-500/30 bg-blue-950/20">
-      <p className="text-blue-400 text-xs font-bold text-right mb-2">👁️ ניחושי השחקנים</p>
-      <div className="space-y-1">
-        {powerup.peekedPredictions.map((p, i) => (
-          <div key={i} className="flex items-center justify-between text-xs">
-            <span className="text-white font-bold">{p.predictedHomeScore} - {p.predictedAwayScore}</span>
-            <span className="text-gray-400">{p.avatar} {p.username}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  ) : null
-
   const outerClass = 'bg-dark-card border border-dark-border rounded-2xl hover:border-primary/30 transition-all duration-200 overflow-hidden'
 
   if (onPredictClick) {
@@ -551,7 +537,6 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           {cardContent}
         </button>
         {powerupArea}
-        {peekArea}
       </div>
     )
   }
@@ -562,7 +547,6 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
         {cardContent}
       </Link>
       {powerupArea}
-      {peekArea}
     </div>
   )
 }
