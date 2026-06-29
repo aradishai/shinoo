@@ -528,10 +528,10 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     return null
   })()
 
-  const outerClass = `bg-dark-card border rounded-2xl transition-all duration-200 overflow-hidden ${
+  const outerClass = `border rounded-2xl transition-all duration-200 overflow-hidden ${
     powerup?.peekApplied
-      ? 'border-blue-500/50 bg-blue-950/15 hover:border-blue-400/70'
-      : 'border-dark-border hover:border-primary/30'
+      ? 'bg-blue-950 border-blue-500/50 hover:border-blue-400/70'
+      : 'bg-dark-card border-dark-border hover:border-primary/30'
   }`
 
   if (onPredictClick) {
