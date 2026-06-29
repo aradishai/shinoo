@@ -174,15 +174,19 @@ async function syncRedCards() {
     const awayScore = fixture.goals?.away ?? null
     const afId = String(fixture.fixture.id)
     const afStatus = fixture.fixture?.status?.short
+    const elapsed: number | null = fixture.fixture?.status?.elapsed ?? null
 
     // Detect penalty shootout in progress
     const isPenalty = afStatus === 'P'
     const penaltyHome: number | null = fixture.score?.penalty?.home ?? null
     const penaltyAway: number | null = fixture.score?.penalty?.away ?? null
 
+    // Open penalty bet window at match minute 118 (8-min window: 118→126)
+    const matchPenaltyBetExpiresAt: Date | null = (match as any).penaltyBetExpiresAt ?? null
+    const openBetWindow = elapsed != null && elapsed >= 118 && !matchPenaltyBetExpiresAt
+    const penaltyBetExpiresAt = openBetWindow ? new Date(Date.now() + 8 * 60 * 1000) : undefined
+
     const newStatus = isPenalty ? 'PENALTY' : undefined
-    const isNewPenalty = isPenalty && match.status !== 'PENALTY'
-    const penaltyBetExpiresAt = isNewPenalty ? new Date(Date.now() + 10 * 60 * 1000) : undefined
 
     await db.match.update({
       where: { id: match.id },

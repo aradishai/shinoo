@@ -342,7 +342,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       </div>
 
       {/* Penalty bet */}
-      {status === 'PENALTY' && (penaltyBetOpen || penaltyBet) && (
+      {(penaltyBetOpen || penaltyBet) && (
         <div className="mt-3 pt-3 border-t border-yellow-500/30">
           {penaltyBet ? (
             <div className="flex justify-center">

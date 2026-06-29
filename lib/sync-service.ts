@@ -381,30 +381,32 @@ export async function resolveDoubleEntries(matchId: string): Promise<void> {
 }
 
 export async function resolvePenaltyBets(matchId: string): Promise<void> {
+  const bets = await (db as any).penaltyBet.findMany({ where: { matchId, resolved: false } })
+  if (bets.length === 0) return
+
   const match = await db.match.findUnique({
     where: { id: matchId },
     select: { penaltyHomeScore: true, penaltyAwayScore: true } as any,
   })
   const penaltyHome: number | null = (match as any)?.penaltyHomeScore ?? null
   const penaltyAway: number | null = (match as any)?.penaltyAwayScore ?? null
-  if (penaltyHome === null || penaltyAway === null || penaltyHome === penaltyAway) return
+
+  // No penalties happened — refund all bets
+  if (penaltyHome === null || penaltyAway === null) {
+    for (const bet of bets) {
+      await (db as any).penaltyBet.update({ where: { id: bet.id }, data: { resolved: true, won: false } })
+      await db.user.update({ where: { id: bet.userId }, data: { coins: { increment: 1 } } })
+    }
+    console.log(`[sync] Refunded ${bets.length} penalty bets (no penalties) for match ${matchId}`)
+    return
+  }
 
   const winner = penaltyHome > penaltyAway ? 'HOME' : 'AWAY'
-  const bets = await (db as any).penaltyBet.findMany({
-    where: { matchId, resolved: false },
-  })
-
   for (const bet of bets) {
     const won = bet.team === winner
-    await (db as any).penaltyBet.update({
-      where: { id: bet.id },
-      data: { resolved: true, won },
-    })
+    await (db as any).penaltyBet.update({ where: { id: bet.id }, data: { resolved: true, won } })
     if (won) {
-      await db.user.update({
-        where: { id: bet.userId },
-        data: { coins: { increment: 2 } }, // +2: return the 1 they bet + 1 winnings
-      })
+      await db.user.update({ where: { id: bet.userId }, data: { coins: { increment: 2 } } })
     }
   }
   console.log(`[sync] Resolved ${bets.length} penalty bets for match ${matchId}`)
