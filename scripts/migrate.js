@@ -201,9 +201,16 @@ async function main() {
     await pool.query(`
       UPDATE "Match" SET status = 'LIVE'
       WHERE status = 'FINISHED'
-        AND "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%')
-        AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%')
         AND "kickoffAt" > NOW() - INTERVAL '6 hours'
+        AND (
+          (
+            "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%' OR "nameHe" ILIKE '%גרמניה%')
+            AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%' OR "nameHe" ILIKE '%פראגוואי%')
+          ) OR (
+            "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%' OR "nameHe" ILIKE '%פראגוואי%')
+            AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%' OR "nameHe" ILIKE '%גרמניה%')
+          )
+        )
     `)
     // Reset Brazil vs Japan back to LIVE if prematurely finished
     await pool.query(`
