@@ -143,47 +143,55 @@ function TeamFlag({ code, flagUrl }: { code: string; flagUrl?: string | null }) 
   return <span className="text-xs text-gray-500 font-mono bg-dark-50 px-1 rounded">{code}</span>
 }
 
-function useLiveMinute(status: string, kickoffAt: Date | string) {
+function useLiveMinute(status: string, kickoffAt: Date | string, serverMinute?: number | null) {
   const [display, setDisplay] = useState<string | null>(null)
 
   useEffect(() => {
     if (status !== 'LIVE' && status !== 'PAUSED') { setDisplay(null); return }
 
-    const kickoffMs = new Date(kickoffAt).getTime() + 2 * 60_000
+    // If we have a server minute, tick forward from it (synced every ~30s)
+    if (serverMinute != null && serverMinute > 0) {
+      const serverMinuteAt = Date.now()
+      const tick = () => {
+        const secondsElapsed = (Date.now() - serverMinuteAt) / 1000
+        const approx = serverMinute + Math.floor(secondsElapsed / 60)
 
-    const tick = () => {
-      const elapsed = (Date.now() - kickoffMs) / 60_000
+        if (status === 'PAUSED') {
+          if (serverMinute >= 45 && serverMinute <= 60) { setDisplay('מחצית'); return }
+          if (serverMinute >= 105 && serverMinute <= 115) { setDisplay('הפסקת הארכה'); return }
+        }
 
-      if (elapsed < 1) { setDisplay(null); return }
-
-      if (elapsed < 27) {
-        setDisplay(`${Math.floor(elapsed)}'`)
-      } else if (elapsed < 28) {
-        setDisplay('Water Break')
-      } else if (elapsed < 45) {
-        setDisplay(`${Math.floor(elapsed)}'`)
-      } else if (elapsed < 50) {
-        // First-half stoppage: 45+1' to 45+5'
-        setDisplay(`45+${Math.floor(elapsed - 44)}'`)
-      } else if (elapsed < 66) {
-        // Halftime: 16 minutes
-        setDisplay('מחצית')
-      } else if (elapsed < 90) {
-        setDisplay(`${46 + Math.floor(elapsed - 66)}'`)
-      } else if (elapsed < 91) {
-        setDisplay('Water Break')
-      } else if (elapsed < 110) {
-        setDisplay(`${46 + Math.floor(elapsed - 66)}'`)
-      } else {
-        // Second-half stoppage: 90+1' to 90+5'
-        setDisplay(`90+${Math.min(Math.floor(elapsed - 110) + 1, 5)}'`)
+        if (approx <= 45) { setDisplay(`${approx}'`); return }
+        if (approx <= 50) { setDisplay(`45+${approx - 45}'`); return }
+        if (approx <= 90) { setDisplay(`${approx}'`); return }
+        if (approx <= 95) { setDisplay(`90+${approx - 90}'`); return }
+        if (approx <= 105) { setDisplay(`${approx}'`); return }
+        if (approx <= 108) { setDisplay(`105+${approx - 105}'`); return }
+        if (approx <= 120) { setDisplay(`${approx}'`); return }
+        setDisplay(`120+${Math.min(approx - 120, 5)}'`)
       }
+      tick()
+      const id = setInterval(tick, 1_000)
+      return () => clearInterval(id)
     }
 
+    // Fallback: wall-clock estimate from kickoff
+    const kickoffMs = new Date(kickoffAt).getTime() + 2 * 60_000
+    const tick = () => {
+      const elapsed = (Date.now() - kickoffMs) / 60_000
+      if (elapsed < 1) { setDisplay(null); return }
+      if (elapsed < 27) { setDisplay(`${Math.floor(elapsed)}'`) }
+      else if (elapsed < 28) { setDisplay('Water Break') }
+      else if (elapsed < 45) { setDisplay(`${Math.floor(elapsed)}'`) }
+      else if (elapsed < 50) { setDisplay(`45+${Math.floor(elapsed - 44)}'`) }
+      else if (elapsed < 66) { setDisplay('מחצית') }
+      else if (elapsed < 110) { setDisplay(`${46 + Math.floor(elapsed - 66)}'`) }
+      else { setDisplay(`90+${Math.min(Math.floor(elapsed - 110) + 1, 5)}'`) }
+    }
     tick()
     const id = setInterval(tick, 1_000)
     return () => clearInterval(id)
-  }, [status, kickoffAt])
+  }, [status, kickoffAt, serverMinute])
 
   return display
 }
@@ -207,7 +215,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
   }, [status, lockAt.getTime()])
   const effectiveStatus = !isOpen && status === 'SCHEDULED' ? 'LOCKED' : status
   const badgeVariant = matchStatusToBadgeVariant(effectiveStatus)
-  const liveMinute = useLiveMinute(status, match.kickoffAt)
+  const liveMinute = useLiveMinute(status, match.kickoffAt, match.minute)
 
   const anyApplied = !!powerup && (
     powerup.x2Applied || powerup.shinooApplied || powerup.x3Applied ||
