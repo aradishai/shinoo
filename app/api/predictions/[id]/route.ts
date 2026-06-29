@@ -26,12 +26,25 @@ export async function PUT(
 
     // Check if match is locked
     const match = prediction.match
-    if (match.status === 'LOCKED' || match.status === 'LIVE' || match.status === 'FINISHED') {
+    if (match.status === 'LIVE' || match.status === 'FINISHED') {
       return NextResponse.json({ error: 'לא ניתן לערוך ניחוש לאחר נעילה' }, { status: 400 })
     }
 
-    if (new Date() >= match.lockAt) {
-      return NextResponse.json({ error: 'זמן הניחוש עבר' }, { status: 400 })
+    const now = new Date()
+    const peekPred = await db.prediction.findFirst({
+      where: { id: params.id, peekApplied: true },
+      select: { peekLockAt: true },
+    })
+    const peekLockAt = peekPred?.peekLockAt ?? null
+
+    if (match.status === 'LOCKED') {
+      if (!peekLockAt || now >= peekLockAt) {
+        return NextResponse.json({ error: 'לא ניתן לערוך ניחוש לאחר נעילה' }, { status: 400 })
+      }
+    } else if (now >= match.lockAt) {
+      if (!peekLockAt || now >= peekLockAt) {
+        return NextResponse.json({ error: 'זמן הניחוש עבר' }, { status: 400 })
+      }
     }
 
     const body = await request.json()
