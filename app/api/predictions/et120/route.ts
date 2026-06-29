@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { postSystemMessage } from '@/lib/system-message'
 
-const ET120_WINDOW_MINUTES = 96 // closes at real minute 96 (90+6')
+const ET120_WINDOW_MINUTES = 75
 
 export async function POST(request: Request) {
   const userId = request.headers.get('x-user-id')
