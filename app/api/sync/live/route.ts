@@ -169,11 +169,13 @@ async function syncRedCards() {
     const homeRedCards = events.filter((e: any) => e.team?.id === homeId && e.type === 'Card' && e.detail === 'Red Card').length
     const awayRedCards = events.filter((e: any) => e.team?.id === awayId && e.type === 'Card' && e.detail === 'Red Card').length
 
-    const homeScore = fixture.goals?.home ?? null
-    const awayScore = fixture.goals?.away ?? null
     const afId = String(fixture.fixture.id)
     const afStatus = fixture.fixture?.status?.short
     const elapsed: number | null = fixture.fixture?.status?.elapsed ?? null
+    // During ET/penalties: freeze homeScore at 90-min result (goals includes ET goals)
+    const isInET = ['ET', 'P'].includes(afStatus)
+    const homeScore = isInET ? (fixture.score?.fulltime?.home ?? match.homeScore) : (fixture.goals?.home ?? null)
+    const awayScore = isInET ? (fixture.score?.fulltime?.away ?? match.awayScore) : (fixture.goals?.away ?? null)
 
     // Detect penalty shootout in progress
     const isPenalty = afStatus === 'P'
@@ -193,6 +195,7 @@ async function syncRedCards() {
         homeRedCards, awayRedCards,
         ...(homeScore !== null ? { homeScore } : {}),
         ...(awayScore !== null ? { awayScore } : {}),
+        ...(elapsed !== null ? { minute: elapsed } : {}),
         ...(newStatus ? { status: newStatus } : {}),
         ...(penaltyBetExpiresAt ? { penaltyBetExpiresAt } as any : {}),
         ...(penaltyHome !== null ? { penaltyHomeScore: penaltyHome } as any : {}),

@@ -103,8 +103,8 @@ async function syncFootballData() {
     const fdStatus = FD_STATUS_MAP[m.status] ?? match.status
     const elapsedMinFD = (Date.now() - new Date(match.kickoffAt).getTime()) / 60_000
     const isKnockoutFD = match.round != null && isNaN(Number(match.round))
-    // For knockout rounds: never trust FINISHED from FD if match is LIVE or < 165 min elapsed
-    const status = (fdStatus === 'FINISHED' && (match.status === 'LIVE' || isKnockoutFD) && elapsedMinFD < 165) ? 'LIVE' : fdStatus
+    // For knockout rounds or LIVE matches: never trust FINISHED from FD if < 200 min elapsed
+    const status = (fdStatus === 'FINISHED' && (match.status === 'LIVE' || isKnockoutFD) && elapsedMinFD < 200) ? 'LIVE' : fdStatus
     // Don't overwrite score of an already-finished match — only update live/in-progress scores
     const alreadyFinished = match.status === 'FINISHED' && match.homeScore !== null && match.awayScore !== null
     const homeScore = alreadyFinished ? match.homeScore : (m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore)
@@ -229,9 +229,10 @@ async function syncMissingScoresFromApiSports() {
 
         const afStatus = fixture.fixture?.status?.short
         const elapsedMinutes = (Date.now() - new Date(match.kickoffAt).getTime()) / 60_000
-        // Knockout rounds (non-numeric round names) can have ET — never trust bare FT from AF
+        // Knockout rounds (non-numeric round) can have ET+penalties — never trust bare FT
         const isKnockoutRound = match.round != null && isNaN(Number(match.round))
-        const briefFT = afStatus === 'FT' && (elapsedMinutes < 165 || match.status === 'LIVE' || isKnockoutRound)
+        // 200 min covers 90 reg + stoppage + ET (30) + penalties (40+) + buffer
+        const briefFT = afStatus === 'FT' && (elapsedMinutes < 200 || match.status === 'LIVE' || isKnockoutRound)
         const isFinishedByApi = finishedStatuses.includes(afStatus) && !briefFT
         // During ET/penalties: keep existing 90-min score; goals includes ET goals
         const isInET = ['ET', 'P'].includes(afStatus)
@@ -250,9 +251,13 @@ async function syncMissingScoresFromApiSports() {
           : liveStatuses.includes(afStatus) ? 'LIVE'
           : pausedStatuses.includes(afStatus) ? 'PAUSED'
           : match.status
+        const afElapsed: number | null = fixture.fixture?.status?.elapsed ?? null
         await db.match.update({
           where: { id: match.id },
-          data: { homeScore, awayScore, status: newStatus, providerMatchId: String(fixture.fixture.id) },
+          data: {
+            homeScore, awayScore, status: newStatus, providerMatchId: String(fixture.fixture.id),
+            ...(afElapsed !== null ? { minute: afElapsed } : {}),
+          },
         })
         await recalculatePoints(match.id)
       }
