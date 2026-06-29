@@ -224,9 +224,9 @@ async function syncMissingScoresFromApiSports() {
         if (!fixture) continue
 
         const afStatus = fixture.fixture?.status?.short
-        // Don't trust FT if < 92 minutes elapsed — match may be heading to ET
+        // Don't trust FT if < 100 minutes elapsed — match may be heading to ET (stoppage can reach 97+)
         const elapsedMinutes = (Date.now() - new Date(match.kickoffAt).getTime()) / 60_000
-        const briefFT = afStatus === 'FT' && elapsedMinutes < 92
+        const briefFT = afStatus === 'FT' && elapsedMinutes < 100
         const isFinishedByApi = finishedStatuses.includes(afStatus) && !briefFT
         // Use fulltime (90 min) score, not goals which includes extra time
         const homeScore = fixture.score?.fulltime?.home ?? fixture.goals?.home
@@ -392,8 +392,6 @@ export async function GET() {
     await db.$executeRaw`CREATE TABLE IF NOT EXISTS "AllInEntry" (id TEXT PRIMARY KEY, "poolId" TEXT NOT NULL REFERENCES "AllInPool"(id), "userId" TEXT NOT NULL, "predictionId" TEXT NOT NULL UNIQUE, "pointsWon" INTEGER, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP)`
     // Fix matches that were created with 3-hour lockAt instead of 1-hour
     await db.$executeRaw`UPDATE "Match" SET "lockAt" = "kickoffAt" - INTERVAL '1 hour' WHERE status = 'SCHEDULED' AND "lockAt" < "kickoffAt" - INTERVAL '90 minutes'`
-    // Restore France vs Senegal to LIVE (was prematurely finished)
-    await db.$executeRaw`UPDATE "Match" SET status = 'LIVE' WHERE id = 'cmobmm5c6004p12r2w8wx0pa9' AND status = 'FINISHED'`
     // Fix Saudi Arabia vs Uruguay wrong kickoff time (DB has 20:00 UTC, actual is 22:00 UTC = 01:00 IDT)
     await db.$executeRaw`UPDATE "Match" SET "kickoffAt" = '2026-06-15T22:00:00.000Z', "lockAt" = '2026-06-15T21:00:00.000Z' WHERE id = 'cmobmm5br004k12r2sb1j3zyl' AND "kickoffAt" = '2026-06-15T20:00:00.000Z'`
     // Fix Uruguay vs Cape Verde wrong kickoff time (DB has 20:00 UTC, actual is 22:00 UTC = 01:00 IDT June 22)

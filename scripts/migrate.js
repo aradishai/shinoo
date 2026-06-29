@@ -197,11 +197,12 @@ async function main() {
           (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%'))
         )
     `)
-    // Reset Germany vs Paraguay back to LIVE if prematurely finished (heading to ET)
+    // Reset Germany vs Paraguay back to LIVE — prematurely finished during regulation→ET transition (2026-06-27)
     await pool.query(`
       UPDATE "Match" SET status = 'LIVE'
       WHERE status = 'FINISHED'
         AND "kickoffAt" > NOW() - INTERVAL '6 hours'
+        AND "kickoffAt" < NOW() - INTERVAL '1 hour'
         AND (
           (
             "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%' OR "nameHe" ILIKE '%גרמניה%')
@@ -211,14 +212,6 @@ async function main() {
             AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%' OR "nameHe" ILIKE '%גרמניה%')
           )
         )
-    `)
-    // Reset Brazil vs Japan back to LIVE if prematurely finished
-    await pool.query(`
-      UPDATE "Match" SET status = 'LIVE'
-      WHERE status = 'FINISHED'
-        AND "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%brazil%')
-        AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%japan%')
-        AND "kickoffAt" > NOW() - INTERVAL '6 hours'
     `)
     console.log('Column check complete')
   } finally {

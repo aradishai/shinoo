@@ -37,10 +37,9 @@ async function syncFootballData() {
   const activeTournaments = await db.tournament.findMany({ where: { isActive: true } })
   const slugs = activeTournaments.map(t => t.slug)
   const competitions = [
-    ...(slugs.includes('world-cup-2026') ? ['WC'] : []),
+    'WC', // World Cup 2026 — always sync
     ...(slugs.some(s => s.includes('la-liga')) ? ['PD'] : []),
   ]
-  if (competitions.length === 0) competitions.push('PD')
 
   // Fetch by date range (today + yesterday) — covers LIVE, PAUSED, and recent FINISHED
   // The status=IN_PLAY,PAUSED filter returns empty for WC on free tier; date-based works
