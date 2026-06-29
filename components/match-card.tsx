@@ -466,7 +466,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     // Locked match: show 90' and ET120 buttons
     if (status === 'LOCKED') {
       const elapsedLocked = Date.now() - kickoff.getTime()
-      const showEt120Locked = powerup.et120Stock > 0 && !powerup.et120Applied && elapsedLocked < 75 * 60 * 1000
+      const showEt120Locked = powerup.et120Stock > 0 && !powerup.et120Applied && elapsedLocked < 96 * 60 * 1000
       if (powerup.minute90Stock > 0 || showEt120Locked) {
         return (
           <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
@@ -491,7 +491,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       const inHalftimeWindow = match.status === 'PAUSED' || liveMinute === 'מחצית'
       const before90 = (match.status === 'LIVE' || match.status === 'PAUSED') && liveMinute !== 'מחצית'
       const elapsed = Date.now() - kickoff.getTime()
-      const withinET120Window = elapsed < 75 * 60 * 1000
+      const withinET120Window = elapsed < 96 * 60 * 1000
 
       const showX2 = powerup.x2Stock > 0 && inHalftimeWindow
       const showShinoo = powerup.shinooStock > 0 && inHalftimeWindow
