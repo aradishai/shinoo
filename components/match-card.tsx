@@ -528,11 +528,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     return null
   })()
 
-  const outerClass = `border rounded-2xl transition-all duration-200 overflow-hidden ${
-    powerup?.peekApplied
-      ? 'bg-[#0f1829] border-blue-500/30 hover:border-blue-400/50'
-      : 'bg-dark-card border-dark-border hover:border-primary/30'
-  }`
+  const outerClass = 'bg-dark-card border border-dark-border rounded-2xl hover:border-primary/30 transition-all duration-200 overflow-hidden'
 
   if (onPredictClick) {
     return (
