@@ -181,6 +181,8 @@ async function syncRedCards() {
     const penaltyAway: number | null = fixture.score?.penalty?.away ?? null
 
     const newStatus = isPenalty ? 'PENALTY' : undefined
+    const isNewPenalty = isPenalty && match.status !== 'PENALTY'
+    const penaltyBetExpiresAt = isNewPenalty ? new Date(Date.now() + 10 * 60 * 1000) : undefined
 
     await db.match.update({
       where: { id: match.id },
@@ -189,6 +191,7 @@ async function syncRedCards() {
         ...(homeScore !== null ? { homeScore } : {}),
         ...(awayScore !== null ? { awayScore } : {}),
         ...(newStatus ? { status: newStatus } : {}),
+        ...(penaltyBetExpiresAt ? { penaltyBetExpiresAt } as any : {}),
         ...(penaltyHome !== null ? { penaltyHomeScore: penaltyHome } as any : {}),
         ...(penaltyAway !== null ? { penaltyAwayScore: penaltyAway } as any : {}),
         // Fix providerMatchId to api-sports.io format so updateMatchStatuses works

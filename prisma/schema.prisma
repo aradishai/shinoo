@@ -88,8 +88,9 @@ model Match {
   homeRedCards    Int         @default(0)
   awayRedCards    Int         @default(0)
   hasPenalty        Boolean     @default(false)
-  penaltyHomeScore  Int?
-  penaltyAwayScore  Int?
+  penaltyHomeScore   Int?
+  penaltyAwayScore   Int?
+  penaltyBetExpiresAt DateTime?
   providerMatchId   String?     @unique
   round             String?
 

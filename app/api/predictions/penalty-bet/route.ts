@@ -9,9 +9,12 @@ export async function POST(request: Request) {
   if (!matchId || !['HOME', 'AWAY'].includes(team))
     return NextResponse.json({ error: 'נתונים שגויים' }, { status: 400 })
 
-  const match = await db.match.findUnique({ where: { id: matchId }, select: { status: true } })
+  const match = await db.match.findUnique({ where: { id: matchId }, select: { status: true, penaltyBetExpiresAt: true } as any })
   if (!match || match.status !== 'PENALTY')
     return NextResponse.json({ error: 'ניתן להמר רק בזמן פנדלים' }, { status: 400 })
+  const expiresAt: Date | null = (match as any).penaltyBetExpiresAt ?? null
+  if (!expiresAt || new Date() > expiresAt)
+    return NextResponse.json({ error: 'חלון ההימור נסגר — הפנדלים כבר התחילו' }, { status: 400 })
 
   const existing = await (db as any).penaltyBet.findUnique({
     where: { userId_matchId: { userId, matchId } },

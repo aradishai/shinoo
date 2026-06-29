@@ -93,6 +93,7 @@ interface MatchCardProps {
     awayRedCards?: number | null
     round?: string | null
     tournament?: { type: string } | null
+    penaltyBetExpiresAt?: string | Date | null
   }
   prediction?: Prediction | null
   memberPredictions?: MemberPrediction[]
@@ -229,6 +230,9 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
     ? `/matches/${match.id}?leagueId=${leagueId}`
     : `/matches/${match.id}`
 
+  const penaltyBetExpiresAt = match.penaltyBetExpiresAt ? new Date(match.penaltyBetExpiresAt) : null
+  const penaltyBetOpen = !!penaltyBetExpiresAt && new Date() < penaltyBetExpiresAt
+
   const cardContent = (
     <div className="p-4">
       {/* Header */}
@@ -330,7 +334,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       </div>
 
       {/* Penalty bet */}
-      {status === 'PENALTY' && onPenaltyBet && (
+      {status === 'PENALTY' && (penaltyBetOpen || penaltyBet) && (
         <div className="mt-3 pt-3 border-t border-yellow-500/30">
           {penaltyBet ? (
             <div className="flex justify-center">
@@ -344,7 +348,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
                 <span className="text-green-400 font-black text-sm">✓</span>
               </div>
             </div>
-          ) : (
+          ) : penaltyBetOpen ? (
             <div className="flex items-center">
               <div className="flex-1 flex justify-center">
                 <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPenaltyBet('HOME') }} className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform">
@@ -360,7 +364,7 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
                 </button>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       )}
 
