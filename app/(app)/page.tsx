@@ -1363,7 +1363,9 @@ export default function HomePage() {
                 {primaryLeague.matches.filter(m => ['SCHEDULED', 'LOCKED'].includes(m.status)).slice(0, 5).map((match) => {
                   const isInlineOpen = openPredictId === match.id
                   const s = inlineScores[match.id] || { home: '0', away: '0' }
-                  const isOpen = match.status === 'SCHEDULED' && new Date() < new Date(match.lockAt)
+                  const peekLockAt = match.userPrediction?.peekLockAt ? new Date(match.userPrediction.peekLockAt) : null
+                  const isOpen = (match.status === 'SCHEDULED' && new Date() < new Date(match.lockAt)) ||
+                    (match.status === 'LOCKED' && !!match.userPrediction?.peekApplied && peekLockAt !== null && new Date() < peekLockAt)
                   return (
                     <div key={match.id}>
                       <MatchCard
