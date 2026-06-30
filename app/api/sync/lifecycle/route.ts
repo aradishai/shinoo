@@ -234,8 +234,8 @@ async function syncMissingScoresFromApiSports() {
         // 200 min covers 90 reg + stoppage + ET (30) + penalties (40+) + buffer
         const briefFT = afStatus === 'FT' && (elapsedMinutes < 200 || match.status === 'LIVE' || isKnockoutRound)
         const isFinishedByApi = finishedStatuses.includes(afStatus) && !briefFT
-        // During ET/penalties: keep existing 90-min score; goals includes ET goals
-        const isInET = ['ET', 'P'].includes(afStatus)
+        // During ET/penalties/finished: keep 90-min score — goals.home can include penalty kicks in some AF responses
+        const isInET = ['ET', 'P', 'AET', 'PEN'].includes(afStatus)
         const homeScore = isInET
           ? (fixture.score?.fulltime?.home ?? match.homeScore)
           : (fixture.score?.fulltime?.home ?? fixture.goals?.home)

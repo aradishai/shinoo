@@ -172,13 +172,14 @@ async function syncRedCards() {
     const afId = String(fixture.fixture.id)
     const afStatus = fixture.fixture?.status?.short
     const elapsed: number | null = fixture.fixture?.status?.elapsed ?? null
-    // During ET/penalties: freeze homeScore at 90-min result (goals includes ET goals)
-    const isInET = ['ET', 'P'].includes(afStatus)
+    // Always freeze homeScore at 90-min result for ET/penalties/finished — goals.home includes penalty kicks in some AF responses
+    const isInET = ['ET', 'P', 'AET', 'PEN'].includes(afStatus)
     const homeScore = isInET ? (fixture.score?.fulltime?.home ?? match.homeScore) : (fixture.goals?.home ?? null)
     const awayScore = isInET ? (fixture.score?.fulltime?.away ?? match.awayScore) : (fixture.goals?.away ?? null)
 
     // Detect penalty shootout in progress
     const isPenalty = afStatus === 'P'
+    const isFinishedByAF = ['FT', 'AET', 'PEN'].includes(afStatus)
     const penaltyHome: number | null = fixture.score?.penalty?.home ?? null
     const penaltyAway: number | null = fixture.score?.penalty?.away ?? null
 
@@ -187,7 +188,7 @@ async function syncRedCards() {
     const openBetWindow = elapsed != null && elapsed >= 118 && !matchPenaltyBetExpiresAt
     const penaltyBetExpiresAt = openBetWindow ? new Date(Date.now() + 8 * 60 * 1000) : undefined
 
-    const newStatus = isPenalty ? 'PENALTY' : undefined
+    const newStatus = isPenalty ? 'PENALTY' : isFinishedByAF ? 'FINISHED' : undefined
 
     await db.match.update({
       where: { id: match.id },
@@ -290,7 +291,7 @@ async function lockExpiredMatches() {
 async function autoFinishStaleMatches() {
   const staleTime = new Date(Date.now() - 115 * 60 * 1000)
   const staleMatches = await db.match.findMany({
-    where: { status: { in: ['LIVE', 'PAUSED', 'LOCKED'] }, kickoffAt: { lte: staleTime } },
+    where: { status: { in: ['LIVE', 'PAUSED', 'LOCKED', 'PENALTY'] }, kickoffAt: { lte: staleTime } },
     select: { id: true },
   })
   if (staleMatches.length === 0) return
