@@ -236,11 +236,10 @@ async function main() {
       )
       AND status = 'FINISHED'
     `)
-    // Reset prediction points so lifecycle recalculates with correct 90-min scores
+    // Delete prediction points so recalculateMissingPoints recalculates with correct 90-min scores
     await pool.query(`
-      UPDATE "PredictionPoints" pp
-      SET "totalPoints" = NULL
-      FROM "Prediction" p, "Match" m
+      DELETE FROM "PredictionPoints" pp
+      USING "Prediction" p, "Match" m
       WHERE pp."predictionId" = p.id
         AND p."matchId" = m.id
         AND (
