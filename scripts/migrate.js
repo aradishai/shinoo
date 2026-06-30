@@ -213,6 +213,43 @@ async function main() {
           )
         )
     `)
+    // Fix ET match scores to 90-min result only (Morocco 1:1, Germany 1:1)
+    await pool.query(`
+      UPDATE "Match" SET "homeScore" = 1, "awayScore" = 1, "homeScoreET" = NULL, "awayScoreET" = NULL
+      WHERE (
+        ("homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%morocco%' OR "nameHe" ILIKE '%מרוקו%')
+         AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%netherlands%' OR "nameHe" ILIKE '%הולנד%'))
+        OR
+        ("homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%netherlands%' OR "nameHe" ILIKE '%הולנד%')
+         AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%morocco%' OR "nameHe" ILIKE '%מרוקו%'))
+      )
+      AND status = 'FINISHED'
+    `)
+    await pool.query(`
+      UPDATE "Match" SET "homeScore" = 1, "awayScore" = 1, "homeScoreET" = NULL, "awayScoreET" = NULL
+      WHERE (
+        ("homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%' OR "nameHe" ILIKE '%גרמניה%')
+         AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%' OR "nameHe" ILIKE '%פראגוואי%'))
+        OR
+        ("homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%' OR "nameHe" ILIKE '%פראגוואי%')
+         AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%' OR "nameHe" ILIKE '%גרמניה%'))
+      )
+      AND status = 'FINISHED'
+    `)
+    // Reset prediction points so lifecycle recalculates with correct 90-min scores
+    await pool.query(`
+      UPDATE "PredictionPoints" pp
+      SET "totalPoints" = NULL, "resultPoints" = NULL
+      FROM "Prediction" p, "Match" m
+      WHERE pp."predictionId" = p.id
+        AND p."matchId" = m.id
+        AND (
+          (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%morocco%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%netherlands%'))
+          OR (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%netherlands%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%morocco%'))
+          OR (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%'))
+          OR (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%"))
+        )
+    `)
     console.log('Column check complete')
   } finally {
     await pool.end()

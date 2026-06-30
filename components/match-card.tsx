@@ -531,42 +531,30 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
       )
     }
 
-    // Locked match: show 90' and ET120 buttons
+    // Locked match: show 90' button
     if (status === 'LOCKED') {
-      const elapsedLocked = Date.now() - kickoff.getTime()
-      const showEt120Locked = powerup.et120Stock > 0 && !powerup.et120Applied && elapsedLocked < 96 * 60 * 1000
-      if (powerup.minute90Stock > 0 || showEt120Locked) {
+      if (powerup.minute90Stock > 0) {
         return (
           <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
-            {powerup.minute90Stock > 0 && (
-              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
-                <img src="/btn-90.png" alt="90'" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
-              </button>
-            )}
-            {showEt120Locked && (
-              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onEt120() }} className="transition-all active:scale-95">
-                <img src="/btn-et120.png" alt="120 ET" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
-              </button>
-            )}
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
+              <img src="/btn-90.png" alt="90'" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
+            </button>
           </div>
         )
       }
     }
 
-    // Live buttons: X2/SHINOO only during halftime, 90' only when LIVE (not halftime), ET120 within 137min window
+    // Live buttons: X2/SHINOO only during halftime, 90' only when LIVE (not halftime)
     if ((isLive || match.status === 'PAUSED') && doubleSlot) return null
     if (isLive || match.status === 'PAUSED') {
       const inHalftimeWindow = match.status === 'PAUSED' || liveMinute === 'מחצית'
       const before90 = (match.status === 'LIVE' || match.status === 'PAUSED') && liveMinute !== 'מחצית'
-      const elapsed = Date.now() - kickoff.getTime()
-      const withinET120Window = elapsed < 96 * 60 * 1000
 
       const showX2 = powerup.x2Stock > 0 && inHalftimeWindow
       const showShinoo = powerup.shinooStock > 0 && inHalftimeWindow
       const showM90 = powerup.minute90Stock > 0 && before90 && !liveMinute?.startsWith('90+')
-      const showEt120 = powerup.et120Stock > 0 && !powerup.et120Applied && withinET120Window
 
-      if (!showX2 && !showShinoo && !showM90 && !showEt120) return null
+      if (!showX2 && !showShinoo && !showM90) return null
       return (
         <div className="flex gap-2 justify-center px-4 pb-3 pt-2 border-t border-dark-border/40" dir="ltr">
           {showX2 && (
@@ -582,11 +570,6 @@ export function MatchCard({ match, prediction, memberPredictions = [], leagueId,
           {showM90 && (
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onMinute90() }} className="transition-all active:scale-95">
               <img src="/btn-90.png" alt="90'" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
-            </button>
-          )}
-          {showEt120 && (
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); powerup.onEt120() }} className="transition-all active:scale-95">
-              <img src="/btn-et120.png" alt="120 ET" className="h-7 w-20 object-contain rounded-lg" style={{ mixBlendMode: 'lighten' }} loading="lazy" />
             </button>
           )}
         </div>
