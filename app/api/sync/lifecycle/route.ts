@@ -427,6 +427,47 @@ export async function GET() {
     // Spain vs Saudi Arabia: API erroneously reports 5:0, real score was 4:0
     await db.$executeRaw`UPDATE "Match" SET "homeScore" = 4 WHERE id = 'cmobmm5bu004l12r2e39r1pw2' AND "homeScore" = 5`
     await recalculatePoints('cmobmm5bu004l12r2e39r1pw2')
+    // Morocco vs Netherlands and Germany vs Paraguay: only 90-min score counts (1:1), ET/penalty goals excluded
+    const morNetherlands = await db.$executeRaw`
+      UPDATE "Match" SET "homeScore" = 1, "awayScore" = 1, "homeScoreET" = NULL, "awayScoreET" = NULL
+      WHERE ("homeScore" != 1 OR "awayScore" != 1)
+        AND status = 'FINISHED'
+        AND "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%morocco%')
+        AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%netherlands%')
+    `
+    const nethMorocco = await db.$executeRaw`
+      UPDATE "Match" SET "homeScore" = 1, "awayScore" = 1, "homeScoreET" = NULL, "awayScoreET" = NULL
+      WHERE ("homeScore" != 1 OR "awayScore" != 1)
+        AND status = 'FINISHED'
+        AND "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%netherlands%')
+        AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%morocco%')
+    `
+    const gerPar = await db.$executeRaw`
+      UPDATE "Match" SET "homeScore" = 1, "awayScore" = 1, "homeScoreET" = NULL, "awayScoreET" = NULL
+      WHERE ("homeScore" != 1 OR "awayScore" != 1)
+        AND status = 'FINISHED'
+        AND "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%')
+        AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%')
+    `
+    const parGer = await db.$executeRaw`
+      UPDATE "Match" SET "homeScore" = 1, "awayScore" = 1, "homeScoreET" = NULL, "awayScoreET" = NULL
+      WHERE ("homeScore" != 1 OR "awayScore" != 1)
+        AND status = 'FINISHED'
+        AND "homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%')
+        AND "awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%')
+    `
+    if (Number(morNetherlands) + Number(nethMorocco) > 0) {
+      const morMatch = await db.match.findFirst({ where: { homeTeam: { nameEn: { contains: 'Morocco' } }, awayTeam: { nameEn: { contains: 'Netherlands' } } } })
+      const nethMatch = await db.match.findFirst({ where: { homeTeam: { nameEn: { contains: 'Netherlands' } }, awayTeam: { nameEn: { contains: 'Morocco' } } } })
+      if (morMatch) await recalculatePoints(morMatch.id)
+      if (nethMatch) await recalculatePoints(nethMatch.id)
+    }
+    if (Number(gerPar) + Number(parGer) > 0) {
+      const gerMatch = await db.match.findFirst({ where: { homeTeam: { nameEn: { contains: 'Germany' } }, awayTeam: { nameEn: { contains: 'Paraguay' } } } })
+      const parMatch = await db.match.findFirst({ where: { homeTeam: { nameEn: { contains: 'Paraguay' } }, awayTeam: { nameEn: { contains: 'Germany' } } } })
+      if (gerMatch) await recalculatePoints(gerMatch.id)
+      if (parMatch) await recalculatePoints(parMatch.id)
+    }
     await sendMatchSummaryMessages()
     await sendMatchReminders()
     return NextResponse.json({ ok: true, ts: new Date().toISOString() })
