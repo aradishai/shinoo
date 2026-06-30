@@ -993,12 +993,20 @@ export default function HomePage() {
           <div className="bg-dark-card border border-dark-border rounded-t-3xl w-full max-w-sm pb-8 pt-4 overflow-y-auto max-h-[80vh]" onClick={e => e.stopPropagation()} dir="rtl">
             <div className="w-10 h-1 bg-dark-border rounded-full mx-auto mb-4" />
             {isAdmin && (
-              <button onClick={() => { setShowMenu(false); openAdminPanel() }}
-                className="w-full flex items-center gap-3 px-6 py-4 text-right hover:bg-dark-50 transition-all border-b border-dark-border">
-                <span className="text-lg">⚙️</span>
-                <span className="text-primary font-bold text-sm">ניהול משתמשים</span>
-                <span className="mr-auto text-gray-600">›</span>
-              </button>
+              <>
+                <button onClick={() => { setShowMenu(false); openAdminPanel() }}
+                  className="w-full flex items-center gap-3 px-6 py-4 text-right hover:bg-dark-50 transition-all border-b border-dark-border">
+                  <span className="text-lg">⚙️</span>
+                  <span className="text-primary font-bold text-sm">ניהול משתמשים</span>
+                  <span className="mr-auto text-gray-600">›</span>
+                </button>
+                <a href="/admin"
+                  className="w-full flex items-center gap-3 px-6 py-4 text-right hover:bg-dark-50 transition-all border-b border-dark-border">
+                  <span className="text-lg">⚽</span>
+                  <span className="text-primary font-bold text-sm">עריכת תוצאות</span>
+                  <span className="mr-auto text-gray-600">›</span>
+                </a>
+              </>
             )}
             <button onClick={() => setMenuPage('account')}
               className="w-full flex items-center gap-3 px-6 py-4 text-right hover:bg-dark-50 transition-all border-b border-dark-border/40">
