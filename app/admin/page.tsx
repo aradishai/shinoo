@@ -1,8 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const SECRET = 'shinoo-admin-2026'
-
 type Match = {
   id: string
   homeTeam: { nameHe: string }
@@ -15,23 +13,32 @@ type Match = {
 }
 
 export default function AdminPage() {
-  const [authed, setAuthed] = useState(false)
-  const [password, setPassword] = useState('')
+  const [ready, setReady] = useState(false)
+  const [allowed, setAllowed] = useState(false)
   const [matches, setMatches] = useState<Match[]>([])
   const [scores, setScores] = useState<Record<string, { home: string; away: string; status: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    if (!authed) return
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(data => {
+        if (data?.data?.username === 'ערד') {
+          setAllowed(true)
+        }
+        setReady(true)
+      })
+      .catch(() => setReady(true))
+  }, [])
+
+  useEffect(() => {
+    if (!allowed) return
     fetch('/api/admin/matches')
       .then(r => r.json())
       .then(({ data }) => {
         const recent = (data as Match[])
-          .filter(m => {
-            const d = new Date(m.kickoffAt)
-            return d > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
-          })
+          .filter(m => new Date(m.kickoffAt) > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000))
           .sort((a, b) => new Date(b.kickoffAt).getTime() - new Date(a.kickoffAt).getTime())
         setMatches(recent)
         const init: typeof scores = {}
@@ -44,29 +51,7 @@ export default function AdminPage() {
         }
         setScores(init)
       })
-  }, [authed])
-
-  if (!authed) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-        <h1 style={{ color: '#fff', fontSize: 20 }}>Admin</h1>
-        <input
-          type="password"
-          placeholder="סיסמה"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && password === SECRET) setAuthed(true) }}
-          style={{ padding: '8px 12px', borderRadius: 8, border: 'none', fontSize: 16, textAlign: 'center' }}
-        />
-        <button
-          onClick={() => { if (password === SECRET) setAuthed(true) }}
-          style={{ padding: '8px 24px', borderRadius: 8, background: '#3b82f6', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 16 }}
-        >
-          כניסה
-        </button>
-      </div>
-    )
-  }
+  }, [allowed])
 
   const save = async (id: string) => {
     const s = scores[id]
@@ -84,10 +69,24 @@ export default function AdminPage() {
     setTimeout(() => setMessage(''), 3000)
   }
 
+  if (!ready) return <div style={{ minHeight: '100vh', background: '#111' }} />
+
+  if (!allowed) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#888', fontSize: 16 }}>אין גישה</p>
+      </div>
+    )
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#111', padding: '24px 16px', direction: 'rtl' }}>
       <h1 style={{ color: '#fff', marginBottom: 16, fontSize: 20 }}>עריכת תוצאות</h1>
-      {message && <div style={{ color: message.startsWith('✓') ? '#4ade80' : '#f87171', marginBottom: 12 }}>{message}</div>}
+      {message && (
+        <div style={{ color: message.startsWith('✓') ? '#4ade80' : '#f87171', marginBottom: 12 }}>
+          {message}
+        </div>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {matches.map(m => {
           const s = scores[m.id]
