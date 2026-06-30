@@ -95,8 +95,9 @@ async function syncFootballData() {
     if (!match) continue
 
     const status = FD_STATUS_MAP[m.status] ?? match.status
-    const homeScore = m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore
-    const awayScore = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? match.awayScore
+    const alreadyFinished = match.status === 'FINISHED' && match.homeScore !== null && match.awayScore !== null
+    const homeScore = alreadyFinished ? match.homeScore : (m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore)
+    const awayScore = alreadyFinished ? match.awayScore : (m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? match.awayScore)
     const hasScore = homeScore !== null && awayScore !== null
     const homeScoreET: number | null = m.score?.extraTime?.home ?? null
     const awayScoreET: number | null = m.score?.extraTime?.away ?? null

@@ -246,6 +246,8 @@ async function syncMissingScoresFromApiSports() {
         // For active matches: update score and mark FINISHED only when api says FT
         // For scoreless finished matches: fill in the score
         if (homeScore === null || homeScore === undefined) continue
+        // Never overwrite a manually-set score on a finished match
+        if (match.status === 'FINISHED' && match.homeScore !== null && match.awayScore !== null) continue
 
         const newStatus = isFinishedByApi ? 'FINISHED'
           : liveStatuses.includes(afStatus) ? 'LIVE'
