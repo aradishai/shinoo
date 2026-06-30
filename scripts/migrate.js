@@ -247,7 +247,7 @@ async function main() {
           (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%morocco%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%netherlands%'))
           OR (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%netherlands%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%morocco%'))
           OR (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%'))
-          OR (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%"))
+          OR (m."homeTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%paraguay%') AND m."awayTeamId" IN (SELECT id FROM "Team" WHERE "nameEn" ILIKE '%germany%'))
         )
     `)
     console.log('Column check complete')
