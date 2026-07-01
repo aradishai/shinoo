@@ -53,6 +53,32 @@ export default function AdminPage() {
       })
   }, [allowed])
 
+  const sendMinute90Notification = async (matchId: string, matchLabel: string) => {
+    // 1. Reset match to LIVE so minute90 button appears
+    const resetRes = await fetch(`/api/admin/matches/${matchId}/result`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ homeScore: scores[matchId]?.home ? parseInt(scores[matchId].home) : null, awayScore: scores[matchId]?.away ? parseInt(scores[matchId].away) : null, status: 'LIVE' }),
+    })
+    if (!resetRes.ok) { setMessage('שגיאה בעדכון סטטוס'); return }
+
+    // 2. Send push to OzyB
+    const pushRes = await fetch('/api/admin/push-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: 'shinoo-admin-2026',
+        username: 'OzyB',
+        title: "⚽ יש לך לחצן דקה 90' זמין!",
+        body: `${matchLabel} — לחץ להגרלת ניחוש חדש`,
+        url: '/',
+      }),
+    })
+    const pushData = await pushRes.json()
+    setMessage(pushRes.ok ? `✓ נשלח ל-OzyB (${pushData.sent} התקנים), המשחק חזר ל-LIVE` : pushData.error || 'שגיאה בשליחה')
+    setTimeout(() => setMessage(''), 8000)
+  }
+
   const save = async (id: string) => {
     const s = scores[id]
     if (!s) return
@@ -129,6 +155,15 @@ export default function AdminPage() {
               >
                 {saving === m.id ? '...' : 'שמור'}
               </button>
+              {s.status === 'FINISHED' && (
+                <button
+                  onClick={() => sendMinute90Notification(m.id, `${m.homeTeam.nameHe} נגד ${m.awayTeam.nameHe}`)}
+                  title="החזר ל-LIVE ושלח התראת 90' ל-OzyB"
+                  style={{ padding: '6px 12px', borderRadius: 8, background: '#7c3aed', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 13 }}
+                >
+                  90' → OzyB
+                </button>
+              )}
             </div>
           )
         })}
