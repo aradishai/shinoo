@@ -100,15 +100,13 @@ async function syncFootballData() {
 
     if (!match) continue
 
+    if (match.status === 'FINISHED' && match.homeScore !== null && match.awayScore !== null) continue
     const fdStatus = FD_STATUS_MAP[m.status] ?? match.status
     const elapsedMinFD = (Date.now() - new Date(match.kickoffAt).getTime()) / 60_000
     const isKnockoutFD = match.round != null && isNaN(Number(match.round))
-    // For knockout rounds or LIVE matches: never trust FINISHED from FD if < 200 min elapsed
     const status = (fdStatus === 'FINISHED' && (match.status === 'LIVE' || isKnockoutFD) && elapsedMinFD < 200) ? 'LIVE' : fdStatus
-    // Don't overwrite score of an already-finished match — only update live/in-progress scores
-    const alreadyFinished = match.status === 'FINISHED' && match.homeScore !== null && match.awayScore !== null
-    const homeScore = alreadyFinished ? match.homeScore : (m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore)
-    const awayScore = alreadyFinished ? match.awayScore : (m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? match.awayScore)
+    const homeScore = m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? match.homeScore
+    const awayScore = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? match.awayScore
     const hasScore = homeScore !== null && awayScore !== null
 
     const homeScoreET: number | null = m.score?.extraTime?.home ?? null
