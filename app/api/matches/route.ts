@@ -12,7 +12,10 @@ export async function GET(request: Request) {
     const status = searchParams.get('status')
     const leagueId = searchParams.get('leagueId')
 
-    const whereClause: Record<string, unknown> = { tournament: { isActive: true } }
+    const activeTournaments = await db.tournament.findMany({ where: { isActive: true }, select: { id: true } })
+    const activeTournamentIds = activeTournaments.map(t => t.id)
+
+    const whereClause: Record<string, unknown> = { tournamentId: { in: activeTournamentIds } }
     if (status) {
       const statuses = status.split(',').map(s => s.trim()).filter(Boolean)
       whereClause.status = statuses.length === 1 ? statuses[0] : { in: statuses }

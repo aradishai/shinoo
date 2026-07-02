@@ -116,9 +116,12 @@ export async function GET(
       select: { matchId: true },
     }).then(ps => ps.map(p => p.matchId))
 
+    const activeTournaments = await db.tournament.findMany({ where: { isActive: true }, select: { id: true } })
+    const activeTournamentIds = activeTournaments.map(t => t.id)
+
     const matches = await db.match.findMany({
       where: {
-        tournament: { isActive: true },
+        tournamentId: { in: activeTournamentIds },
         OR: [
           { status: { in: ['LIVE', 'PAUSED', 'LOCKED', 'PENALTY'] } },
           { status: 'SCHEDULED', kickoffAt: { gte: now } },
