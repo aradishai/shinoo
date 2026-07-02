@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       whereClause.status = statuses.length === 1 ? statuses[0] : { in: statuses }
     }
 
-    const matches = await db.match.findMany({
+    const allMatches = await db.match.findMany({
       where: whereClause,
       include: {
         homeTeam: { include: { players: true } },
@@ -33,6 +33,8 @@ export async function GET(request: Request) {
       },
       orderBy: { kickoffAt: status === 'FINISHED' ? 'desc' : 'asc' },
     })
+
+    const matches = allMatches.filter(m => activeTournamentIds.includes(m.tournamentId))
 
     const matchIds = matches.map((m) => m.id)
 
