@@ -255,7 +255,11 @@ export default function HomePage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ secret: 'shinoo-admin-2026', slug: 'la-liga-2025-26', isActive: !laLigaActive }),
     })
-    if (res.ok) setLaLigaActive(v => !v)
+    if (res.ok) {
+      setLaLigaActive(v => !v)
+      const league = primaryLeagueRef.current
+      if (league) await fetchPrimaryLeague(league.id)
+    }
     setLaLigaToggling(false)
   }
 
