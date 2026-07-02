@@ -40,3 +40,25 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true, match })
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
+  const admin = await requireAdmin()
+  if (!admin) return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
+
+  const predIds = await db.prediction.findMany({
+    where: { matchId: params.id },
+    select: { id: true },
+  }).then(ps => ps.map(p => p.id))
+
+  if (predIds.length > 0) {
+    await db.predictionPoints.deleteMany({ where: { predictionId: { in: predIds } } })
+    await db.prediction.deleteMany({ where: { id: { in: predIds } } })
+  }
+
+  await db.match.delete({ where: { id: params.id } })
+
+  return NextResponse.json({ ok: true })
+}

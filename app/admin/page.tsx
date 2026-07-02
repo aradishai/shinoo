@@ -25,6 +25,7 @@ export default function AdminPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [scores, setScores] = useState<Record<string, { home: string; away: string; status: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [togglingTournament, setTogglingTournament] = useState<string | null>(null)
@@ -103,6 +104,18 @@ export default function AdminPage() {
       setTournaments(prev => prev.map(t => t.slug === slug ? { ...t, isActive: !currentlyActive } : t))
     }
     setTogglingTournament(null)
+  }
+
+  const deleteMatch = async (id: string) => {
+    if (!confirm('למחוק את המשחק?')) return
+    setDeleting(id)
+    const res = await fetch(`/api/admin/matches/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setMatches(prev => prev.filter(m => m.id !== id))
+      setMessage('✓ נמחק')
+      setTimeout(() => setMessage(''), 3000)
+    }
+    setDeleting(null)
   }
 
   const save = async (id: string) => {
@@ -209,6 +222,13 @@ export default function AdminPage() {
                 style={{ padding: '6px 16px', borderRadius: 8, background: '#3b82f6', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 14, opacity: saving === m.id ? 0.5 : 1 }}
               >
                 {saving === m.id ? '...' : 'שמור'}
+              </button>
+              <button
+                onClick={() => deleteMatch(m.id)}
+                disabled={deleting === m.id}
+                style={{ padding: '6px 10px', borderRadius: 8, background: '#7f1d1d', color: '#f87171', border: 'none', cursor: 'pointer', fontSize: 14, opacity: deleting === m.id ? 0.5 : 1 }}
+              >
+                {deleting === m.id ? '...' : '✕'}
               </button>
               {s.status === 'FINISHED' && (
                 <button
