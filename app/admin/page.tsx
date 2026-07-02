@@ -12,6 +12,13 @@ type Match = {
   round: string | null
 }
 
+type Tournament = {
+  id: string
+  nameHe: string
+  slug: string
+  isActive: boolean
+}
+
 export default function AdminPage() {
   const [ready, setReady] = useState(false)
   const [allowed, setAllowed] = useState(false)
@@ -19,6 +26,8 @@ export default function AdminPage() {
   const [scores, setScores] = useState<Record<string, { home: string; away: string; status: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
   const [message, setMessage] = useState('')
+  const [tournaments, setTournaments] = useState<Tournament[]>([])
+  const [togglingTournament, setTogglingTournament] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -34,6 +43,10 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!allowed) return
+    fetch(`/api/admin/tournaments?secret=shinoo-admin-2026`)
+      .then(r => r.json())
+      .then(({ data }) => setTournaments(data ?? []))
+
     fetch('/api/admin/matches')
       .then(r => r.json())
       .then(({ data }) => {
@@ -79,6 +92,19 @@ export default function AdminPage() {
     setTimeout(() => setMessage(''), 8000)
   }
 
+  const toggleTournament = async (slug: string, currentlyActive: boolean) => {
+    setTogglingTournament(slug)
+    const res = await fetch('/api/admin/set-tournament-active', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret: 'shinoo-admin-2026', slug, isActive: !currentlyActive }),
+    })
+    if (res.ok) {
+      setTournaments(prev => prev.map(t => t.slug === slug ? { ...t, isActive: !currentlyActive } : t))
+    }
+    setTogglingTournament(null)
+  }
+
   const save = async (id: string) => {
     const s = scores[id]
     if (!s) return
@@ -113,6 +139,35 @@ export default function AdminPage() {
           {message}
         </div>
       )}
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ color: '#aaa', fontSize: 14, marginBottom: 10 }}>טורנירים</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {tournaments.map(t => (
+            <div key={t.id} style={{ background: '#1e1e1e', borderRadius: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ color: '#fff', fontSize: 15 }}>{t.nameHe}</span>
+              <button
+                onClick={() => toggleTournament(t.slug, t.isActive)}
+                disabled={togglingTournament === t.slug}
+                style={{
+                  padding: '5px 18px',
+                  borderRadius: 20,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  background: t.isActive ? '#22c55e' : '#444',
+                  color: '#fff',
+                  opacity: togglingTournament === t.slug ? 0.5 : 1,
+                  transition: 'background 0.2s',
+                }}
+              >
+                {t.isActive ? 'פעיל' : 'כבוי'}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {matches.map(m => {
           const s = scores[m.id]
