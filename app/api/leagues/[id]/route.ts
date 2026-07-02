@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 function getRoundNumber(round: string | null | undefined): number {
   if (!round) return 0
   const digits = round.replace(/\D/g, '')
