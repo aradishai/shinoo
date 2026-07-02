@@ -214,6 +214,8 @@ export default function HomePage() {
   const [adminResetTarget, setAdminResetTarget] = useState<string | null>(null)
   const [adminResetPassword, setAdminResetPassword] = useState('')
   const [adminResetLoading, setAdminResetLoading] = useState(false)
+  const [laLigaActive, setLaLigaActive] = useState(false)
+  const [laLigaToggling, setLaLigaToggling] = useState(false)
   const [openPredictId, setOpenPredictId] = useState<string | null>(null)
   const [inlineScores, setInlineScores] = useState<Record<string, { home: string; away: string }>>({})
   const [inlineSaving, setInlineSaving] = useState<string | null>(null)
@@ -225,9 +227,10 @@ export default function HomePage() {
   const isAdmin = user?.isAdmin ?? false
 
   const openAdminPanel = async () => {
-    const [usersRes, interestsRes] = await Promise.all([
+    const [usersRes, interestsRes, tournamentsRes] = await Promise.all([
       fetch('/api/admin/users'),
       fetch('/api/admin/interests'),
+      fetch('/api/admin/tournaments?secret=shinoo-admin-2026'),
     ])
     if (usersRes.ok) {
       const data = await usersRes.json()
@@ -237,7 +240,23 @@ export default function HomePage() {
       const data = await interestsRes.json()
       setInterestCounts(data.interests)
     }
+    if (tournamentsRes.ok) {
+      const data = await tournamentsRes.json()
+      const laLiga = (data.data ?? []).find((t: any) => t.slug === 'la-liga-2025-26')
+      setLaLigaActive(laLiga?.isActive ?? false)
+    }
     setShowAdminPanel(true)
+  }
+
+  const toggleLaLiga = async () => {
+    setLaLigaToggling(true)
+    const res = await fetch('/api/admin/set-tournament-active', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret: 'shinoo-admin-2026', slug: 'la-liga-2025-26', isActive: !laLigaActive }),
+    })
+    if (res.ok) setLaLigaActive(v => !v)
+    setLaLigaToggling(false)
   }
 
   const handleAdminResetPassword = async () => {
@@ -870,6 +889,17 @@ export default function HomePage() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-dark-border">
               <h2 className="text-white font-black text-base">משתמשים ({adminUsers.length})</h2>
               <button onClick={() => setShowAdminPanel(false)} className="text-gray-500 text-xl">✕</button>
+            </div>
+            {/* La Liga toggle */}
+            <div className="px-4 py-3 border-b border-dark-border/50 flex items-center justify-between">
+              <span className="text-gray-300 text-sm font-bold">ליגה ספרדית</span>
+              <button
+                onClick={toggleLaLiga}
+                disabled={laLigaToggling}
+                className={`px-4 py-1.5 rounded-full text-xs font-black transition-all active:scale-95 ${laLigaActive ? 'bg-green-600 text-white' : 'bg-dark-50 border border-dark-border text-gray-500'}`}
+              >
+                {laLigaToggling ? '...' : laLigaActive ? 'פעיל' : 'כבוי'}
+              </button>
             </div>
             {/* Interests */}
             {interestCounts.length > 0 && (
