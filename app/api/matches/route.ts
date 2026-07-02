@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const status = searchParams.get('status')
     const leagueId = searchParams.get('leagueId')
 
-    const whereClause: Record<string, unknown> = {}
+    const whereClause: Record<string, unknown> = { tournament: { isActive: true } }
     if (status) {
       const statuses = status.split(',').map(s => s.trim()).filter(Boolean)
       whereClause.status = statuses.length === 1 ? statuses[0] : { in: statuses }
