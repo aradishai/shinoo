@@ -118,6 +118,7 @@ export async function GET(
 
     const matches = await db.match.findMany({
       where: {
+        tournament: { isActive: true },
         OR: [
           { status: { in: ['LIVE', 'PAUSED', 'LOCKED', 'PENALTY'] } },
           { status: 'SCHEDULED', kickoffAt: { gte: now } },
